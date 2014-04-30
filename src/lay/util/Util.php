@@ -1,7 +1,22 @@
 <?php
+if(! defined('INIT_LAY'))
+    exit();
+
+/**
+ * 工具类
+ *
+ * @author Lay Li
+ */
 class Util {
+    private static $IsWindows;
+    public static function isWindows() {
+        if(! is_bool(self::$IsWindows)) {
+            self::$IsWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+        }
+        return self::$IsWindows;
+    }
     public static function isAbsolutePath($path) {
-        
+        return false;
     }
     /**
      * php array to php content
@@ -19,7 +34,7 @@ class Util {
         } else {
             $r = "<?php return ";
             self::a2s($r, $arr);
-            $r .= ";?>\n";
+            $r .= ";?>\r\n";
         }
         return $r;
     }
@@ -110,6 +125,7 @@ class Util {
      * @return void
      */
     private static function o2s(&$r, $k, $v, $i, $j, $l, $b) {
+        $isW = self::isWindows();
         if($k !== $i) {
             if($j)
                 $r .= "$l$b$k => ";
@@ -123,13 +139,7 @@ class Util {
         else if(is_numeric($v))
             $r .= "" . $v;
         else
-            $r .= "'" . str_replace(array(
-                    "\\",
-                    "'"
-            ), array(
-                    "\\\\",
-                    "\'"
-            ), $v) . "'";
+            $r .= "'" . str_replace("'", "\'", $v) . "'";
     }
 }
 ?>
