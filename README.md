@@ -29,7 +29,7 @@ php >= 5.2
 
 PHP不区分大小写,变量书写时难免会出现混乱,为了书写规范,本库书写规范如下:
 
-1. 普通变量名: `$_varName`(很少使用到), 全局变量名: `global $_VarName`, 全局常量名: `VAR_NAME`. 普通函数名：`function_name`, 普通函数内局部变量名: `$var_name`, 类静态变量名: `$VarName`, 类属性变量名: `$varName`, 类常量名: `VAR_NAME`, 类方法(函数)内局部变量名: `$varname`或`$varName`, 类方法(函数)名: `functionName`, 类静态方法(函数)名: `functionName`, 普通类名: `ClassName`, 接口类名: `Interface_Name`, 抽象类名: `AbstractClassName`(即在类名前一定要有'Abstract'). 数组(对象)中的键名: `keyName`或`key-name`(一般只在配置中使用到).
+1. 普通变量名: `$_varName`(很少使用到), 全局变量名: `global $_VarName`, 全局常量名: `VAR_NAME`. 普通函数名：`function_name`, 普通函数内局部变量名: `$var_name`, 类静态变量名: `$_VarName`, 类属性变量名: `$varName`, 类常量名: `VAR_NAME`, 类方法(函数)内局部变量名: `$varname`或`$varName`, 类方法(函数)名: `functionName`, 类静态方法(函数)名: `functionName`, 普通类名: `ClassName`, 接口类名: `Interface_Name`, 抽象类名: `AbstractClassName`(即在类名前一定要有'Abstract'). 数组(对象)中的键名: `keyName`或`key-name`(一般只在配置中使用到).
 
 2. 以上命名(非类,接口,抽象类,方法,常量,全局变量)中都可以使用短变量名,在定义的时候请增加注释,如: `$_v_n = '普通变量名';//$_v_n => $_var_name`, `$v_n = '普通函数内局部变量名';//$v_n => $var_name`, `$vN = '类属性变量名';//$vN => $varName`, `$vn = '类方法(函数)内局部变量名';//$vn => $varname`, `$VN = '类静态变量名';//$VN => $VarName`, 短变量名,是以每个英文单词首字母的缩写组成.
 

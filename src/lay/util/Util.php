@@ -8,12 +8,12 @@ if(! defined('INIT_LAY'))
  * @author Lay Li
  */
 class Util {
-    private static $IsWindows;
+    private static $_IsWindows;
     public static function isWindows() {
-        if(! is_bool(self::$IsWindows)) {
-            self::$IsWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+        if(! is_bool(self::$_IsWindows)) {
+            self::$_IsWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
         }
-        return self::$IsWindows;
+        return self::$_IsWindows;
     }
     public static function isAbsolutePath($path) {
         return false;

@@ -17,33 +17,33 @@ class Logger implements I_Logger {
      *
      * @var boolean int
      */
-    private static $out = false;
+    private static $_Out = false;
     /**
      * the flag of syslog
      *
      * @var boolean int
      */
-    private static $log = false;
+    private static $_Log = false;
     /**
      * Delay debugger in microseconds
      *
      * @var boolean int
      */
-    private static $sleep = false;
+    private static $_Sleep = false;
     /**
      *
      * @var the instance of current debugger
      */
-    private static $instance = null;
+    private static $_Instance = null;
     /**
      * 获取debugger实例
      * @return I_Logger
      */
     private static function getInstance() {
-        if(! self::$instance) {
-            self::$instance = self::getInstanceByClassname('Logger');
+        if(! self::$_Instance) {
+            self::$_Instance = self::getInstanceByClassname('Logger');
         }
-        return self::$instance;
+        return self::$_Instance;
     }
     /**
      * 通过类名获取一个实例
@@ -96,9 +96,9 @@ class Logger implements I_Logger {
      */
     public static function register($instance) {
         if($instance && is_string($instance)) {
-            self::$instance = self::getInstanceByClassname($instance);
+            self::$_Instance = self::getInstanceByClassname($instance);
         } else if($instance instanceof I_Logger) {
-            self::$instance = $instance;
+            self::$_Instance = $instance;
         }
     }
     /**
@@ -111,25 +111,25 @@ class Logger implements I_Logger {
      */
     public static function initialize($debug = '', $instance = '') {
         if(is_bool($debug)) {
-            self::$out = self::$log = $debug;
+            self::$_Out = self::$_Log = $debug;
         } else if(is_array($debug)) {
             $debug['out'] = isset($debug['out']) ? $debug['out'] : isset($debug[0]) ? $debug[0] : false;
             $debug['log'] = isset($debug['log']) ? $debug['log'] : isset($debug[1]) ? $debug[1] : false;
             $debug['sleep'] = isset($debug['sleep']) ? $debug['sleep'] : isset($debug[2]) ? $debug[2] : false;
-            self::$out = ($debug['out'] === true) ? true : intval($debug['out']);
-            self::$log = ($debug['log'] === true) ? true : intval($debug['log']);
-            self::$sleep = $debug['sleep'] ? intval($debug['sleep']) : false;
+            self::$_Out = ($debug['out'] === true) ? true : intval($debug['out']);
+            self::$_Log = ($debug['log'] === true) ? true : intval($debug['log']);
+            self::$_Sleep = $debug['sleep'] ? intval($debug['sleep']) : false;
         } else if(is_int($debug)) {
-            self::$out = self::$log = $debug;
+            self::$_Out = self::$_Log = $debug;
         } else if($debug === '') {
             $debug = Laywork::get('debug');
             if($debug === '' || $debug === null) {
-                self::$out = self::$log = false;
+                self::$_Out = self::$_Log = false;
             } else {
                 self::initialize($debug);
             }
         } else {
-            self::$out = self::$log = false;
+            self::$_Out = self::$_Log = false;
         }
         
         if($instance) {
@@ -146,13 +146,13 @@ class Logger implements I_Logger {
      * @return void
      */
     public static function debug($msg, $tag = '') {
-        if(self::$out === true || (self::$out && self::regular(intval(self::$out), self::DEBUG_LEVEL_DEBUG))) {
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_DEBUG))) {
             self::getInstance()->pre($msg, self::DEBUG_LEVEL_DEBUG, $tag);
             ob_flush();
             flush();
-            usleep(self::$sleep);
+            usleep(self::$_Sleep);
         }
-        if(self::$log === true || (self::$log && self::regular(intval(self::$log), self::DEBUG_LEVEL_DEBUG))) {
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_DEBUG))) {
             self::getInstance()->log(json_encode($msg), self::DEBUG_LEVEL_DEBUG, $tag);
         }
     }
@@ -166,13 +166,13 @@ class Logger implements I_Logger {
      * @return void
      */
     public static function info($msg, $tag = '') {
-        if(self::$out === true || (self::$out && self::regular(intval(self::$out), self::DEBUG_LEVEL_INFO))) {
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_INFO))) {
             self::getInstance()->out($msg, self::DEBUG_LEVEL_INFO, $tag);
             ob_flush();
             flush();
-            usleep(self::$sleep);
+            usleep(self::$_Sleep);
         }
-        if(self::$log === true || (self::$log && self::regular(intval(self::$log), self::DEBUG_LEVEL_INFO))) {
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_INFO))) {
             self::getInstance()->log($msg, self::DEBUG_LEVEL_INFO, $tag);
         }
     }
@@ -186,13 +186,13 @@ class Logger implements I_Logger {
      * @return void
      */
     public static function warning($msg, $tag = '') {
-        if(self::$out === true || (self::$out && self::regular(intval(self::$out), self::DEBUG_LEVEL_WARN))) {
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_WARN))) {
             self::getInstance()->out($msg, self::DEBUG_LEVEL_WARN, $tag);
             ob_flush();
             flush();
-            usleep(self::$sleep);
+            usleep(self::$_Sleep);
         }
-        if(self::$log === true || (self::$log && self::regular(intval(self::$log), self::DEBUG_LEVEL_WARN))) {
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_WARN))) {
             self::getInstance()->log($msg, self::DEBUG_LEVEL_WARN, $tag);
         }
     }
@@ -218,13 +218,13 @@ class Logger implements I_Logger {
      * @return void
      */
     public static function error($msg, $tag = '') {
-        if(self::$out === true || (self::$out && self::regular(intval(self::$out), self::DEBUG_LEVEL_ERROR))) {
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_ERROR))) {
             self::getInstance()->out($msg, self::DEBUG_LEVEL_ERROR, $tag);
             ob_flush();
             flush();
-            usleep(self::$sleep);
+            usleep(self::$_Sleep);
         }
-        if(self::$log === true || (self::$log && self::regular(intval(self::$log), self::DEBUG_LEVEL_ERROR))) {
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_ERROR))) {
             self::getInstance()->log($msg, self::DEBUG_LEVEL_ERROR, $tag);
         }
     }

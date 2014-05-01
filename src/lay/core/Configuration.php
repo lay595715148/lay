@@ -9,7 +9,7 @@ if(! defined('INIT_LAY'))
  *
  */
 class Configuration implements I_Configuration {
-    public static $instances = array();
+    public static $_Instances = array();
     /**
      *
      * @param string $appname
@@ -20,10 +20,10 @@ class Configuration implements I_Configuration {
         if(! self::checkAppname($appname)) {
             return null;
         }
-        if(! isset(self::$instances[$appname]) || ! self::$instances[$appname]) {
-            self::$instances[$appname] = self::getInstanceByClassname($classname);
+        if(! isset(self::$_Instances[$appname]) || ! self::$_Instances[$appname]) {
+            self::$_Instances[$appname] = self::getInstanceByClassname($classname);
         }
-        return self::$instances[$appname];
+        return self::$_Instances[$appname];
     }
     /**
      * 通过类名获取一个实例

@@ -3,13 +3,13 @@ if(! defined('INIT_LAY'))
     exit();
 
 class EventEmitter implements I_EventEmitter {
-    protected static $EventStack = array();
-    private static $Instance;
+    protected static $_EventStack = array();
+    private static $_Instance;
     public static function getInstance() {
-        if(!self::$Instance) {
-            self::$Instance = new EventEmitter();
+        if(!self::$_Instance) {
+            self::$_Instance = new EventEmitter();
         }
-        return self::$Instance;
+        return self::$_Instance;
     }
     private function __construct() {
     }
@@ -19,11 +19,11 @@ class EventEmitter implements I_EventEmitter {
      * @param int|string $eventid            
      */
     public static function emit($eventid) {
-        if(!self::$Instance) {
+        if(!self::$_Instance) {
             $classname = Lay::get('register_eventemitter');
             if($classname) {
                 try {
-                    self::$Instance = new $classname();
+                    self::$_Instance = new $classname();
                 } catch (Exception $e) {
                     //
                 }
@@ -32,11 +32,11 @@ class EventEmitter implements I_EventEmitter {
         self::getInstance()->trigger($eventid);
     }
     public static function on($eventid, $func, array $params = array(), $level = 0) {
-        if(!self::$Instance) {
+        if(!self::$_Instance) {
             $classname = Lay::get('register_eventemitter');
             if($classname) {
                 try {
-                    self::$Instance = new $classname();
+                    self::$_Instance = new $classname();
                 } catch (Exception $e) {
                     //
                 }
@@ -49,10 +49,10 @@ class EventEmitter implements I_EventEmitter {
      * @see I_EventEmitter::trigger()
      */
     public function trigger($eventid) {
-        if(! isset(self::$EventStack[$eventid])) {
+        if(! isset(self::$_EventStack[$eventid])) {
             return;
         }
-        foreach(self::$EventStack[$eventid] as $level => $events) {
+        foreach(self::$_EventStack[$eventid] as $level => $events) {
             foreach($events as $key => $e) {
                 if(is_callable($e['func'])) {
                     call_user_func_array($e['func'], $e['params']);
@@ -68,11 +68,11 @@ class EventEmitter implements I_EventEmitter {
      */
     public function register($eventid, $func, array $params = array(), $level = 0) {
         // initialize
-        if(! isset(self::$EventStack[$eventid])) {
-            self::$EventStack[$eventid] = array();
+        if(! isset(self::$_EventStack[$eventid])) {
+            self::$_EventStack[$eventid] = array();
         }
         $level = abs(intval($level));
-        self::$EventStack[$eventid][$level][] = array(
+        self::$_EventStack[$eventid][$level][] = array(
                 'func' => $func,
                 'params' => $params
         );

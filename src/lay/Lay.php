@@ -9,12 +9,12 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li 2014-04-29
  */
 class Lay {
-    const EVENT_INIT = 0x0001;
-    const EVENT_START = 0x0002;
-    const EVENT_STOP = 0x0003;
-    private static $Cached = false;
-    private static $Caches = array();
-    private static $Classes = array(
+    const EVENT_INIT = 'lay_init';
+    const EVENT_START = 'lay_start';
+    const EVENT_STOP = 'lay_stop';
+    private static $_Cached = false;
+    private static $_Caches = array();
+    private static $_Classes = array(
             'Util' => '/lay/util/Util.php',
             'Store' => '/lay/store/Store.php',
             'Configuration' => '/lay/core/Configuration.php',
@@ -26,11 +26,11 @@ class Lay {
             'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
             'I_Logger' => '/lay/util/I_Logger.php'
     );
-    private static $ClassPath = array(
+    private static $_ClassPath = array(
             'src'
     );
-    private static $Config = array();
-    public static $RootPath = '';
+    private static $_Config = array();
+    public static $_RootPath = '';
     /**
      * get configuration by key string
      *
@@ -66,7 +66,7 @@ class Lay {
      * @return void
      */
     private static function configure($configuration, $isFile = true) {
-        $_ROOTPATH = &self::$RootPath;
+        $_ROOTPATH = &self::$_RootPath;
         if(is_array($configuration) && ! $isFile) {
             foreach($configuration as $key => $item) {
                 if(is_string($key) && $key) { // key is not null
@@ -146,10 +146,10 @@ class Lay {
         // 使用自定义的autoload方法
         spl_autoload_register('Lay::autoload');
         // 设置根目录路径
-        self::$RootPath = $rootpath = dirname(dirname(__DIR__));
+        self::$_RootPath = $rootpath = dirname(dirname(__DIR__));
         // 设置核心类加载路径
-        foreach(self::$ClassPath as $i => $path) {
-            self::$ClassPath[$i] = $rootpath . '/' . $path;
+        foreach(self::$_ClassPath as $i => $path) {
+            self::$_ClassPath[$i] = $rootpath . '/' . $path;
         }
         Logger::initialize(true);
         Logger::debug();
@@ -162,7 +162,7 @@ class Lay {
         // 设置其他类自动加载目录路径
         $classpaths = include_once $rootpath . '/inc/config/classpath.php';
         foreach($classpaths as $i => $path) {
-            self::$ClassPath[] = $rootpath . '/' . $path;
+            self::$_ClassPath[] = $rootpath . '/' . $path;
         }
         // 加载类文件路径缓存
         self::loadCache();
@@ -204,10 +204,10 @@ class Lay {
      * @return void
      */
     public static function autoload($classname) {
-        if(empty(self::$ClassPath)) {
+        if(empty(self::$_ClassPath)) {
             self::checkAutoloadFunctions();
         } else {
-            foreach(self::$ClassPath as $path) {
+            foreach(self::$_ClassPath as $path) {
                 if(class_exists($classname, false) || interface_exists($classname, false)) {
                     break;
                 } else {
@@ -242,7 +242,7 @@ class Lay {
      * @return void
      */
     public static function loadClass($classname, $classpath) {
-        $classes = self::$Classes;
+        $classes = self::$_Classes;
         $suffixes = array(
                 '.php',
                 '.class.php'
@@ -334,12 +334,12 @@ class Lay {
     private static function loadCache() {
         $cachename = sys_get_temp_dir() . '/lay-classes.php';
         if(is_file($cachename)) {
-            self::$Caches = include $cachename;
+            self::$_Caches = include $cachename;
         } else {
-            self::$Caches = array();
+            self::$_Caches = array();
         }
-        if(is_array(self::$Caches) && ! empty(self::$Caches)) {
-            self::$Classes = array_merge(self::$Classes, self::$Caches);
+        if(is_array(self::$_Caches) && ! empty(self::$_Caches)) {
+            self::$_Classes = array_merge(self::$_Classes, self::$_Caches);
         }
     }
     /**
@@ -348,16 +348,16 @@ class Lay {
      * @return number
      */
     private static function updateCache() {
-        Logger::debug('self::$Cached:' . self::$Cached);
-        if(self::$Cached) {
-            $content = Util::array2PHPContent(self::$Caches);
+        Logger::debug('self::$_Cached:' . self::$_Cached);
+        if(self::$_Cached) {
+            $content = Util::array2PHPContent(self::$_Caches);
             $cachename = sys_get_temp_dir() . 'lay-classes.php';
             highlight_string($content);
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);
             $return = fflush($handle);
             $return = fclose($handle);
-            self::$Cached = false;
+            self::$_Cached = false;
             return $result;
         } else {
             return false;
@@ -371,8 +371,8 @@ class Lay {
      * @return void
      */
     private static function setCache($classname, $filepath) {
-        self::$Cached = true;
-        self::$Caches[$classname] = realpath($filepath);
+        self::$_Cached = true;
+        self::$_Caches[$classname] = realpath($filepath);
     }
     /**
      * 获取缓存起来的类文件映射
@@ -380,10 +380,10 @@ class Lay {
      * @return array string
      */
     private static function getCache($classname = '') {
-        if(is_string($classname) && $classname && isset(self::$Caches[$classname])) {
-            return self::$Caches[$classname];
+        if(is_string($classname) && $classname && isset(self::$_Caches[$classname])) {
+            return self::$_Caches[$classname];
         } else {
-            return self::$Caches;
+            return self::$_Caches;
         }
     }
     private function __construct() {
