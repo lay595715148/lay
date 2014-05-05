@@ -180,6 +180,12 @@ class Lay {
         self::configure($rootpath . '/inc/config/main.env.php');
         // 设置并加载插件
         PluginManager::initilize();
+        // 注册START事件
+        EventEmitter::on(self::EVENT_START, 'Lay::run');
+        EventEmitter::on(self::EVENT_START, 'Lay::stop', 1);//注意这里增加了级别
+        // 注册STOP事件
+        EventEmitter::on(self::EVENT_STOP, 'Lay::updateCache', 1);//注意这里增加了级别
+        //触发lay_initilize钩子
         PluginManager::exec('lay_initilize');
         
         // 设置其他类自动加载目录路径
@@ -228,10 +234,6 @@ class Lay {
      */
     public static function start() {
         self::initilize();
-        // 注册START事件
-        EventEmitter::on(self::EVENT_START, 'Lay::run');
-        EventEmitter::on(self::EVENT_START, 'Lay::stop', 1);//注意这里增加了级别
-        EventEmitter::on(self::EVENT_STOP, 'Lay::updateCache', 1);//注意这里增加了级别
         // 触发START事件
         EventEmitter::emit(self::EVENT_START);
     }
@@ -242,9 +244,6 @@ class Lay {
         }
         // 触发STOP事件
         EventEmitter::emit(self::EVENT_STOP);
-        Logger::initialize(true);
-        Logger::debug('');
-        Logger::initialize(false);
     }
     /**
      * 类自动加载
@@ -400,7 +399,9 @@ class Lay {
     public static function updateCache() {
         Logger::debug('self::$_Cached:' . self::$_Cached);
         if(self::$_Cached) {
+            print_r(self::$_Caches);
             $content = Util::array2PHPContent(self::$_Caches);
+        highlight_string($content);
             $cachename = sys_get_temp_dir() . 'lay-classes.php';
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);
@@ -421,7 +422,9 @@ class Lay {
      */
     private static function setCache($classname, $filepath) {
         self::$_Cached = true;
+            print_r(self::$_Caches);
         self::$_Caches[$classname] = realpath($filepath);
+            print_r(self::$_Caches);
     }
     /**
      * 获取缓存起来的类文件映射

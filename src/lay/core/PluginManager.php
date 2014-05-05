@@ -40,7 +40,8 @@ class PluginManager {
      */
     private $hooks = array(
             'lay_initilize',
-            ''
+            'action_create',
+            'action_destroy'
     );
     /**
      * 监听器

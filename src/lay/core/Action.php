@@ -93,9 +93,11 @@ abstract class Action {
         //$this->scope = new Scope($request);
         EventEmitter::on(Action::EVENT_CREATE, array($this, 'onCreate'));
         EventEmitter::emit(Action::EVENT_CREATE);
+        PluginManager::exec('action_create', array($this));
     }
     public function __destruct() {
         EventEmitter::emit(Action::EVENT_DESTROY);
+        PluginManager::exec('action_destroy', array($this));
     }
     
     public abstract function onCreate();
