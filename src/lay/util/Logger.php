@@ -227,6 +227,7 @@ class Logger implements I_Logger {
         if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_ERROR))) {
             self::getInstance()->log($msg, self::DEBUG_LEVEL_ERROR, $tag);
         }
+        throw new Exception($msg);
     }
     
     /**

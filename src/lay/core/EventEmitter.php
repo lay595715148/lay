@@ -18,7 +18,7 @@ class EventEmitter implements I_EventEmitter {
      *
      * @param int|string $eventid            
      */
-    public static function emit($eventid) {
+    public static function emit($eventid, array $params = array()) {
         if(!self::$_Instance) {
             $classname = Lay::get('register_eventemitter');
             if($classname) {
@@ -29,9 +29,9 @@ class EventEmitter implements I_EventEmitter {
                 }
             }
         }
-        self::getInstance()->trigger($eventid);
+        self::getInstance()->trigger($eventid, $params);
     }
-    public static function on($eventid, $func, array $params = array(), $level = 0) {
+    public static function on($eventid, $func, $level = 0) {
         if(!self::$_Instance) {
             $classname = Lay::get('register_eventemitter');
             if($classname) {
@@ -42,20 +42,20 @@ class EventEmitter implements I_EventEmitter {
                 }
             }
         }
-        self::getInstance()->register($eventid, $func, $params, $level);
+        self::getInstance()->register($eventid, $func, $level);
     }
     /**
      * 实现事件触发
      * @see I_EventEmitter::trigger()
      */
-    public function trigger($eventid) {
+    public function trigger($eventid, array $params = array()) {
         if(! isset(self::$_EventStack[$eventid])) {
             return;
         }
         foreach(self::$_EventStack[$eventid] as $level => $events) {
             foreach($events as $key => $e) {
                 if(is_callable($e['func'])) {
-                    call_user_func_array($e['func'], $e['params']);
+                    call_user_func_array($e['func'], (array)$params);
                 } else {
                     throw new Exception("Function not defined for EVENTS[$eventid][$level][$key]");
                 }
@@ -66,7 +66,7 @@ class EventEmitter implements I_EventEmitter {
      * 注册事件
      * @see I_EventEmitter::register()
      */
-    public function register($eventid, $func, array $params = array(), $level = 0) {
+    public function register($eventid, $func, $level = 0) {
         // initialize
         if(! isset(self::$_EventStack[$eventid])) {
             self::$_EventStack[$eventid] = array();

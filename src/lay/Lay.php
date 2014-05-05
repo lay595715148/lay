@@ -15,13 +15,18 @@ class Lay {
     private static $_Cached = false;
     private static $_Caches = array();
     private static $_Classes = array(
+            'Action' => '/lay/core/Action.php',
             'Util' => '/lay/util/Util.php',
             'Store' => '/lay/store/Store.php',
             'Configuration' => '/lay/core/Configuration.php',
+            'Template' => '/lay/core/Template.php',
             'EventEmitter' => '/lay/core/EventEmitter.php',
             'Logger' => '/lay/util/Logger.php',
             'Plugin' => '/lay/core/Plugin.php',
+            'PluginManager' => '/lay/core/PluginManager.php',
             
+            'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
+            'I_Provider' => '/lay/core/I_Provider.php',
             'I_Configuration' => '/lay/core/I_Configuration.php',
             'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
             'I_Logger' => '/lay/util/I_Logger.php'
@@ -55,6 +60,22 @@ class Lay {
     public static function set($keystr, $value) {
         Configuration::set($keystr, $value);
     }
+    public static function getActionConfig($name) {
+        return Configuration::get('actions.'.$name);
+    }
+    public static function getServiceConfig($name) {
+        return Configuration::get('services.'.$name);
+    }
+    public static function getStoreConfig($name) {
+        return Configuration::get('stores.'.$name);
+    }
+    public static function getTemplateConfig($name) {
+        return Configuration::get('templates.'.$name);
+    }
+    public static function getPluginConfig($name) {
+        return Configuration::get('plugins.'.$name);
+    }
+    
     /**
      * laywork autorun configuration,all config file is load in $_ROOTPATH
      * include actions,services,stores,beans,files...other
@@ -152,12 +173,14 @@ class Lay {
             self::$_ClassPath[$i] = $rootpath . '/' . $path;
         }
         Logger::initialize(true);
-        Logger::debug();
+        Logger::debug('');
         // 初始化logger
         Logger::initialize(false);
         // 初始化配置量
         self::configure($rootpath . '/inc/config/main.env.php');
         // 设置并加载插件
+        PluginManager::initilize();
+        PluginManager::exec('lay_initilize');
         
         // 设置其他类自动加载目录路径
         $classpaths = include_once $rootpath . '/inc/config/classpath.php';
@@ -173,6 +196,32 @@ class Lay {
      * 创建Action生命周期
      */
     public static function run() {
+        $pathinfo = pathinfo($_SERVER['PHP_SELF']);
+        $name = $pathinfo['filename'];
+        $action = Action::getInstance($name);
+        //注册action的一些事件
+        EventEmitter::on(Action::EVENT_GET, array($action, 'onGet'));
+        EventEmitter::on(Action::EVENT_POST, array($action, 'onPost'));
+        EventEmitter::on(Action::EVENT_REQUEST, array($action, 'onRequest'));
+        EventEmitter::on(Action::EVENT_STOP, array($action, 'onStop'));
+        EventEmitter::on(Action::EVENT_DESTROY, array($action, 'onDestroy'));
+        
+        //触发action的request事件
+        EventEmitter::emit(Action::EVENT_REQUEST);
+        switch($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                //触发action的get事件
+                EventEmitter::emit(Action::EVENT_GET);
+                break;
+            case 'POST':
+                //触发action的post事件
+                EventEmitter::emit(Action::EVENT_POST);
+                break;
+            default:
+                break;
+        }
+        //触发action的stop事件
+        EventEmitter::emit(Action::EVENT_STOP);
     }
     /**
      * 打开，初始化并触发EVENT_START事件
@@ -181,7 +230,8 @@ class Lay {
         self::initilize();
         // 注册START事件
         EventEmitter::on(self::EVENT_START, 'Lay::run');
-        EventEmitter::on(self::EVENT_START, 'Lay::stop', array(), 1);
+        EventEmitter::on(self::EVENT_START, 'Lay::stop', 1);//注意这里增加了级别
+        EventEmitter::on(self::EVENT_STOP, 'Lay::updateCache', 1);//注意这里增加了级别
         // 触发START事件
         EventEmitter::emit(self::EVENT_START);
     }
@@ -193,7 +243,7 @@ class Lay {
         // 触发STOP事件
         EventEmitter::emit(self::EVENT_STOP);
         Logger::initialize(true);
-        Logger::debug();
+        Logger::debug('');
         Logger::initialize(false);
     }
     /**
@@ -347,12 +397,11 @@ class Lay {
      *
      * @return number
      */
-    private static function updateCache() {
+    public static function updateCache() {
         Logger::debug('self::$_Cached:' . self::$_Cached);
         if(self::$_Cached) {
             $content = Util::array2PHPContent(self::$_Caches);
             $cachename = sys_get_temp_dir() . 'lay-classes.php';
-            highlight_string($content);
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);
             $return = fflush($handle);
