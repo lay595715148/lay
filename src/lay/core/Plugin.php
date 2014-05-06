@@ -15,6 +15,12 @@ abstract class Plugin {
         $this->manager = $manager;
     }
     public abstract function initilize();
+    public function addHookName($hookname) {
+        $this->manager->addHookName($hookname);
+    }
+    public function removeHookName($hookname) {
+        $this->manager->removeHookName($hookname);
+    }
     public function addHook($hookname, $callback) {
         $this->manager->register($hookname, $callback);
     }

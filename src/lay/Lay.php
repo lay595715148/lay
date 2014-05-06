@@ -12,15 +12,20 @@ class Lay {
     const EVENT_INIT = 'lay_init';
     const EVENT_START = 'lay_start';
     const EVENT_STOP = 'lay_stop';
+    const HOOK_INIT = 'hook_lay_init';
+    const HOOK_STOP = 'hook_lay_stop';
     private static $_Cached = false;
     private static $_Caches = array();
     private static $_Classes = array(
+            'AbstractAction' => '/lay/core/AbstractAction.php',
+            'AbstractTemplate' => '/lay/core/AbstractTemplate.php',
             'Action' => '/lay/core/Action.php',
             'Util' => '/lay/util/Util.php',
             'Store' => '/lay/store/Store.php',
             'Configuration' => '/lay/core/Configuration.php',
             'Template' => '/lay/core/Template.php',
             'EventEmitter' => '/lay/core/EventEmitter.php',
+            'Scope' => '/lay/util/Scope.php',
             'Logger' => '/lay/util/Logger.php',
             'Plugin' => '/lay/core/Plugin.php',
             'PluginManager' => '/lay/core/PluginManager.php',
@@ -46,7 +51,11 @@ class Lay {
      * @return mixed
      */
     public static function get($keystr = '', $default = null) {
-        return Configuration::get($keystr);
+        if(($ret = Configuration::get($keystr)) === null) {
+            return $default;
+        } else {
+            return $ret;
+        }
     }
     /**
      * set configuration
@@ -61,19 +70,34 @@ class Lay {
         Configuration::set($keystr, $value);
     }
     public static function getActionConfig($name) {
-        return Configuration::get('actions.'.$name);
+        if(empty($name))
+            return Configuration::get('actions');
+        else
+            return Configuration::get('actions.' . $name);
     }
     public static function getServiceConfig($name) {
-        return Configuration::get('services.'.$name);
+        if(empty($name))
+            return Configuration::get('services');
+        else
+            return Configuration::get('services.' . $name);
     }
     public static function getStoreConfig($name) {
-        return Configuration::get('stores.'.$name);
+        if(empty($name))
+            return Configuration::get('stores');
+        else
+            return Configuration::get('stores.' . $name);
     }
     public static function getTemplateConfig($name) {
-        return Configuration::get('templates.'.$name);
+        if(empty($name))
+            return Configuration::get('templates');
+        else
+            return Configuration::get('templates.' . $name);
     }
     public static function getPluginConfig($name) {
-        return Configuration::get('plugins.'.$name);
+        if(empty($name))
+            return Configuration::get('plugins');
+        else
+            return Configuration::get('plugins.' . $name);
     }
     
     /**
@@ -86,7 +110,7 @@ class Lay {
      *            sign file,default is true
      * @return void
      */
-    private static function configure($configuration, $isFile = true) {
+    public static function configure($configuration, $isFile = true) {
         $_ROOTPATH = &self::$_RootPath;
         if(is_array($configuration) && ! $isFile) {
             foreach($configuration as $key => $item) {
@@ -104,7 +128,6 @@ class Lay {
                                     if(is_array($actions) && array_key_exists($name, $actions)) {
                                         Logger::warn('$configuration["' . $key . '"]["' . $name . '"] has been configured', 'CONFIGURE');
                                     } else if(is_string($name) || is_numeric($name)) {
-                                        Logger::info('configure ' . $key . ':' . $name . '', 'CONFIGURE');
                                         self::set($key . '.' . $name, $conf);
                                     }
                                 }
@@ -160,41 +183,53 @@ class Lay {
             Logger::warn('unkown configuration type', 'CONFIGURE');
         }
     }
+    public static function addClassPath($classpath) {
+    }
+    public static function addClassPaths($classpaths) {
+        $rootpath = self::$_RootPath ? self::$_RootPath : dirname(dirname(__DIR__));
+        foreach(self::$_ClassPath as $path) {
+            if(is_dir($rootpath . DIRECTORY_SEPARATOR . $path)) {
+                self::$_ClassPath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
+            } else {
+                Logger::warn("path:$rootpath" . DIRECTORY_SEPARATOR . "$path is not exists!");
+            }
+        }
+    }
     /**
      * 初始化并触发EVENT_INIT事件
      */
     private static function initilize() {
+        $sep = DIRECTORY_SEPARATOR;
         // 使用自定义的autoload方法
         spl_autoload_register('Lay::autoload');
         // 设置根目录路径
         self::$_RootPath = $rootpath = dirname(dirname(__DIR__));
         // 设置核心类加载路径
         foreach(self::$_ClassPath as $i => $path) {
-            self::$_ClassPath[$i] = $rootpath . '/' . $path;
+            self::$_ClassPath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
-        Logger::initialize(true);
-        Logger::debug('');
         // 初始化logger
         Logger::initialize(false);
         // 初始化配置量
-        self::configure($rootpath . '/inc/config/main.env.php');
+        self::configure($rootpath . "{$sep}inc{$sep}config{$sep}main.env.php");
         // 设置并加载插件
         PluginManager::initilize();
         // 注册START事件
         EventEmitter::on(self::EVENT_START, 'Lay::run');
-        EventEmitter::on(self::EVENT_START, 'Lay::stop', 1);//注意这里增加了级别
-        // 注册STOP事件
-        EventEmitter::on(self::EVENT_STOP, 'Lay::updateCache', 1);//注意这里增加了级别
-        //触发lay_initilize钩子
-        PluginManager::exec('lay_initilize');
+        // 注意这里增加了级别
+        EventEmitter::on(self::EVENT_START, 'Lay::stop', 1);
+        // 注册STOP事件 // 注意这里增加了级别
+        EventEmitter::on(self::EVENT_STOP, 'Lay::updateCache', 1);
         
         // 设置其他类自动加载目录路径
-        $classpaths = include_once $rootpath . '/inc/config/classpath.php';
+        $classpaths = include_once $rootpath . "{$sep}inc{$sep}config{$sep}classpath.php";
         foreach($classpaths as $i => $path) {
-            self::$_ClassPath[] = $rootpath . '/' . $path;
+            self::$_ClassPath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
         // 加载类文件路径缓存
         self::loadCache();
+        // 触发lay的HOOK_INIT钩子
+        PluginManager::exec(self::HOOK_INIT);
         // 触发INIT事件
         EventEmitter::emit(self::EVENT_INIT);
     }
@@ -202,46 +237,92 @@ class Lay {
      * 创建Action生命周期
      */
     public static function run() {
-        $pathinfo = pathinfo($_SERVER['PHP_SELF']);
-        $name = $pathinfo['filename'];
-        $action = Action::getInstance($name);
-        //注册action的一些事件
-        EventEmitter::on(Action::EVENT_GET, array($action, 'onGet'));
-        EventEmitter::on(Action::EVENT_POST, array($action, 'onPost'));
-        EventEmitter::on(Action::EVENT_REQUEST, array($action, 'onRequest'));
-        EventEmitter::on(Action::EVENT_STOP, array($action, 'onStop'));
-        EventEmitter::on(Action::EVENT_DESTROY, array($action, 'onDestroy'));
+        $routers = Lay::get('routers');
+        $matches = array();
+        $uri = preg_replace('/^(.*)(\?)(.*)$/', '$1', $_SERVER['REQUEST_URI']);
+        Logger::debug($uri);
+        // 首先正则匹配路由规则
+        if(is_array($routers)) {
+            foreach($routers as $router) {
+                $ismatch = preg_match_all($router['rule'], $uri, $matches, PREG_SET_ORDER);
+                if($ismatch) {
+                    global $_PARAM;
+                    $_PARAM = $matches;
+                } else {
+                    continue;
+                }
+                $classname = $router['classname'];
+                $name = $router['name'];
+                break;
+            }
+        }
+        // 再根据请求名称
+        if(empty($classname) && empty($name)) {
+            $name = $uri;
+        }
+        if($classname) {
+            $action = Action::getInstanceByClassname($classname, $name);
+        } else if($name) {
+            $action = Action::getInstance($name);
+        }
+        // 注册action的一些事件
+        EventEmitter::on(Action::EVENT_GET, array(
+                $action,
+                'onGet'
+        ));
+        EventEmitter::on(Action::EVENT_POST, array(
+                $action,
+                'onPost'
+        ));
+        EventEmitter::on(Action::EVENT_REQUEST, array(
+                $action,
+                'onRequest'
+        ));
+        EventEmitter::on(Action::EVENT_STOP, array(
+                $action,
+                'onStop'
+        ));
+        EventEmitter::on(Action::EVENT_DESTROY, array(
+                $action,
+                'onDestroy'
+        ));
         
-        //触发action的request事件
-        EventEmitter::emit(Action::EVENT_REQUEST);
+        // 触发action的request事件
+        EventEmitter::emit(Action::EVENT_REQUEST, $matches);
         switch($_SERVER['REQUEST_METHOD']) {
             case 'GET':
-                //触发action的get事件
-                EventEmitter::emit(Action::EVENT_GET);
+                // 触发action的get事件
+                EventEmitter::emit(Action::EVENT_GET, $matches);
                 break;
             case 'POST':
-                //触发action的post事件
-                EventEmitter::emit(Action::EVENT_POST);
+                // 触发action的post事件
+                EventEmitter::emit(Action::EVENT_POST, $matches);
                 break;
             default:
                 break;
         }
-        //触发action的stop事件
-        EventEmitter::emit(Action::EVENT_STOP);
     }
     /**
      * 打开，初始化并触发EVENT_START事件
      */
     public static function start() {
+        global $_START;
+        $_START = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
         self::initilize();
         // 触发START事件
         EventEmitter::emit(self::EVENT_START);
     }
     public static function stop() {
+        global $_START, $_END;
+        $_END = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
+        // 触发action的stop事件
+        EventEmitter::emit(Action::EVENT_STOP);
         // if is fastcgi
         if(function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         }
+        // 触发lay的HOOK_STOP钩子
+        PluginManager::exec(self::HOOK_STOP);
         // 触发STOP事件
         EventEmitter::emit(self::EVENT_STOP);
     }
@@ -309,11 +390,11 @@ class Lay {
             // 通过命名空间查找
             if(count($tmparr) > 1) {
                 $name = array_pop($tmparr);
-                $path = $classpath . '/' . implode('/', $tmparr);
+                $path = $classpath . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $tmparr);
                 $required = false;
                 // 命名空间文件夹查找
                 if(is_dir($path)) {
-                    $tmppath = $path . '/' . $name;
+                    $tmppath = $path . DIRECTORY_SEPARATOR . $name;
                     foreach($suffixes as $i => $suffix) {
                         if(is_file($tmppath . $suffix)) {
                             $filepath = realpath($tmppath . $suffix);
@@ -332,7 +413,7 @@ class Lay {
                 if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
                     // 直接以类名作为文件名查找
                     foreach($suffixes as $i => $suffix) {
-                        $tmppath = $classpath . '/' . $classname;
+                        $tmppath = $classpath . DIRECTORY_SEPARATOR . $classname;
                         if(is_file($tmppath . $suffix)) {
                             $filepath = realpath($tmppath . $suffix);
                             self::setCache($classname, $filepath);
@@ -345,11 +426,11 @@ class Lay {
                 if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
                     $path = $lowerpath = $classpath;
                     foreach($matches[1] as $index => $item) {
-                        $path .= '/' . $item;
-                        $lowerpath .= '/' . strtolower($item);
+                        $path .= DIRECTORY_SEPARATOR . $item;
+                        $lowerpath .= DIRECTORY_SEPARATOR . strtolower($item);
                         Logger::debug('$lowerpath:' . $lowerpath);
                         if(($isdir = is_dir($path)) || is_dir($lowerpath)) { // 顺序文件夹查找
-                            $tmppath = ($isdir ? $path : $lowerpath) . '/' . $classname;
+                            $tmppath = ($isdir ? $path : $lowerpath) . DIRECTORY_SEPARATOR . $classname;
                             foreach($suffixes as $i => $suffix) {
                                 if(is_file($tmppath . $suffix)) {
                                     $filepath = realpath($tmppath . $suffix);
@@ -381,7 +462,7 @@ class Lay {
     /**
      */
     private static function loadCache() {
-        $cachename = sys_get_temp_dir() . '/lay-classes.php';
+        $cachename = sys_get_temp_dir() . 'lay-classes.php';
         if(is_file($cachename)) {
             self::$_Caches = include $cachename;
         } else {
@@ -399,9 +480,8 @@ class Lay {
     public static function updateCache() {
         Logger::debug('self::$_Cached:' . self::$_Cached);
         if(self::$_Cached) {
-            print_r(self::$_Caches);
+            Logger::debug(self::$_Caches);
             $content = Util::array2PHPContent(self::$_Caches);
-        highlight_string($content);
             $cachename = sys_get_temp_dir() . 'lay-classes.php';
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);
@@ -422,16 +502,14 @@ class Lay {
      */
     private static function setCache($classname, $filepath) {
         self::$_Cached = true;
-            print_r(self::$_Caches);
         self::$_Caches[$classname] = realpath($filepath);
-            print_r(self::$_Caches);
     }
     /**
      * 获取缓存起来的类文件映射
      *
      * @return array string
      */
-    private static function getCache($classname = '') {
+    public static function getCache($classname = '') {
         if(is_string($classname) && $classname && isset(self::$_Caches[$classname])) {
             return self::$_Caches[$classname];
         } else {

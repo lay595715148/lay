@@ -3,11 +3,9 @@ namespace cms;
 
 use Action;
 use Template;
+use Logger;
 
 class CMS extends Action {
-    public function __construct($name) {
-        $this->template = new Template();
-    }
     public function onCreate() {
         
     }
@@ -21,7 +19,7 @@ class CMS extends Action {
         
     }
     public function onRequest() {
-        
+        Logger::debug('1');
     }
     public function onStop() {
         

@@ -53,9 +53,9 @@ class EventEmitter implements I_EventEmitter {
             return;
         }
         foreach(self::$_EventStack[$eventid] as $level => $events) {
-            foreach($events as $key => $e) {
-                if(is_callable($e['func'])) {
-                    call_user_func_array($e['func'], (array)$params);
+            foreach($events as $key => $func) {
+                if(is_callable($func)) {
+                    call_user_func_array($func, (array)$params);
                 } else {
                     throw new Exception("Function not defined for EVENTS[$eventid][$level][$key]");
                 }
@@ -72,10 +72,7 @@ class EventEmitter implements I_EventEmitter {
             self::$_EventStack[$eventid] = array();
         }
         $level = abs(intval($level));
-        self::$_EventStack[$eventid][$level][] = array(
-                'func' => $func,
-                'params' => $params
-        );
+        self::$_EventStack[$eventid][$level][] = $func;
         return true;
     }
 }

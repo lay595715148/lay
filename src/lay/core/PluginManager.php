@@ -19,11 +19,13 @@ class PluginManager {
         $plugins = Lay::get('plugins');
         if(is_array($plugins)) {
             // 实例化所有插件
-            foreach($plugins as $plugin) {
+            /* foreach($plugins as $plugin) {
                 $name = $plugin['name'];
+                $classname = $plugin['classname'];
                 $requires = $plugin['requires'];
-                $instance->loadPlugin($name, $requires);
-            }
+                $instance->loadPlugin($plugin, $classname);
+            } */
+            $instance->loadPlugins($plugins);
         } else {
         }
     }
@@ -39,9 +41,10 @@ class PluginManager {
      * @var array
      */
     private $hooks = array(
-            'lay_initilize',
-            'action_create',
-            'action_destroy'
+            Lay::HOOK_INIT,
+            Lay::HOOK_STOP,
+            Action::HOOK_CREATE,
+            Action::HOOK_DESTROY
     );
     /**
      * 监听器
@@ -50,6 +53,22 @@ class PluginManager {
      */
     private $listeners = array();
     private $activeHook = false;
+    public function addHookName($hookname) {
+        if(array_search($hookname, $this->hooks)) {
+            Logger::warn("hook $hookname has been declared!", 'PLUGIN');
+        } else {
+            $this->hooks[] = $hookname;
+        }
+        return true;
+    }
+    public function removeHookName($hookname) {
+        if($offset = array_search($hookname, $this->hooks)) {
+            array_splice($this->hooks, $offset, 1);
+        } else {
+            Logger::warn("hook $hookname has been removed!", 'PLUGIN');
+        }
+        return true;
+    }
     /**
      * 注册需要监听的插件方法（钩子）
      *
@@ -93,7 +112,7 @@ class PluginManager {
         // 循环调用开始
         foreach((array)$this->listeners[$hookname] as $callback) {
             // 动态调用插件的方法
-            $ret = call_user_func($callback, $params);
+            $ret = call_user_func_array($callback, $params);
             if ($ret && is_array($ret)) {
                 $args = $ret + $args;
             }
@@ -117,25 +136,37 @@ class PluginManager {
      *            List of plugins required by the application
      */
     public function loadPlugins($plugins, $requires = array()) {
-        foreach($plugins as $name) {
-            $this->loadPlugin($name);
+        foreach($plugins as $plugin) {
+            if(is_array($plugin)) {
+                $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin['requires']);
+            } else if(is_string($plugin)) {
+                $this->loadPlugin($plugin);
+            }
         }
         
         // check existance of all required core plugins
-        foreach($requires as $name) {
+        foreach($requires as $require) {
             $loaded = false;
-            if(array_key_exists($name, $this->plugins)) {
-                $loaded = true;
+            if(is_array($require)) {
+                if(array_key_exists($plugin['name'], $this->plugins)) {
+                    $loaded = true;
+                }
+                // load required core plugin if no derivate was found
+                if(! $loaded) {
+                    $loaded = $this->loadPlugin($plugin['name'], $plugin['classname']);
+                }
+            } else if(is_string($plugin)) {
+                if(array_key_exists($plugin, $this->plugins)) {
+                    $loaded = true;
+                }
+                // load required core plugin if no derivate was found
+                if(! $loaded) {
+                    $loaded = $this->loadPlugin($name);
+                }
             }
-            
-            // load required core plugin if no derivate was found
-            if(! $loaded) {
-                $loaded = $this->loadPlugin($name);
-            }
-            
             // trigger fatal error if still not loaded
             if(! $loaded) {
-                Logger::error("Requried plugin $name was not loaded");
+                Logger::error("Requried plugin $name was not loaded", 'PLUGIN');
             }
         }
     }
@@ -149,7 +180,7 @@ class PluginManager {
      *            
      * @return boolean True on success, false if not loaded or failure
      */
-    public function loadPlugin($name, $force = false) {
+    public function loadPlugin($name, $classname = '', $force = false) {
         // plugin already loaded
         if(array_key_exists($name, $this->plugins)) {
             return true;
@@ -159,9 +190,11 @@ class PluginManager {
         $file = Lay::$_RootPath . $separator . 'plu' . $separator . $name . $separator . 'index.php';
         
         if(file_exists($file)) {
-            $classname = ucfirst($name) . 'Plugin';
             if(! class_exists($classname, false)) {
                 include_once $file;
+            }
+            if(! class_exists($classname, false)) {
+                $classname = ucfirst($name) . 'Plugin';
             }
             // instantiate class if exists
             if(class_exists($classname, false)) {
@@ -170,6 +203,7 @@ class PluginManager {
                 if(is_subclass_of($plugin, 'Plugin')) {
                     $plugin->initilize();
                     $this->plugins[$name] = $plugin;
+                    Logger::info("using plugin:$classname", 'PLUGIN');
                     return true;
                 }
             } else {

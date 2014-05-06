@@ -1,19 +1,19 @@
 <?php
-class OAuth2Plugin extends Plugin {
+class Oauth2Plugin extends Plugin {
     public function initilize() {
-        $this->addHook('lay_initilize', array($this, 'sayhello'));
-        $this->addHook('action_create', array($this, 'sayhello2'));
-        $this->addHook('action_destroy', array($this, 'sayhello3'));
+        $this->addHook(Lay::HOOK_INIT, array($this, 'sayhello'));
+        $this->addHook(Action::HOOK_CREATE, array($this, 'sayhello2'));
+        $this->addHook(Action::HOOK_DESTROY, array($this, 'sayhello3'));
     }
     public function sayhello() {
-        Web::test();echo '<br>';
+        //Lay::s
+        //Web::test();echo '<br>';
         Logger::debug('say hello!');
     }
-    public function sayhello2() {
-        Web::test();echo '<br>';
+    public function sayhello2($action) {
         Logger::debug('say hello2!');
     }
-    public function sayhello3() {
+    public function sayhello3($action) {
         //Web::test();echo '<br>';
         Logger::debug('say hello3!');
     }
