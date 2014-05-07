@@ -11,8 +11,6 @@ class EventEmitter implements I_EventEmitter {
         }
         return self::$_Instance;
     }
-    private function __construct() {
-    }
     
     /**
      *
@@ -44,6 +42,15 @@ class EventEmitter implements I_EventEmitter {
         }
         self::getInstance()->register($eventid, $func, $level);
     }
+    public static function emittedEvents() {
+        return self::getInstance()->getEmittedEvents();
+    }
+    private $emittedEvents = array();
+    private function __construct() {
+    }
+    public function getEmittedEvents() {
+        return $this->emittedEvents;
+    }
     /**
      * 实现事件触发
      * @see I_EventEmitter::trigger()
@@ -52,6 +59,7 @@ class EventEmitter implements I_EventEmitter {
         if(! isset(self::$_EventStack[$eventid])) {
             return;
         }
+        $this->emittedEvents[] = $eventid;
         foreach(self::$_EventStack[$eventid] as $level => $events) {
             foreach($events as $key => $func) {
                 if(is_callable($func)) {

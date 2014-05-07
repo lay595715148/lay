@@ -29,6 +29,9 @@ class Lay {
             'Logger' => '/lay/util/Logger.php',
             'Plugin' => '/lay/core/Plugin.php',
             'PluginManager' => '/lay/core/PluginManager.php',
+            'HtmlAction' => '/lay/action/HtmlAction.php',
+            'JsonAction' => '/lay/action/JsonAction.php',
+            'XmlAction' => '/lay/action/XmlAction.php',
             
             'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
             'I_Provider' => '/lay/core/I_Provider.php',
@@ -315,6 +318,8 @@ class Lay {
     public static function stop() {
         global $_START, $_END;
         $_END = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
+        // 触发action的HOOK_STOP钩子
+        PluginManager::exec(Action::HOOK_STOP);
         // 触发action的stop事件
         EventEmitter::emit(Action::EVENT_STOP);
         // if is fastcgi

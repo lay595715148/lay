@@ -1,5 +1,5 @@
 <?php
-class Index extends Action {
+class Index extends JsonAction {
     public function onCreate() {
         Logger::debug('Index onCreate');
     }
@@ -17,10 +17,12 @@ class Index extends Action {
         Logger::debug('Index onRequest');
     }
     public function onStop() {
-        $this->template->json();
+        parent::onStop();
         Logger::debug('Index onStop');
     }
     public function onDestroy() {
+        Logger::debug(EventEmitter::emittedEvents());
+        Logger::debug(PluginManager::activedHooks());
         Logger::debug('Index onDestroy');
     }
 }

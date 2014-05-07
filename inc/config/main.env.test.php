@@ -1,6 +1,6 @@
 <?php
 return array(
-    'logger' => false,
+    'logger' => array(0x01 | 0x20, false),
     'code' => array(
         '404' => '/404.html'
     ),
@@ -19,6 +19,9 @@ return array(
             'classname' => 'Index'
         ),
         '/index' => array(
+            'classname' => 'Index'
+        ),
+        '/index.php' => array(
             'classname' => 'Index'
         ),
         '/bootstrap.php' => array(

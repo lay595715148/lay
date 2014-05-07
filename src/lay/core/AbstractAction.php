@@ -1,6 +1,6 @@
 <?php
-if(! defined('INIT_LAY')) {
-    define('INIT_LAY', true);
+if(!defined('INIT_LAY')) {
+    exit();
 }
 
 abstract class AbstractAction {

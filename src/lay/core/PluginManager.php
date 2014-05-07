@@ -1,4 +1,8 @@
 <?php
+if(!defined('INIT_LAY')) {
+    exit();
+}
+
 class PluginManager {
     private static $_Instance = null;
     /**
@@ -32,6 +36,9 @@ class PluginManager {
     public static function exec($hookname, $params = array()) {
         self::getInstance()->trigger($hookname, $params);
     }
+    public static function activedHooks() {
+        return self::getInstance()->getActivedHooks();
+    }
     private function __construct() {
     }
     private $plugins = array();
@@ -44,6 +51,7 @@ class PluginManager {
             Lay::HOOK_INIT,
             Lay::HOOK_STOP,
             Action::HOOK_CREATE,
+            Action::HOOK_STOP,
             Action::HOOK_DESTROY
     );
     /**
@@ -53,6 +61,7 @@ class PluginManager {
      */
     private $listeners = array();
     private $activeHook = false;
+    private $activedHooks = array();
     public function addHookName($hookname) {
         if(array_search($hookname, $this->hooks)) {
             Logger::warn("hook $hookname has been declared!", 'PLUGIN');
@@ -60,6 +69,9 @@ class PluginManager {
             $this->hooks[] = $hookname;
         }
         return true;
+    }
+    public function getActivedHooks() {
+        return $this->activedHooks;
     }
     public function removeHookName($hookname) {
         if($offset = array_search($hookname, $this->hooks)) {
@@ -108,6 +120,7 @@ class PluginManager {
         }
         
         $this->activeHook = $hookname;
+        $this->activedHooks[] = $hookname;
         // 查看要实现的钩子，是否在监听数组之中
         // 循环调用开始
         foreach((array)$this->listeners[$hookname] as $callback) {
@@ -121,7 +134,6 @@ class PluginManager {
                 break;
             }
         }
-        
         $this->activeHook = false;
         return $args;
         

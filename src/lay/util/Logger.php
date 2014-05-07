@@ -1,5 +1,7 @@
 <?php 
-if(!defined('INIT_LAY')) exit();
+if(!defined('INIT_LAY')) {
+    exit();
+}
 
 /**
  * log工具类

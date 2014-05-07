@@ -1,6 +1,6 @@
 <?php
-if(! defined('INIT_LAY')) {
-    define('INIT_LAY', true);
+if(!defined('INIT_LAY')) {
+    exit();
 }
 
 /**
@@ -20,6 +20,7 @@ abstract class Action extends AbstractAction {
     const EVENT_STOP = 'action_stop';
     const EVENT_DESTROY = 'action_destroy';
     const HOOK_CREATE = 'hook_action_create';
+    const HOOK_STOP = 'hook_action_stop';
     const HOOK_DESTROY = 'hook_action_destroy';
     /**
      *
@@ -108,6 +109,27 @@ abstract class Action extends AbstractAction {
         PluginManager::exec(self::HOOK_CREATE, array($this));
         EventEmitter::on(self::EVENT_CREATE, array($this, 'onCreate'));
         EventEmitter::emit(self::EVENT_CREATE);
+    }
+    /**
+     * 
+     * @return Template
+     */
+    public function getTemplate() {
+        return $this->template;
+    }
+    /**
+     * 
+     * @return Scope
+     */
+    public function getScope() {
+        return $this->scope;
+    }
+    /**
+     * 
+     * @return string
+     */
+    public function getName() {
+        return $this->name;
     }
     public function __destruct() {
         PluginManager::exec(self::HOOK_DESTROY, array($this));

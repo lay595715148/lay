@@ -1,4 +1,8 @@
 <?php
+if(!defined('INIT_LAY')) {
+    exit();
+}
+
 abstract class Plugin {
     /**
      * 
