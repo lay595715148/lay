@@ -56,10 +56,10 @@ class EventEmitter implements I_EventEmitter {
      * @see I_EventEmitter::trigger()
      */
     public function trigger($eventid, array $params = array()) {
+        $this->emittedEvents[] = $eventid;
         if(! isset(self::$_EventStack[$eventid])) {
             return;
         }
-        $this->emittedEvents[] = $eventid;
         foreach(self::$_EventStack[$eventid] as $level => $events) {
             foreach($events as $key => $func) {
                 if(is_callable($func)) {

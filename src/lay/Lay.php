@@ -1,6 +1,6 @@
 <?php
 if(! defined('INIT_LAY')) {
-    define('INIT_LAY', true);
+    exit();
 }
 
 /**
@@ -8,42 +8,39 @@ if(! defined('INIT_LAY')) {
  *
  * @author Lay Li 2014-04-29
  */
-class Lay {
+final class Lay {
     const EVENT_INIT = 'lay_init';
     const EVENT_START = 'lay_start';
     const EVENT_STOP = 'lay_stop';
     const HOOK_INIT = 'hook_lay_init';
     const HOOK_STOP = 'hook_lay_stop';
-    private static $_Cached = false;
-    private static $_Caches = array();
-    private static $_Classes = array(
-            'AbstractAction' => '/lay/core/AbstractAction.php',
-            'AbstractTemplate' => '/lay/core/AbstractTemplate.php',
-            'Action' => '/lay/core/Action.php',
-            'Util' => '/lay/util/Util.php',
-            'Store' => '/lay/store/Store.php',
-            'Configuration' => '/lay/core/Configuration.php',
-            'Template' => '/lay/core/Template.php',
-            'EventEmitter' => '/lay/core/EventEmitter.php',
-            'Scope' => '/lay/util/Scope.php',
-            'Logger' => '/lay/util/Logger.php',
-            'Plugin' => '/lay/core/Plugin.php',
-            'PluginManager' => '/lay/core/PluginManager.php',
-            'HtmlAction' => '/lay/action/HtmlAction.php',
-            'JsonAction' => '/lay/action/JsonAction.php',
-            'XmlAction' => '/lay/action/XmlAction.php',
-            
-            'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
-            'I_Provider' => '/lay/core/I_Provider.php',
-            'I_Configuration' => '/lay/core/I_Configuration.php',
-            'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
-            'I_Logger' => '/lay/util/I_Logger.php'
-    );
-    private static $_ClassPath = array(
-            'src'
-    );
-    private static $_Config = array();
+    private static $_Instance = null;
+    private static function getInstance() {
+        if(self::$_Instance == null) {
+            self::$_Instance = new Lay();
+        }
+        return self::$_Instance;
+    }
     public static $_RootPath = '';
+    public static function start() {
+        global $_START;
+        $_START = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
+        self::getInstance()->initilize();
+        // 触发START事件
+        EventEmitter::emit(self::EVENT_START);
+    }
+    /**
+     * set configuration
+     *
+     * @param string|array<string> $keystr
+     *            the configuring key string explode by '.'
+     * @param string|boolean|int|array $value
+     *            the configuring value
+     * @return void
+     */
+    public static function set($keystr, $value) {
+        Configuration::set($keystr, $value);
+    }
     /**
      * get configuration by key string
      *
@@ -59,18 +56,6 @@ class Lay {
         } else {
             return $ret;
         }
-    }
-    /**
-     * set configuration
-     *
-     * @param string|array<string> $keystr
-     *            the configuring key string explode by '.'
-     * @param string|boolean|int|array $value
-     *            the configuring value
-     * @return void
-     */
-    public static function set($keystr, $value) {
-        Configuration::set($keystr, $value);
     }
     public static function getActionConfig($name) {
         if(empty($name))
@@ -102,9 +87,88 @@ class Lay {
         else
             return Configuration::get('plugins.' . $name);
     }
-    
+    // private function
+    private $cached = false;
+    private $caches = array();
+    private $classes = array(
+            'AbstractAction' => '/lay/core/AbstractAction.php',
+            'AbstractTemplate' => '/lay/core/AbstractTemplate.php',
+            'Action' => '/lay/core/Action.php',
+            'Util' => '/lay/util/Util.php',
+            'Store' => '/lay/store/Store.php',
+            'Configuration' => '/lay/core/Configuration.php',
+            'Template' => '/lay/core/Template.php',
+            'EventEmitter' => '/lay/core/EventEmitter.php',
+            'Scope' => '/lay/util/Scope.php',
+            'Logger' => '/lay/util/Logger.php',
+            'Plugin' => '/lay/core/Plugin.php',
+            'PluginManager' => '/lay/core/PluginManager.php',
+            'HtmlAction' => '/lay/action/HtmlAction.php',
+            'JsonAction' => '/lay/action/JsonAction.php',
+            'XmlAction' => '/lay/action/XmlAction.php',
+            
+            'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
+            'I_Provider' => '/lay/core/I_Provider.php',
+            'I_Configuration' => '/lay/core/I_Configuration.php',
+            'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
+            'I_Logger' => '/lay/util/I_Logger.php'
+    );
+    private $classpath = array(
+            'src'
+    );
+    public function initilize() {
+        $sep = DIRECTORY_SEPARATOR;
+        // 使用自定义的autoload方法
+        spl_autoload_register(array(
+                $this,
+                'autoload'
+        ));
+        // 设置根目录路径
+        Lay::$_RootPath = $rootpath = dirname(dirname(__DIR__));
+        // 设置核心类加载路径
+        foreach($this->classpath as $i => $path) {
+            $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
+        }
+        // 初始化logger
+        Logger::initialize(false);
+        // 初始化配置量
+        $this->configure($rootpath . "{$sep}inc{$sep}config{$sep}main.env.php");
+        // 注册START事件
+        EventEmitter::on(Lay::EVENT_START, array(
+                $this,
+                'run'
+        ));
+        // 注意这里增加了级别
+        EventEmitter::on(Lay::EVENT_START, array(
+                $this,
+                'stop'
+        ), 1);
+        // 注册STOP事件 // 注意这里增加了级别
+        EventEmitter::on(Lay::EVENT_STOP, array(
+                $this,
+                'updateCache'
+        ), 1);
+        // 设置并加载插件
+        PluginManager::initilize();
+        
+        // 设置其他类自动加载目录路径
+        $classpaths = include_once $rootpath . "{$sep}inc{$sep}config{$sep}classpath.php";
+        foreach($classpaths as $i => $path) {
+            $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
+        }
+        // 加载类文件路径缓存
+        $this->loadCache();
+        // 触发lay的HOOK_INIT钩子
+        PluginManager::exec(Lay::HOOK_INIT, array(
+                $this
+        ));
+        // 触发INIT事件
+        EventEmitter::emit(Lay::EVENT_INIT, array(
+                $this
+        ));
+    }
     /**
-     * laywork autorun configuration,all config file is load in $_ROOTPATH
+     * lay autorun configuration,all config file is load in $_ROOTPATH
      * include actions,services,stores,beans,files...other
      *
      * @param string|array $configuration
@@ -113,8 +177,8 @@ class Lay {
      *            sign file,default is true
      * @return void
      */
-    public static function configure($configuration, $isFile = true) {
-        $_ROOTPATH = &self::$_RootPath;
+    public function configure($configuration, $isFile = true) {
+        $_ROOTPATH = &Lay::$_RootPath;
         if(is_array($configuration) && ! $isFile) {
             foreach($configuration as $key => $item) {
                 if(is_string($key) && $key) { // key is not null
@@ -126,12 +190,12 @@ class Lay {
                         case 'models':
                         case 'templates':
                             if(is_array($item)) {
-                                $actions = self::get($key);
+                                $actions = Lay::get($key);
                                 foreach($item as $name => $conf) {
                                     if(is_array($actions) && array_key_exists($name, $actions)) {
                                         Logger::warn('$configuration["' . $key . '"]["' . $name . '"] has been configured', 'CONFIGURE');
                                     } else if(is_string($name) || is_numeric($name)) {
-                                        self::set($key . '.' . $name, $conf);
+                                        Lay::set($key . '.' . $name, $conf);
                                     }
                                 }
                             } else {
@@ -141,10 +205,10 @@ class Lay {
                         case 'files':
                             if(is_array($item)) {
                                 foreach($item as $file) {
-                                    self::configure($file);
+                                    Lay::configure($file);
                                 }
                             } else if(is_string($item)) {
-                                self::configure($item);
+                                $this->configure($item);
                             } else {
                                 Logger::warn('$configuration["files"] is not an array or string', 'CONFIGURE');
                             }
@@ -153,17 +217,17 @@ class Lay {
                             // update Logger
                             Logger::initialize($item);
                         default:
-                            self::set($key, $item);
+                            Lay::set($key, $item);
                             break;
                     }
                 } else {
-                    self::set($key, $item);
+                    Lay::set($key, $item);
                 }
             }
         } else if(is_array($configuration)) {
             if(! empty($configuration)) {
                 foreach($configuration as $index => $configfile) {
-                    self::configure($configfile);
+                    $this->configure($configfile);
                 }
             }
         } else if(is_string($configuration)) {
@@ -178,68 +242,38 @@ class Lay {
             }
             
             if(empty($tmparr)) {
-                self::configure($tmparr);
+                $this->configure($tmparr);
             } else {
-                self::configure($tmparr, false);
+                $this->configure($tmparr, false);
             }
         } else {
             Logger::warn('unkown configuration type', 'CONFIGURE');
         }
     }
-    public static function addClassPath($classpath) {
+    public function addClassPath($classpath) {
+        $rootpath = Lay::$_RootPath ? Lay::$_RootPath : dirname(dirname(__DIR__));
+        if(is_dir($rootpath . DIRECTORY_SEPARATOR . $classpath)) {
+            $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $classpath;
+        } else {
+            Logger::warn("path:$rootpath" . DIRECTORY_SEPARATOR . "$classpath is not exists!");
+        }
+        return true;
     }
-    public static function addClassPaths($classpaths) {
-        $rootpath = self::$_RootPath ? self::$_RootPath : dirname(dirname(__DIR__));
-        foreach(self::$_ClassPath as $path) {
+    public function addClassPaths($classpaths) {
+        $rootpath = Lay::$_RootPath ? Lay::$_RootPath : dirname(dirname(__DIR__));
+        foreach($classpaths as $path) {
             if(is_dir($rootpath . DIRECTORY_SEPARATOR . $path)) {
-                self::$_ClassPath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
+                $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
             } else {
                 Logger::warn("path:$rootpath" . DIRECTORY_SEPARATOR . "$path is not exists!");
             }
         }
-    }
-    /**
-     * 初始化并触发EVENT_INIT事件
-     */
-    private static function initilize() {
-        $sep = DIRECTORY_SEPARATOR;
-        // 使用自定义的autoload方法
-        spl_autoload_register('Lay::autoload');
-        // 设置根目录路径
-        self::$_RootPath = $rootpath = dirname(dirname(__DIR__));
-        // 设置核心类加载路径
-        foreach(self::$_ClassPath as $i => $path) {
-            self::$_ClassPath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
-        }
-        // 初始化logger
-        Logger::initialize(false);
-        // 初始化配置量
-        self::configure($rootpath . "{$sep}inc{$sep}config{$sep}main.env.php");
-        // 设置并加载插件
-        PluginManager::initilize();
-        // 注册START事件
-        EventEmitter::on(self::EVENT_START, 'Lay::run');
-        // 注意这里增加了级别
-        EventEmitter::on(self::EVENT_START, 'Lay::stop', 1);
-        // 注册STOP事件 // 注意这里增加了级别
-        EventEmitter::on(self::EVENT_STOP, 'Lay::updateCache', 1);
-        
-        // 设置其他类自动加载目录路径
-        $classpaths = include_once $rootpath . "{$sep}inc{$sep}config{$sep}classpath.php";
-        foreach($classpaths as $i => $path) {
-            self::$_ClassPath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
-        }
-        // 加载类文件路径缓存
-        self::loadCache();
-        // 触发lay的HOOK_INIT钩子
-        PluginManager::exec(self::HOOK_INIT);
-        // 触发INIT事件
-        EventEmitter::emit(self::EVENT_INIT);
+        return true;
     }
     /**
      * 创建Action生命周期
      */
-    public static function run() {
+    public function run() {
         $routers = Lay::get('routers');
         $matches = array();
         $uri = preg_replace('/^(.*)(\?)(.*)$/', '$1', $_SERVER['REQUEST_URI']);
@@ -305,31 +339,29 @@ class Lay {
                 break;
         }
     }
-    /**
-     * 打开，初始化并触发EVENT_START事件
-     */
-    public static function start() {
-        global $_START;
-        $_START = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
-        self::initilize();
-        // 触发START事件
-        EventEmitter::emit(self::EVENT_START);
-    }
-    public static function stop() {
+    public function stop() {
         global $_START, $_END;
         $_END = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
         // 触发action的HOOK_STOP钩子
-        PluginManager::exec(Action::HOOK_STOP);
+        PluginManager::exec(Action::HOOK_STOP, array(
+                $this
+        ));
         // 触发action的stop事件
-        EventEmitter::emit(Action::EVENT_STOP);
+        EventEmitter::emit(Action::EVENT_STOP, array(
+                $this
+        ));
         // if is fastcgi
         if(function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         }
         // 触发lay的HOOK_STOP钩子
-        PluginManager::exec(self::HOOK_STOP);
+        PluginManager::exec(Lay::HOOK_STOP, array(
+                $this
+        ));
         // 触发STOP事件
-        EventEmitter::emit(self::EVENT_STOP);
+        EventEmitter::emit(Lay::EVENT_STOP, array(
+                $this
+        ));
     }
     /**
      * 类自动加载
@@ -338,19 +370,19 @@ class Lay {
      *            类全名
      * @return void
      */
-    public static function autoload($classname) {
-        if(empty(self::$_ClassPath)) {
-            self::checkAutoloadFunctions();
+    public function autoload($classname) {
+        if(empty($this->classpath)) {
+            $this->checkAutoloadFunctions();
         } else {
-            foreach(self::$_ClassPath as $path) {
+            foreach($this->classpath as $path) {
                 if(class_exists($classname, false) || interface_exists($classname, false)) {
                     break;
                 } else {
-                    self::loadClass($classname, $path);
+                    $this->loadClass($classname, $path);
                 }
             }
             if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
-                self::checkAutoloadFunctions();
+                $this->checkAutoloadFunctions();
             }
         }
     }
@@ -359,13 +391,13 @@ class Lay {
      *
      * @throws Exception
      */
-    private static function checkAutoloadFunctions() {
+    private function checkAutoloadFunctions() {
         // 判断是否还有其他自动加载函数，如没有则抛出异常
         $funs = spl_autoload_functions();
         $count = count($funs);
         foreach($funs as $i => $fun) {
             if($fun[0] == 'Lay' && $fun[1] == 'autoload' && $count == $i + 1) {
-                throw new Exception('Class not found by LAY autoload function');
+                Logger::error('Class not found by LAY autoload function');
             }
         }
     }
@@ -376,8 +408,8 @@ class Lay {
      * @param string $classpath            
      * @return void
      */
-    public static function loadClass($classname, $classpath) {
-        $classes = self::$_Classes;
+    public function loadClass($classname, $classpath) {
+        $classes = $this->classes;
         $suffixes = array(
                 '.php',
                 '.class.php'
@@ -403,7 +435,7 @@ class Lay {
                     foreach($suffixes as $i => $suffix) {
                         if(is_file($tmppath . $suffix)) {
                             $filepath = realpath($tmppath . $suffix);
-                            self::setCache($classname, $filepath);
+                            $this->setCache($classname, $filepath);
                             require_once $filepath;
                             break;
                         }
@@ -421,7 +453,7 @@ class Lay {
                         $tmppath = $classpath . DIRECTORY_SEPARATOR . $classname;
                         if(is_file($tmppath . $suffix)) {
                             $filepath = realpath($tmppath . $suffix);
-                            self::setCache($classname, $filepath);
+                            $this->setCache($classname, $filepath);
                             require_once $filepath;
                             break;
                         }
@@ -439,7 +471,7 @@ class Lay {
                             foreach($suffixes as $i => $suffix) {
                                 if(is_file($tmppath . $suffix)) {
                                     $filepath = realpath($tmppath . $suffix);
-                                    self::setCache($classname, $filepath);
+                                    $this->setCache($classname, $filepath);
                                     require_once $filepath;
                                     break 2;
                                 }
@@ -449,7 +481,7 @@ class Lay {
                             foreach($suffixes as $i => $suffix) {
                                 if(($isfile = is_file($path . $suffix)) || is_file($lowerpath . $suffix)) {
                                     $filepath = realpath(($isfile ? $path : $lowerpath) . $suffix);
-                                    self::setCache($classname, $filepath);
+                                    $this->setCache($classname, $filepath);
                                     require_once $filepath;
                                     break 2;
                                 }
@@ -466,15 +498,15 @@ class Lay {
     }
     /**
      */
-    private static function loadCache() {
+    private function loadCache() {
         $cachename = sys_get_temp_dir() . 'lay-classes.php';
         if(is_file($cachename)) {
-            self::$_Caches = include $cachename;
+            $this->caches = include $cachename;
         } else {
-            self::$_Caches = array();
+            $this->caches = array();
         }
-        if(is_array(self::$_Caches) && ! empty(self::$_Caches)) {
-            self::$_Classes = array_merge(self::$_Classes, self::$_Caches);
+        if(is_array($this->caches) && ! empty($this->caches)) {
+            $this->classes = array_merge($this->classes, $this->caches);
         }
     }
     /**
@@ -482,17 +514,17 @@ class Lay {
      *
      * @return number
      */
-    public static function updateCache() {
-        Logger::debug('self::$_Cached:' . self::$_Cached);
-        if(self::$_Cached) {
-            Logger::debug(self::$_Caches);
-            $content = Util::array2PHPContent(self::$_Caches);
+    public function updateCache() {
+        Logger::debug('$this->cached:' . $this->cached);
+        if($this->cached) {
+            Logger::debug($this->caches);
+            $content = Util::array2PHPContent($this->caches);
             $cachename = sys_get_temp_dir() . 'lay-classes.php';
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);
             $return = fflush($handle);
             $return = fclose($handle);
-            self::$_Cached = false;
+            $this->cached = false;
             return $result;
         } else {
             return false;
@@ -505,20 +537,20 @@ class Lay {
      * @param string $filepath            
      * @return void
      */
-    private static function setCache($classname, $filepath) {
-        self::$_Cached = true;
-        self::$_Caches[$classname] = realpath($filepath);
+    private function setCache($classname, $filepath) {
+        $this->cached = true;
+        $this->caches[$classname] = realpath($filepath);
     }
     /**
      * 获取缓存起来的类文件映射
      *
      * @return array string
      */
-    public static function getCache($classname = '') {
-        if(is_string($classname) && $classname && isset(self::$_Caches[$classname])) {
-            return self::$_Caches[$classname];
+    public function getCache($classname = '') {
+        if(is_string($classname) && $classname && isset($this->caches[$classname])) {
+            return $this->caches[$classname];
         } else {
-            return self::$_Caches;
+            return $this->caches;
         }
     }
     private function __construct() {

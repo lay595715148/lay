@@ -51,8 +51,7 @@ class PluginManager {
             Lay::HOOK_INIT,
             Lay::HOOK_STOP,
             Action::HOOK_CREATE,
-            Action::HOOK_STOP,
-            Action::HOOK_DESTROY
+            Action::HOOK_STOP
     );
     /**
      * 监听器
@@ -115,12 +114,13 @@ class PluginManager {
      * @param array $params            
      */
     public function trigger($hookname, $params) {
+        $this->activeHook = $hookname;
+        $this->activedHooks[] = $hookname;
+        
         if (!is_array($params) && !empty($params)) {
             $params = array($params);
         }
         
-        $this->activeHook = $hookname;
-        $this->activedHooks[] = $hookname;
         // 查看要实现的钩子，是否在监听数组之中
         // 循环调用开始
         foreach((array)$this->listeners[$hookname] as $callback) {

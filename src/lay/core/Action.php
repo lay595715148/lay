@@ -21,7 +21,6 @@ abstract class Action extends AbstractAction {
     const EVENT_DESTROY = 'action_destroy';
     const HOOK_CREATE = 'hook_action_create';
     const HOOK_STOP = 'hook_action_stop';
-    const HOOK_DESTROY = 'hook_action_destroy';
     /**
      *
      * @staticvar action instance
@@ -132,7 +131,6 @@ abstract class Action extends AbstractAction {
         return $this->name;
     }
     public function __destruct() {
-        PluginManager::exec(self::HOOK_DESTROY, array($this));
         EventEmitter::emit(Action::EVENT_DESTROY);
     }
     public function onCreate() {
