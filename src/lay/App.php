@@ -287,10 +287,14 @@ final class App {
         if(empty($classname) && empty($name)) {
             $name = $uri;
         }
-        if($classname) {
-            $action = Action::getInstanceByClassname($classname, $name);
-        } else if($name) {
-            $action = Action::getInstance($name);
+        try {
+            if($classname) {
+                $action = Action::getInstanceByClassname($classname, $name);
+            } else if($name) {
+                $action = Action::getInstance($name);
+            }
+        } catch (Exception $e) {
+            //do 404
         }
         // 注册action的一些事件
         EventEmitter::on(Action::EVENT_GET, array(
