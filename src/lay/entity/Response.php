@@ -24,5 +24,8 @@ class Response extends Entity {
             'code' => 'code'
         );
     }
+    public function toSummary() {
+        return $this->toArray();
+    }
 }
 ?>

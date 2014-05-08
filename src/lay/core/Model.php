@@ -15,7 +15,7 @@ abstract class Model extends Bean {
      */
     public abstract function table();
     /**
-     * return table fields
+     * return mapping between object property and table fields
      * @return array
      */
     public abstract function columns();
@@ -25,9 +25,16 @@ abstract class Model extends Bean {
      */
     public abstract function primary();
     /**
-     * return relation between tables
+     * relation between models
+     * example:
+     * return array(
+     *       'job'    => 'ExtOperatingJobs',
+     * );     
+     * 'job'是model的一个属性，'ExtOperatingJobs'是关联的MODEL名
      * @return array
      */
-    public abstract function relations();
+    public function relations() {
+        return array();
+    }
 }
 ?>

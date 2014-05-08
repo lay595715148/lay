@@ -14,5 +14,6 @@ abstract class Entity extends Bean {
      * @return array
      */
     public abstract function summary();
+    public abstract function toSummary();
 }
 ?>

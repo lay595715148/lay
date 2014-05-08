@@ -10,7 +10,7 @@ if(! defined('INIT_LAY')) {
  * @abstract
  *
  */
-abstract class Bean {
+abstract class Bean implements JsonSerializable {
     const PROPETYPE_S_STRING = 'string';
     const PROPETYPE_STRING = 1;
     const PROPETYPE_S_NUMBER = 'number';
@@ -29,6 +29,8 @@ abstract class Bean {
     const PROPETYPE_FLOAT = 8;
     const PROPETYPE_S_DOUBLE = 'double';
     const PROPETYPE_DOUBLE = 9;
+    const PROPETYPE_S_ARRAY = 'array';
+    const PROPETYPE_ARRAY = 10;
     const PROPETYPE_S_DATEFORMAT = 'dataformat';
     const PROPETYPE_S_OTHER = 'other';
     /**
@@ -137,6 +139,14 @@ abstract class Bean {
                     case Model::PROPETYPE_DOUBLE:
                     case Model::PROPETYPE_S_DOUBLE:
                         $properties[$name] = doubleval($value);
+                        break;
+                    case Model::PROPETYPE_ARRAY:
+                    case Model::PROPETYPE_S_ARRAY:
+                        if(is_array($value)) {
+                            $properties[$name] = $value;
+                        } else {
+                            Logger::error('invalid value,property:'.$name.'\'s value must be an array in class:' . get_class($this), 'MODEL');
+                        }
                         break;
                     default:
                         if(is_array($propetypes[$name])) {
@@ -264,6 +274,9 @@ abstract class Bean {
             }
         }
         return $this;
+    }
+    public function JsonSerializable() {
+        return $this->toArray();
     }
 }
 ?>
