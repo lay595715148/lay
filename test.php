@@ -1,5 +1,5 @@
 <?php
 //echo urlencode('%');
-include_once 'src/lay/Lay.php';
-Lay::start();
+include_once 'src/lay/App.php';
+App::start();
 ?>

@@ -6,7 +6,7 @@
 define('INIT_LAY', true);//标记
 
 //require_once __DIR__.'/lib/index.php';
-require_once __DIR__.'/src/lay/Lay.php';
+require_once __DIR__.'/src/lay/App.php';
 
-Lay::start();
+App::start();
 ?>

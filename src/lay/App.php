@@ -8,26 +8,25 @@ if(! defined('INIT_LAY')) {
  *
  * @author Lay Li 2014-04-29
  */
-final class Lay {
+final class App {
+    const EVENT_CREATE = 'lay_create';
     const EVENT_INIT = 'lay_init';
-    const EVENT_START = 'lay_start';
     const EVENT_STOP = 'lay_stop';
+    const EVENT_DESTROY = 'lay_destroy';
     const HOOK_INIT = 'hook_lay_init';
     const HOOK_STOP = 'hook_lay_stop';
     private static $_Instance = null;
-    private static function getInstance() {
+    public static $_RootPath = '';
+    public static function getInstance() {
         if(self::$_Instance == null) {
-            self::$_Instance = new Lay();
+            self::$_Instance = new App();
         }
         return self::$_Instance;
     }
-    public static $_RootPath = '';
     public static function start() {
         global $_START;
-        $_START = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
-        self::getInstance()->initilize();
-        // 触发START事件
-        EventEmitter::emit(self::EVENT_START);
+        $_START = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
+        self::getInstance()->initilize()->run()->stop();
     }
     /**
      * set configuration
@@ -81,11 +80,14 @@ final class Lay {
         else
             return Configuration::get('templates.' . $name);
     }
-    public static function getPluginConfig($name) {
-        if(empty($name))
-            return Configuration::get('plugins');
-        else
-            return Configuration::get('plugins.' . $name);
+    public static function addClasspath($classpath) {
+        self::getInstance()->appendClasspath($classpath);
+    }
+    public static function addClasspaths($classpaths) {
+        self::getInstance()->appendClasspaths($classpaths);
+    }
+    public static function loadClass($classname, $classpath) {
+        self::getInstance()->loadClazz($classname, $classpath);
     }
     // private function
     private $cached = false;
@@ -118,33 +120,19 @@ final class Lay {
     );
     public function initilize() {
         $sep = DIRECTORY_SEPARATOR;
-        // 使用自定义的autoload方法
-        spl_autoload_register(array(
-                $this,
-                'autoload'
-        ));
-        // 设置根目录路径
-        Lay::$_RootPath = $rootpath = dirname(dirname(__DIR__));
-        // 设置核心类加载路径
-        foreach($this->classpath as $i => $path) {
-            $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
-        }
+        $rootpath = App::$_RootPath;
         // 初始化logger
         Logger::initialize(false);
         // 初始化配置量
         $this->configure($rootpath . "{$sep}inc{$sep}config{$sep}main.env.php");
         // 注册START事件
-        EventEmitter::on(Lay::EVENT_START, array(
+        /* EventEmitter::on(App::EVENT_START, array(
                 $this,
                 'run'
-        ));
-        // 注意这里增加了级别
-        EventEmitter::on(Lay::EVENT_START, array(
-                $this,
-                'stop'
-        ), 1);
-        // 注册STOP事件 // 注意这里增加了级别
-        EventEmitter::on(Lay::EVENT_STOP, array(
+        )); */
+        // 注册STOP事件 ,最后始终要执行updateCache来更新类文件路径映射， 注意这里增加了级别
+        // 用户可以注册在updateCache前的STOP事件
+        EventEmitter::on(App::EVENT_STOP, array(
                 $this,
                 'updateCache'
         ), 1);
@@ -159,13 +147,15 @@ final class Lay {
         // 加载类文件路径缓存
         $this->loadCache();
         // 触发lay的HOOK_INIT钩子
-        PluginManager::exec(Lay::HOOK_INIT, array(
+        PluginManager::exec(App::HOOK_INIT, array(
                 $this
         ));
         // 触发INIT事件
-        EventEmitter::emit(Lay::EVENT_INIT, array(
+        EventEmitter::emit(App::EVENT_INIT, array(
                 $this
         ));
+        
+        return $this;
     }
     /**
      * lay autorun configuration,all config file is load in $_ROOTPATH
@@ -178,7 +168,7 @@ final class Lay {
      * @return void
      */
     public function configure($configuration, $isFile = true) {
-        $_ROOTPATH = &Lay::$_RootPath;
+        $_ROOTPATH = &App::$_RootPath;
         if(is_array($configuration) && ! $isFile) {
             foreach($configuration as $key => $item) {
                 if(is_string($key) && $key) { // key is not null
@@ -190,12 +180,12 @@ final class Lay {
                         case 'models':
                         case 'templates':
                             if(is_array($item)) {
-                                $actions = Lay::get($key);
+                                $actions = App::get($key);
                                 foreach($item as $name => $conf) {
                                     if(is_array($actions) && array_key_exists($name, $actions)) {
                                         Logger::warn('$configuration["' . $key . '"]["' . $name . '"] has been configured', 'CONFIGURE');
                                     } else if(is_string($name) || is_numeric($name)) {
-                                        Lay::set($key . '.' . $name, $conf);
+                                        App::set($key . '.' . $name, $conf);
                                     }
                                 }
                             } else {
@@ -205,7 +195,7 @@ final class Lay {
                         case 'files':
                             if(is_array($item)) {
                                 foreach($item as $file) {
-                                    Lay::configure($file);
+                                    App::configure($file);
                                 }
                             } else if(is_string($item)) {
                                 $this->configure($item);
@@ -217,11 +207,11 @@ final class Lay {
                             // update Logger
                             Logger::initialize($item);
                         default:
-                            Lay::set($key, $item);
+                            App::set($key, $item);
                             break;
                     }
                 } else {
-                    Lay::set($key, $item);
+                    App::set($key, $item);
                 }
             }
         } else if(is_array($configuration)) {
@@ -250,8 +240,8 @@ final class Lay {
             Logger::warn('unkown configuration type', 'CONFIGURE');
         }
     }
-    public function addClassPath($classpath) {
-        $rootpath = Lay::$_RootPath ? Lay::$_RootPath : dirname(dirname(__DIR__));
+    public function appendClasspath($classpath) {
+        $rootpath = App::$_RootPath;
         if(is_dir($rootpath . DIRECTORY_SEPARATOR . $classpath)) {
             $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $classpath;
         } else {
@@ -259,8 +249,8 @@ final class Lay {
         }
         return true;
     }
-    public function addClassPaths($classpaths) {
-        $rootpath = Lay::$_RootPath ? Lay::$_RootPath : dirname(dirname(__DIR__));
+    public function appendClasspaths($classpaths) {
+        $rootpath = App::$_RootPath;
         foreach($classpaths as $path) {
             if(is_dir($rootpath . DIRECTORY_SEPARATOR . $path)) {
                 $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
@@ -274,7 +264,7 @@ final class Lay {
      * 创建Action生命周期
      */
     public function run() {
-        $routers = Lay::get('routers');
+        $routers = App::get('routers');
         $matches = array();
         $uri = preg_replace('/^(.*)(\?)(.*)$/', '$1', $_SERVER['REQUEST_URI']);
         Logger::debug($uri);
@@ -338,10 +328,12 @@ final class Lay {
             default:
                 break;
         }
+        
+        return $this;
     }
     public function stop() {
         global $_START, $_END;
-        $_END = date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000);
+        $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
         // 触发action的HOOK_STOP钩子
         PluginManager::exec(Action::HOOK_STOP, array(
                 $this
@@ -355,13 +347,16 @@ final class Lay {
             fastcgi_finish_request();
         }
         // 触发lay的HOOK_STOP钩子
-        PluginManager::exec(Lay::HOOK_STOP, array(
+        PluginManager::exec(App::HOOK_STOP, array(
                 $this
         ));
         // 触发STOP事件
-        EventEmitter::emit(Lay::EVENT_STOP, array(
+        EventEmitter::emit(App::EVENT_STOP, array(
                 $this
         ));
+        
+        $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
+        Logger::debug(array($_START, $_END));
     }
     /**
      * 类自动加载
@@ -378,7 +373,7 @@ final class Lay {
                 if(class_exists($classname, false) || interface_exists($classname, false)) {
                     break;
                 } else {
-                    $this->loadClass($classname, $path);
+                    $this->loadClazz($classname, $path);
                 }
             }
             if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
@@ -396,7 +391,7 @@ final class Lay {
         $funs = spl_autoload_functions();
         $count = count($funs);
         foreach($funs as $i => $fun) {
-            if($fun[0] == 'Lay' && $fun[1] == 'autoload' && $count == $i + 1) {
+            if($fun[0] == 'App' && $fun[1] == 'autoload' && $count == $i + 1) {
                 Logger::error('Class not found by LAY autoload function');
             }
         }
@@ -408,7 +403,7 @@ final class Lay {
      * @param string $classpath            
      * @return void
      */
-    public function loadClass($classname, $classpath) {
+    public function loadClazz($classname, $classpath) {
         $classes = $this->classes;
         $suffixes = array(
                 '.php',
@@ -554,6 +549,24 @@ final class Lay {
         }
     }
     private function __construct() {
+        //构造时把autoload、rootpath和基本的classpath定义好
+        $sep = DIRECTORY_SEPARATOR;
+        // 使用自定义的autoload方法
+        spl_autoload_register(array(
+                $this,
+                'autoload'
+        ));
+        // 设置根目录路径
+        App::$_RootPath = $rootpath = dirname(dirname(__DIR__));
+        // 设置核心类加载路径
+        foreach($this->classpath as $i => $path) {
+            $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
+        }
+        
+        EventEmitter::emit(App::EVENT_CREATE);
+    }
+    public function __destruct() {
+        EventEmitter::emit(App::EVENT_DESTROY);
     }
 }
 ?>

@@ -24,6 +24,11 @@ php >= 5.2
 		index.php
 		index.html
 
+运行时序图
+===
+
+![](lay.png)
+
 编码规范
 ===
 

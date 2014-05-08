@@ -18,7 +18,7 @@ class EventEmitter implements I_EventEmitter {
      */
     public static function emit($eventid, array $params = array()) {
         if(!self::$_Instance) {
-            $classname = Lay::get('register_eventemitter');
+            $classname = App::get('register_eventemitter');
             if($classname) {
                 try {
                     self::$_Instance = new $classname();
@@ -31,7 +31,7 @@ class EventEmitter implements I_EventEmitter {
     }
     public static function on($eventid, $func, $level = 0) {
         if(!self::$_Instance) {
-            $classname = Lay::get('register_eventemitter');
+            $classname = App::get('register_eventemitter');
             if($classname) {
                 try {
                     self::$_Instance = new $classname();

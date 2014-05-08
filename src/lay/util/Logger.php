@@ -124,7 +124,7 @@ class Logger implements I_Logger {
         } else if(is_int($debug)) {
             self::$_Out = self::$_Log = $debug;
         } else if($debug === '') {
-            $debug = Laywork::get('debug');
+            $debug = App::get('debug');
             if($debug === '' || $debug === null) {
                 self::$_Out = self::$_Log = false;
             } else {

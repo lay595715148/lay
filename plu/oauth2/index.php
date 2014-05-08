@@ -2,12 +2,12 @@
 class Oauth2Plugin extends Plugin {
     private $action;
     public function initilize() {
-        $this->addHook(Lay::HOOK_INIT, array($this, 'sayhello'));
+        $this->addHook(App::HOOK_INIT, array($this, 'sayhello'));
         $this->addHook(Action::HOOK_CREATE, array($this, 'sayhello2'));
         $this->addHook(Action::HOOK_STOP, array($this, 'sayhello3'));
     }
     public function sayhello() {
-        //Lay::s
+        //App::s
         //Web::test();echo '<br>';
         Logger::debug('say hello!');
     }

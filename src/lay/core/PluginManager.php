@@ -17,10 +17,11 @@ class PluginManager {
     }
     /**
      * 初始化插件
+     * @param array $plugins plugin array
      */
-    public static function initilize() {
+    public static function initilize($plugins = array()) {
         $instance = self::getInstance();
-        $plugins = Lay::get('plugins');
+        $plugins = empty($plugins) ? App::get('plugins') : $plugins;
         if(is_array($plugins)) {
             // 实例化所有插件
             /* foreach($plugins as $plugin) {
@@ -30,7 +31,6 @@ class PluginManager {
                 $instance->loadPlugin($plugin, $classname);
             } */
             $instance->loadPlugins($plugins);
-        } else {
         }
     }
     public static function exec($hookname, $params = array()) {
@@ -48,8 +48,8 @@ class PluginManager {
      * @var array
      */
     private $hooks = array(
-            Lay::HOOK_INIT,
-            Lay::HOOK_STOP,
+            App::HOOK_INIT,
+            App::HOOK_STOP,
             Action::HOOK_CREATE,
             Action::HOOK_STOP
     );
@@ -199,7 +199,7 @@ class PluginManager {
         }
         
         $separator = DIRECTORY_SEPARATOR;
-        $file = Lay::$_RootPath . $separator . 'plu' . $separator . $name . $separator . 'index.php';
+        $file = App::$_RootPath . $separator . 'plu' . $separator . $name . $separator . 'index.php';
         
         if(file_exists($file)) {
             if(! class_exists($classname, false)) {

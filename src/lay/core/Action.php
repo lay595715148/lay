@@ -36,7 +36,7 @@ abstract class Action extends AbstractAction {
     public static function getInstance($name = '', $params = array()) {
         if(self::$instance == null) {
             // 增加provider功能
-            $provider = Lay::get(self::ACTION_PROVIDER_CONFIG_TAG);
+            $provider = App::get(self::ACTION_PROVIDER_CONFIG_TAG);
             if($provider && is_string($provider)) {
                 $provider = new $provider();
             }
@@ -48,7 +48,7 @@ abstract class Action extends AbstractAction {
             }
             // 如果没有自定义实现IActionProvider接口的类对象，使用默认的配置项进行实现
             if(! (self::$instance instanceof Action)) {
-                $config = Lay::getActionConfig($name);
+                $config = App::getActionConfig($name);
                 if(isset($config['classname']) && class_exists($config['classname'])) {
                     $classname = $config['classname'];
                     self::$instance = new $classname($name);

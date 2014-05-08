@@ -21,7 +21,7 @@ class Template extends AbstractTemplate {
      */
     public static function getInstance($name = '') {
         if(self::$instance == null) {//增加provider功能
-            $provider = Lay::get(self::TEMPLATE_PROVIDER_CONFIG_TAG);
+            $provider = App::get(self::TEMPLATE_PROVIDER_CONFIG_TAG);
             if($provider && is_string($provider)) {
                 $provider = new $provider();
             }
@@ -32,8 +32,8 @@ class Template extends AbstractTemplate {
             }
             //如果没有自定义实现ITemplateProvider接口的类对象，使用默认的配置项进行实现
             if(!(self::$instance instanceof Template)) {
-                $config = Lay::getTemplateConfig($name);
-                $config = is_array($name)?$name:Lay::getTemplateConfig($name);
+                $config = App::getTemplateConfig($name);
+                $config = is_array($name)?$name:App::getTemplateConfig($name);
                 $classname = isset($config['classname'])?$config['classname']:'DemoTemplate';
                 if(isset($config['classname'])) {
                     self::$instance = new $classname($config);
@@ -141,7 +141,7 @@ class Template extends AbstractTemplate {
      * @param string $filepath file path
      */
     public function file($filepath) {
-        $_ROOTPATH = Lay::$_RootPath;
+        $_ROOTPATH = App::$_RootPath;
         $filepath = realpath($filepath);
         if(strpos($filepath, $_ROOTPATH) === 0) {
             $this->file = $filepath;
@@ -154,13 +154,13 @@ class Template extends AbstractTemplate {
      * @param string $filepath template file path, relative template theme directory
      */
     public function plate($filepath) {
-        $_ROOTPATH = Lay::$_RootPath;
+        $_ROOTPATH = App::$_RootPath;
         $filepath = realpath($filepath);
         if(strpos($filepath, $_ROOTPATH) === 0) {
             $this->file = $filepath;
         } else {
-            $themes = Lay::get('themes');
-            $theme = Lay::get('theme');
+            $themes = App::get('themes');
+            $theme = App::get('theme');
             if($themes && $theme && array_key_exists($theme, $themes)) {
                 if(!isset($themes[$theme]['dir'])) {
                     $themes[$theme]['dir'] = '';
