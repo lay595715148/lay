@@ -97,7 +97,8 @@ final class App {
             'AbstractTemplate' => '/lay/core/AbstractTemplate.php',
             'Action' => '/lay/core/Action.php',
             'Util' => '/lay/util/Util.php',
-            'Store' => '/lay/store/Store.php',
+            'Store' => '/lay/core/Store.php',
+            'Strict' => '/lay/core/Strict.php',
             'Configuration' => '/lay/core/Configuration.php',
             'Template' => '/lay/core/Template.php',
             'EventEmitter' => '/lay/core/EventEmitter.php',
@@ -108,6 +109,8 @@ final class App {
             'HtmlAction' => '/lay/action/HtmlAction.php',
             'JsonAction' => '/lay/action/JsonAction.php',
             'XmlAction' => '/lay/action/XmlAction.php',
+            'Mysql' => '/lay/store/Store.php',
+            'Mongo' => '/lay/store/Mongo.php',
             
             'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
             'I_Provider' => '/lay/core/I_Provider.php',
@@ -300,23 +303,23 @@ final class App {
         EventEmitter::on(Action::EVENT_GET, array(
                 $action,
                 'onGet'
-        ));
+        ), 1);
         EventEmitter::on(Action::EVENT_POST, array(
                 $action,
                 'onPost'
-        ));
+        ), 1);
         EventEmitter::on(Action::EVENT_REQUEST, array(
                 $action,
                 'onRequest'
-        ));
+        ), 1);
         EventEmitter::on(Action::EVENT_STOP, array(
                 $action,
                 'onStop'
-        ));
+        ), 1);
         EventEmitter::on(Action::EVENT_DESTROY, array(
                 $action,
                 'onDestroy'
-        ));
+        ), 1);
         
         // 触发action的request事件
         EventEmitter::emit(Action::EVENT_REQUEST, $matches);

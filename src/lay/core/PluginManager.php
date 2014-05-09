@@ -51,7 +51,8 @@ class PluginManager {
             App::HOOK_INIT,
             App::HOOK_STOP,
             Action::HOOK_CREATE,
-            Action::HOOK_STOP
+            Action::HOOK_STOP,
+            Store::HOOK_CREATE
     );
     /**
      * 监听器

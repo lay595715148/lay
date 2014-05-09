@@ -105,8 +105,8 @@ abstract class Action extends AbstractAction {
         $this->name = $name;
         $this->template = is_a($template, 'Template') ? $template : new Template();
         $this->scope = new Scope();
-        PluginManager::exec(self::HOOK_CREATE, array($this));
         EventEmitter::on(self::EVENT_CREATE, array($this, 'onCreate'));
+        PluginManager::exec(self::HOOK_CREATE, array($this));
         EventEmitter::emit(self::EVENT_CREATE);
     }
     /**
