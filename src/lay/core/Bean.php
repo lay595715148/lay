@@ -10,7 +10,7 @@ if(! defined('INIT_LAY')) {
  * @abstract
  *
  */
-abstract class Bean implements JsonSerializable {
+abstract class Bean extends AbstractBean {
     const PROPETYPE_S_STRING = 'string';
     const PROPETYPE_STRING = 1;
     const PROPETYPE_S_NUMBER = 'number';
@@ -248,7 +248,15 @@ abstract class Bean implements JsonSerializable {
             }
         }
     }
-    
+
+    /**
+     * return array values of class properties
+     *
+     * @return array
+     */
+    public function toProperties() {
+        return array_keys($this->properties);
+    }
     /**
      * return array values of class properties
      *
@@ -256,6 +264,18 @@ abstract class Bean implements JsonSerializable {
      */
     public function toArray() {
         return $this->properties;
+    }
+    /**
+     * return array values of class properties
+     *
+     * @return array
+     */
+    public function toObject() {
+        $o = new stdClass();
+        foreach ($this->properties as $k=>$v) {
+            $o->{$k} = $v;
+        }
+        return $o;
     }
     
     /**
@@ -274,9 +294,6 @@ abstract class Bean implements JsonSerializable {
             }
         }
         return $this;
-    }
-    public function JsonSerializable() {
-        return $this->toArray();
     }
 }
 ?>

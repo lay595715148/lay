@@ -89,28 +89,38 @@ final class App {
     public static function loadClass($classname, $classpath) {
         self::getInstance()->loadClazz($classname, $classpath);
     }
+    public static function classExists($classname, $autoload = true) {
+        return class_exists($classname, $autoload) || interface_exists($classname, $autoload);
+    }
     // private function
     private $cached = false;
     private $caches = array();
     private $classes = array(
             'AbstractAction' => '/lay/core/AbstractAction.php',
+            'AbstractBean' => '/lay/core/AbstractBean.php',
             'AbstractTemplate' => '/lay/core/AbstractTemplate.php',
+            'AbstractService' => '/lay/core/AbstractService.php',
+            'AbstractStore' => '/lay/core/AbstractStore.php',
+            'AbstractPlugin' => '/lay/core/AbstractPlugin.php',
             'Action' => '/lay/core/Action.php',
             'Util' => '/lay/util/Util.php',
+            'Bean' => '/lay/core/Bean.php',
+            'Model' => '/lay/core/Model.php',
             'Store' => '/lay/core/Store.php',
+            'Service' => '/lay/core/Service.php',
             'Strict' => '/lay/core/Strict.php',
             'Configuration' => '/lay/core/Configuration.php',
             'Template' => '/lay/core/Template.php',
             'EventEmitter' => '/lay/core/EventEmitter.php',
             'Scope' => '/lay/util/Scope.php',
             'Logger' => '/lay/util/Logger.php',
-            'Plugin' => '/lay/core/Plugin.php',
             'PluginManager' => '/lay/core/PluginManager.php',
             'HtmlAction' => '/lay/action/HtmlAction.php',
             'JsonAction' => '/lay/action/JsonAction.php',
             'XmlAction' => '/lay/action/XmlAction.php',
-            'Mysql' => '/lay/store/Store.php',
+            'Mysql' => '/lay/store/Mysql.php',
             'Mongo' => '/lay/store/Mongo.php',
+            'Connection' => '/lay/core/Connection.php',
             
             'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
             'I_Provider' => '/lay/core/I_Provider.php',
@@ -291,13 +301,12 @@ final class App {
             $name = $uri;
         }
         try {
-            if($classname) {
-                $action = Action::getInstanceByClassname($classname, $name);
-            } else if($name) {
-                $action = Action::getInstance($name);
-            }
+            $action = Action::getInstance($name, $classname);
         } catch (Exception $e) {
             //do 404
+            //header('');
+            echo 404;
+            exit();
         }
         // 注册action的一些事件
         EventEmitter::on(Action::EVENT_GET, array(
@@ -377,13 +386,13 @@ final class App {
             $this->checkAutoloadFunctions();
         } else {
             foreach($this->classpath as $path) {
-                if(class_exists($classname, false) || interface_exists($classname, false)) {
+                if(App::classExists($classname, false)) {
                     break;
                 } else {
                     $this->loadClazz($classname, $path);
                 }
             }
-            if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
+            if(! App::classExists($classname, false)) {
                 $this->checkAutoloadFunctions();
             }
         }
@@ -424,7 +433,7 @@ final class App {
                 require_once $classpath . $classes[$classname];
             }
         }
-        if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
+        if(! App::classExists($classname, false)) {
             $tmparr = explode("\\", $classname);
             // 通过命名空间查找
             if(count($tmparr) > 1) {
@@ -444,12 +453,12 @@ final class App {
                     }
                 }
             }
-            if(! class_exists($classname, false) && ! interface_exists($classname, false) && preg_match_all('/([A-Z]{1,}[a-z0-9]{0,}|[a-z0-9]{1,})_{0,1}/', $classname, $matches) > 0) {
+            if(! App::classExists($classname, false) && preg_match_all('/([A-Z]{1,}[a-z0-9]{0,}|[a-z0-9]{1,})_{0,1}/', $classname, $matches) > 0) {
                 // 正则匹配后进行查找
                 $tmparr = array_values($matches[1]);
                 $prefix = array_shift($tmparr);
                 // 如果正则匹配前缀没有找到
-                if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
+                if(! App::classExists($classname, false)) {
                     // 直接以类名作为文件名查找
                     foreach($suffixes as $i => $suffix) {
                         $tmppath = $classpath . DIRECTORY_SEPARATOR . $classname;
@@ -462,7 +471,7 @@ final class App {
                     }
                 }
                 // 如果以上没有匹配，则使用类名递归文件夹查找，如使用小写请保持（如果第一递归文件夹使用了小写，即之后的文件夹名称保持小写）
-                if(! class_exists($classname, false) && ! interface_exists($classname, false)) {
+                if(! App::classExists($classname, false)) {
                     $path = $lowerpath = $classpath;
                     foreach($matches[1] as $index => $item) {
                         $path .= DIRECTORY_SEPARATOR . $item;

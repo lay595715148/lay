@@ -36,5 +36,25 @@ abstract class Model extends Bean {
     public function relations() {
         return array();
     }
+    public function toFields() {
+        return array_values($this->columns());
+    }
+    public function toField($pro) {
+        $columns = $this->columns();
+        if(array_key_exists($pro, $columns)) {
+            return $columns[$pro];
+        } else if(array_search($pro, $columns)) {
+            return $pro;
+        }
+        return false;
+    }
+    public function toProperty($field) {
+        $columns = $this->columns();
+        if(array_key_exists($field, $columns)) {
+            return $field;
+        } else {
+            return array_search($field, $columns);
+        }
+    }
 }
 ?>

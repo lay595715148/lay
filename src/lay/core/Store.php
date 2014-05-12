@@ -8,7 +8,7 @@ if(! defined('INIT_LAY')) {
  * 
  * @author Lay Li
  */
-abstract class Store {
+abstract class Store extends AbstractStore {
     const EVENT_CREATE = 'store_create';
     const HOOK_CREATE = 'hook_store_create';
     /**
@@ -17,6 +17,37 @@ abstract class Store {
      * @var array<Store>
      */
     protected static $_Instances = array();
+    /**
+     * 获取池中的一个Store实例
+     * @param string $classname
+     * @return Store
+     */
+    public static function getInstance($classname) {
+        if(empty(self::$_Instances[$classname])) {
+            $instance = new $classname();
+            if(is_subclass_of($instance, 'Store')) {
+                self::$_Instances[$classname] = $instance;
+            } else {
+                unset($instance);
+            }
+        }
+        return self::$_Instances[$classname];
+    }
+    /**
+     * 获取一个新Store实例
+     * @param Model $model
+     * @param string $classname
+     * @return Store
+     */
+    public static function newInstance($classname) {
+        $instance = new $classname();
+        if(is_subclass_of($instance, 'Store')) {
+            return $instance;
+        } else {
+            unset($instance);
+            return false;
+        }
+    }
     /**
      * close all connections
      * 
@@ -30,11 +61,23 @@ abstract class Store {
         return true;
     }
     /**
+     * 名称，唯一
+     * 
+     * @var string
+     */
+    protected $name;
+    /**
      * 模型对象
      * 
      * @var Model
      */
     protected $model;
+    /**
+     * schema
+     * 
+     * @var string schema
+     */
+    protected $schema;
     /**
      * 配置数组
      * 
@@ -47,9 +90,16 @@ abstract class Store {
      * @var #resource
      */
     protected $link;
-    public function __construct($model, $config = array()) {
+    /**
+     * database query result
+     * @var #resource
+     */
+    protected $result;
+    public function __construct($name, $model, $config = array()) {
+        $this->name = $name;
         $this->model = is_subclass_of($model, 'Model') ? $model : false;
         $this->config = is_array($config) ? $config : array();
+        $this->schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
         PluginManager::exec(self::HOOK_CREATE, array(
                 $this
         ));
@@ -73,60 +123,5 @@ abstract class Store {
     public function getModel($model) {
         return $this->model;
     }
-    /**
-     * 连接数据库
-     */
-    public abstract function connect();
-    /**
-     * 切换数据库
-     *
-     * @param string $name
-     *            名称
-     */
-    public abstract function change($name = '');
-    /**
-     * do database querying
-     *
-     * @param fixed $sql
-     *            SQL或其他查询结构
-     * @param string $encoding
-     *            编码
-     * @param boolean $showinfo
-     *            是否记录查询信息
-     */
-    public abstract function query($sql, $encoding = '', $showinfo = false);
-    /**
-     * select by id
-     *
-     * @param int|string $id
-     *            the ID
-     */
-    public abstract function get($id);
-    /**
-     * delete by id
-     *
-     * @param int|string $id
-     *            the ID
-     */
-    public abstract function del($id);
-    /**
-     * return id,always replace
-     *
-     * @param array $info
-     *            information array
-     */
-    public abstract function add(array $info);
-    /**
-     *
-     * @param int|string $id
-     *            the ID
-     * @param array $info
-     *            information array
-     */
-    public abstract function upd($id, array $info);
-    /**
-     * close connection
-     */
-    public abstract function close();
 }
 ?>

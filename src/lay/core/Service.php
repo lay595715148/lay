@@ -8,7 +8,39 @@ if(! defined('INIT_LAY')) {
  * 
  * @author Lay Li
  */
-abstract class Service {
+abstract class Service extends AbstractService {
+    protected static $_Instances = array();
+    /**
+     * 获取池中的一个Store实例
+     * @param string $classname
+     * @return Service
+     */
+    public static function getInstance($classname) {
+        if(empty(self::$_Instances[$classname])) {
+            $instance = new $classname();
+            if(is_subclass_of($instance, 'Service')) {
+                self::$_Instances[$classname] = $instance;
+            } else {
+                unset($instance);
+            }
+        }
+        return self::$_Instances[$classname];
+    }
+    /**
+     * 获取一个新Store实例
+     * @param Model $model
+     * @param string $classname
+     * @return Service
+     */
+    public static function newInstance($classname) {
+        $instance = new $classname();
+        if(is_subclass_of($instance, 'Service')) {
+            return $instance;
+        } else {
+            unset($instance);
+            return false;
+        }
+    }
     /**
      * 为主表（或其他）数据模型的数据访问对象
      * 
@@ -55,6 +87,9 @@ abstract class Service {
      */
     public function upd($id, array $info) {
         return $this->store->upd($id, $info);
+    }
+    public function count(array $info) {
+        return $this->store->count($info);
     }
 }
 ?>

@@ -1,5 +1,5 @@
 <?php
-class Oauth2Plugin extends Plugin {
+class Oauth2Plugin extends AbstractPlugin {
     private $action;
     public function initilize() {
         $this->addHook(App::HOOK_INIT, array($this, 'sayhello'));

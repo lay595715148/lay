@@ -3,6 +3,11 @@
 return array(
         'src',
         'src/web',
+        'src/demo/action',
+        'src/demo/model',
+        'src/demo/entity',
+        'src/demo/service',
+        'src/demo/store',
         'lib',
         'api'
 );

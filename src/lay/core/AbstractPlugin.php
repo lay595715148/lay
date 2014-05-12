@@ -3,7 +3,7 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
-abstract class Plugin {
+abstract class AbstractPlugin {
     /**
      * 
      * @var string

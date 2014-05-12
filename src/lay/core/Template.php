@@ -93,12 +93,6 @@ class Template extends AbstractTemplate {
     public function __construct() {
     }
     /**
-     * 初始化
-     */
-    public function initialize() {
-        
-    }
-    /**
      * push header for output
      * @param string $header http header string
      */

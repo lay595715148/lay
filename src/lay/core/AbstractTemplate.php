@@ -4,6 +4,9 @@ if(!defined('INIT_LAY')) {
 }
 
 abstract class AbstractTemplate {
-    public abstract function initialize();
+    public abstract function out();
+    public abstract function json();
+    public abstract function xml();
+    public abstract function display();
 }
 ?>

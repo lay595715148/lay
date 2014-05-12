@@ -1,5 +1,5 @@
 <?php
-class SSO extends Plugin {
+class SSO extends AbstractPlugin {
     public function initilize() {
         $this->addHook(App::HOOK_INIT, array($this, 'sayhello'));
         $this->addHook(Action::HOOK_CREATE, array($this, 'sayhello2'));

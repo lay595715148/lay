@@ -213,7 +213,7 @@ class PluginManager {
             if(class_exists($classname, false)) {
                 $plugin = new $classname($name, $this);
                 // check inheritance...
-                if(is_subclass_of($plugin, 'Plugin')) {
+                if(is_subclass_of($plugin, 'AbstractPlugin')) {
                     $plugin->initilize();
                     $this->plugins[$name] = $plugin;
                     Logger::info("using plugin:$classname", 'PLUGIN');

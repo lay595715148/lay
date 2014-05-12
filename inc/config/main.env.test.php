@@ -1,6 +1,6 @@
 <?php
 return array(
-    'logger' => array(0x01 | 0x20, false),
+    'logger' => array(0x01 | 0x02 | 0x10 | 0x20, false),
     'code' => array(
         '404' => '/404.html'
     ),
@@ -13,7 +13,7 @@ return array(
     ),
     'actions' => array(
         '/' => array(
-            'classname' => 'Index'
+            'classname' => 'DemoAction'
         ),
         '/test' => array(
             'classname' => 'Index'
@@ -33,6 +33,15 @@ return array(
         'sso' => array(
             'name' => 'sso',
             'classname' => 'SSO'
+        )
+    ),
+    'stores' => array(
+        'default' => array(
+            'host' => '127.0.0.1',
+            'port' => 3306,
+            'username' => 'root',
+            'password' => 'yuiopas',
+            'schema' => 'laysoft'
         )
     )
 );

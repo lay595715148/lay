@@ -4,35 +4,13 @@ if(! defined('INIT_LAY')) {
 }
 
 class Mongo extends Store {
-    /**
-     * 获取池中的一个Mongo实例
-     * @param Model $model
-     * @param string|array $name
-     * @return Mongo
-     */
-    public static function getInstance(Model $model, $name = 'mongo') {
-        if(empty(self::$_Instances[$name])) {
-            self::$_Instances[$name] = new Mongo($model, $name);
-        }
-        return self::$_Instances[$name];
-    }
-    /**
-     * 获取一个新Mongo实例
-     * @param Model $model
-     * @param string|array $name
-     * @return Mongo
-     */
-    public static function newInstance(Model $model, $name = 'mongo') {
-        return new Mongo($model, $name);
-    }
-
-    public function __construct($model, $name) {
+    public function __construct($model, $name = 'mongo') {
         if(is_string($name)) {
             $config = Lay::get('stores.'.$name);
         } else if(is_array($name)) {
             $config = $name;
         }
-        parent::__construct($model, $config);
+        parent::__construct($name, $model, $config);
     }
     
     /**
@@ -44,18 +22,18 @@ class Mongo extends Store {
      * 连接Mongo数据库
      */
     public function connect() {
-        $config = $this->config;
-        $options = array();
-        $host = isset($config['host']) ? $config['host'] : 'localhost';
-        $port = isset($config['port']) ? $config['port'] : 27017;
-        $options['username'] = isset($config['username']) && is_string($config['username']) ? $config['username'] : '';
-        $options['password'] = isset($config['password']) && is_string($config['password']) ? $config['password'] : '';
-        $database = isset($config['database']) && is_string($config['database']) ? $config['database'] : '';
+        //$config = $this->config;
+        //$options = array();
+        //$host = isset($config['host']) ? $config['host'] : 'localhost';
+        //$port = isset($config['port']) ? $config['port'] : 27017;
+        //$options['username'] = isset($config['username']) && is_string($config['username']) ? $config['username'] : '';
+        //$options['password'] = isset($config['password']) && is_string($config['password']) ? $config['password'] : '';
+        //$database = isset($config['schema']) && is_string($config['database']) ? $config['database'] : '';
         //$options['authSource'] = '';
     
         try {
-            $this->link = new MongoClient('mongodb://'. $host . ':' . $port, $options);
-            $this->link->selectDB($database);
+            $this->link = Connection::mongo($this->name, $this->config);
+            $this->link->selectDB($this->schema);
             $this->link->connect();
         } catch (Exception $e) {
             Logger::error($e->getTraceAsString());
@@ -70,6 +48,15 @@ class Mongo extends Store {
      *            名称
      */
     public function change($name = '') {
+        if($name) {
+            $config = App::getStoreConfig($name);
+            $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
+            $this->link = Connection::mongo($name, $config);
+            $this->link->selectDB($schema);
+            $this->link->connect();
+        } else {
+            $this->connect();
+        }
     }
     /**
      * do database querying
@@ -115,6 +102,13 @@ class Mongo extends Store {
      *            information array
      */
     public function upd($id, array $info) {
+    }
+    /**
+     *
+     * @param array $info
+     *            information array
+     */
+    public function count(array $info) {
     }
     /**
      * close connection
