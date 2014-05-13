@@ -2,6 +2,10 @@
 if(! defined('INIT_LAY')) {
     exit();
 }
+/**
+ * SQL处理器
+ * @author Lay Li
+ */
 class Criteria {
     /**
      *
@@ -28,7 +32,18 @@ class Criteria {
      * @param Model $model            
      */
     public function __construct($model = false) {
-        $this->model = (is_subclass_of($model, 'Model')) ? $model : false;
+        if(is_subclass_of($model, 'Model')) {
+            $this->model = $model;
+            $this->setTable($model->table());
+            $this->setSchema($model->schema());
+        }
+    }
+    public function setModel($model) {
+        if(is_subclass_of($model, 'Model')) {
+            $this->model = $model;
+            $this->setTable($model->table());
+            $this->setSchema($model->schema());
+        }
     }
     /**
      * 设置SQL FIELDS部分
@@ -165,10 +180,10 @@ class Criteria {
         }
     }
     public function setSchema($schema) {
-        if(empty($table)) {
-            Logger::error('empty schema');
+        if(empty($schema)) {
+            //Logger::error('empty schema');
         } else if(is_string($schema)) {
-            $this->schema = trim($schema, ' `');
+            $this->schema = '`' . trim($schema, ' `') . '`';
         } else {
             Logger::error('invlid schema,schema must be string');
         }
@@ -203,7 +218,14 @@ class Criteria {
             Logger::error('empty info conditions array');
         } else if(is_array($info)) {
             foreach($info as $field => $value) {
-                $this->addCondition($field, $value);
+                if(!is_numeric($field)) {
+                    $this->addCondition($field, $value);
+                } else if(is_array($value)){
+                    $this->setCondition($value);
+                } else {
+                    $this->setCondition($info);
+                    break;
+                }
             }
         } else {
             Logger::error('invlid info conditions array');
@@ -211,30 +233,100 @@ class Criteria {
     }
     public function addCondition($field, $value, $symbol = '=', $combine = 'AND', $options = array()) {
         if(empty($field)) {
-            Logger::error('empty condition field');
+            Logger::error('empty condition field,or empty condition value');
         } else if(is_string($field)) {
             $combines = array(
                     'AND',
                     'OR'
             );
+            $combine = strtoupper($combine);
             if(! in_array($combine, $combines)) {
                 $combine = 'AND';
             }
-            if($options['table']) {
-                $field = '`' . trim($options['table'], ' `') . '`' . '.' . '`' . trim($field, ' `') . '`';
+            $this->condition .= $this->condition ? ' ' . $combine . ' ' : '';
+            
+            //option中存在table参数，一般使用不到，可调节优等级
+            if(isset($options['table']) && $options['table']) {
+                $fieldstr = '`' . trim($options['table'], ' `') . '`' . '.' . '`' . trim($field, ' `') . '`';
+                $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
+            } else if($this->model){
+                $table = $this->model->table();
+                $this->setTable($table);//拆分出真实的表名
+                $columns = $this->model->columns();
+                if(array_search($field, $columns)) {
+                    $fieldstr = '`' . trim($this->table, ' `') . '`' . '.' . '`' . trim($field, ' `') . '`';
+                    $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
+                } else if(array_key_exists($field, $columns)) {
+                    //if field is a property
+                    $field = $columns[$field];
+                    $fieldstr = '`' . trim($this->table, ' `') . '`' . '.' . '`' . trim($field, ' `') . '`';
+                    $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
+                } else {
+                    Logger::error('invlid condition field');
+                }
             } else {
-                $field = '`' . trim($field, ' `') . '`';
-            }
-            switch($symbol) {
-                case '=':
-                default:
-                    $value = mysql_escape_string($value);
-                    $this->condition = ($this->condition ? $this->condition . ' ' . $combine . ' ' : '') . $field . ' = \'' . $value . '\'';
-                    break;
+                $fieldstr = '`' . trim($field, ' `') . '`';
+                $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
             }
         } else {
             Logger::error('invlid condition field');
         }
+    }
+    private function switchSymbolCondition($symbol, $fieldstr, $value, $options = array()) {
+        $condition = '';
+        $symbol = strtolower($symbol);//变成小写
+        switch($symbol) {
+            case '>':
+            case '<':
+            case '>=':
+            case '<=':
+            case '<>':
+            case '!=':
+            case '=':
+                $value = mysql_escape_string($value);
+                $condition = $fieldstr . ' '.$symbol.' \'' . $value . '\'';
+                break;
+            case 'in':
+            case '!in':
+            case 'unin':
+                $tmp = $symbol == 'in' ? 'IN' : 'NOT IN';
+                if(is_string($value)) {
+                    //去除可能存在于两边的单引号
+                    $value = preg_replace('/^\'(.*)\'$/', '$1', explode(',', $value));
+                    $value = array_map('mysql_escape_string', $value);
+                    $condition = $fieldstr . ' '.$tmp.' (\'' . implode('\', \'', $value) . '\')';
+                } else if(is_array($value)) {
+                    $value = array_map('mysql_escape_string', $value);
+                    $condition = $fieldstr . ' '.$tmp.' (\'' . implode('\', \'', $value) . '\')';
+                } else {
+                    Logger::error('"in" condition value is not an array or string');
+                }
+                break;
+            case 'like':
+            case '!like':
+            case 'unlike':
+                //unlike一般会使用不到
+                $tmp = $symbol == 'like' ? 'LIKE' : 'NOT LIKE';
+                if(is_string($value)) {
+                    $value = mysql_escape_string($value);
+                    //like 选项left,right,默认都有
+                    $left = isset($option['left']) ? $option['left'] : true;
+                    $right = isset($option['right']) ? $option['right'] : true;
+                    $condition = $fieldstr . ' '.$tmp.' \'';
+                    $condition .= $left ? '%' : '';
+                    $condition .= mysql_escape_string($value);
+                    $condition .= $right ? '%' : '';
+                    $condition .= '\'';
+                } else {
+                    Logger::error('"like" condition value is not a string');
+                }
+                break;
+            default:
+                $value = mysql_escape_string($value);
+                $condition = $fieldstr . ' = \'' . $value . '\'';
+                break;
+        }
+        return $condition;
     }
     /**
      * make select sql
@@ -330,20 +422,26 @@ class Criteria {
         }
     }
     private function makeFromTable() {
-        if($this->table) {
+        if($this->table && $this->schema) {
+            $this->sql .= ' FROM ' . $this->schema . '.' . $this->table;
+        } else if($this->table) {
             $this->sql .= ' FROM ' . $this->table;
         } else if($this->model) {
             $this->setTable($this->model->table());
+            $this->setSchema($this->model->schema());
             $this->makeFromTable();
         } else {
             Logger::error('no given table name!');
         }
     }
     private function makeIntoTable() {
-        if($this->table) {
+        if($this->table && $this->schema) {
+            $this->sql .= ' INTO ' . $this->schema . '.' . $this->table;
+        } else if($this->table) {
             $this->sql .= ' INTO ' . $this->table;
         } else if($this->model) {
             $this->setTable($this->model->table());
+            $this->setSchema($this->model->schema());
             $this->makeIntoTable();
         } else {
             Logger::error('no given table name!');
@@ -356,6 +454,7 @@ class Criteria {
             $this->sql .= ' ' . $this->table;
         } else if($this->model) {
             $this->setTable($this->model->table());
+            $this->setSchema($this->model->schema());
             $this->makeTable();
         } else {
             Logger::error('no given table name!');

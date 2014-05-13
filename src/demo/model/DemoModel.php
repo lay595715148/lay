@@ -13,6 +13,9 @@ class DemoModel extends Model {
                 'type' => Bean::PROPETYPE_INTEGER
         ));
     }
+    public function schema() {
+        return 'laysoft';
+    }
     public function table() {
         return 'lay_demo';
     }

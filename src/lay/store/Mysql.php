@@ -137,7 +137,7 @@ class Mysql extends Store {
         if(!$link) { $this->connect(); }
         if(empty($info)) { return false; }
         
-        $into = array();
+        /* $into = array();
         if($pk) {
             $fields = array_diff($model->toFields(), array($pk));
         } else {
@@ -154,14 +154,15 @@ class Mysql extends Store {
             }
         }
         $fstr = implode("`, `", array_keys($into));
-        $vstr = implode("', '", array_values($into));
+        $vstr = implode("', '", array_values($into)); */
 
         $criteria = new Criteria($model);
         $criteria->setValues($info);
         $sql = $criteria->makeInsert();
         //$sql = "INSERT INTO `{$this->schema}`.`{$table}`(`{$fstr}`) VALUES('{$vstr}')";
         
-        return $this->query($sql, 'UTF8', true);
+        $result = $this->query($sql, 'UTF8', true);
+        return $result ? $this->toLastid() : false;
     }
     /**
      *
@@ -179,7 +180,7 @@ class Mysql extends Store {
         if(!$link) { $this->connect(); }
         if(empty($info)) { return false; }
 
-        $into = array();
+        /* $into = array();
         if($pk) {
             $fields = array_diff($model->toFields(), array($pk));
         } else {
@@ -195,7 +196,7 @@ class Mysql extends Store {
                 $into[] = "`{$field}` = '{$val}'";
             }
         }
-        $setstr = implode(", ", array_values($into));
+        $setstr = implode(", ", array_values($into)); */
 
         $criteria = new Criteria($model);
         $criteria->setSetter($info);
@@ -213,7 +214,7 @@ class Mysql extends Store {
         $pk = $model->primary();
         if(!$link) { $this->connect(); }
 
-        if(empty($info)) {
+        /* if(empty($info)) {
             $sql = "SELECT COUNT(*) FROM `{$this->schema}`.`{$table}`";
         } else {
             $into = array();
@@ -234,7 +235,7 @@ class Mysql extends Store {
             }
             $setstr = implode(" AND ", array_values($into));
             $sql = "SELECT COUNT(*) AS count FROM `{$this->schema}`.`{$table}` WHERE {$setstr}";
-        }
+        } */
 
         $criteria = new Criteria($model);
         $criteria->setInfoCondition($info);
@@ -255,6 +256,13 @@ class Mysql extends Store {
         } else {
             return mysql_affected_rows($this->link);
         }
+    }
+    /**
+     * return id
+     * @return 
+     */
+    public function toLastid() {
+        return mysql_insert_id($this->link);
     }
     /**
      * return SCALAR

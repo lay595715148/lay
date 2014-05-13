@@ -4,7 +4,7 @@ class DemoService extends Service {
         parent::__construct(Store::getInstance('DemoStore'));
     }
     public function test() {
-        
+        Logger::debug($this->store->getModel()->schema());
     }
 }
 ?>

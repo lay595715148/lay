@@ -25,6 +25,13 @@ abstract class Model extends Bean {
      */
     public abstract function primary();
     /**
+     * return schema name
+     * @return string
+     */
+    public function schema() {
+        return '';
+    }
+    /**
      * relation between models
      * example:
      * return array(
