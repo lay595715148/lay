@@ -4,6 +4,7 @@ if(! defined('INIT_LAY')) {
 }
 class Connection {
     public $name;
+    public $encoding;
     public $connection;
     public function __construct($name, $protocol = 'mysql', $options = array()) {
         $host = isset($options['host']) ? $options['host'] : 'localhost';
@@ -17,11 +18,9 @@ class Connection {
                 break;
             case 'mysql':
             default:
-                Logger::debug(array($host . ':' . $port, $username, $password, $newlink));
                 $this->connection = mysql_connect($host . ':' . $port, $username, $password, $newlink);
                 break;
         }
-        Logger::debug(array($name));
         $this->name = $name;
     }
     private static $_Instances = array();

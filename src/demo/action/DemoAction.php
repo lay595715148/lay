@@ -29,7 +29,7 @@ class DemoAction extends JsonAction {
         Logger::debug($ret);
         $ret = $this->demoService->get(32);
         Logger::debug($ret);
-        $ret = $this->demoService->count(array(array('type', '1,2', 'in', 'OR')));
+        $ret = $this->demoService->count(array(array('type', '1,2', 'in', 'OR', array('table' => true))));
         Logger::debug($ret);
     }
 }

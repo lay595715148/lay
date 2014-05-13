@@ -4,7 +4,8 @@ class DemoService extends Service {
         parent::__construct(Store::getInstance('DemoStore'));
     }
     public function test() {
-        Logger::debug($this->store->getModel()->schema());
+        $dsStore = Store::getInstance('DemoSettingStore');
+        Logger::debug($dsStore->count(array('k', 'att', 'like')));
     }
 }
 ?>

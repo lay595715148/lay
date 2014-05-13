@@ -51,7 +51,9 @@ class Criteria {
      * @param array $fields            
      */
     public function setFields(array $fields) {
-        if(is_array($fields) && $this->model) {
+        if(empty($fields)) {
+            //Logger::error('empty fields');
+        } else if(is_array($fields) && $this->model) {
             $tmp = array();
             $fields = array_map('trim', $fields);
             $columns = $this->model->columns();
@@ -84,7 +86,7 @@ class Criteria {
      */
     public function setValues(array $values) {
         if(empty($values)) {
-            Logger::error('empty values');
+            //Logger::error('empty values');
         } else if(is_array($values) && $this->model) {
             $tmpfields = array();
             $tmpvalues = array();
@@ -116,9 +118,8 @@ class Criteria {
      */
     public function setSetter(array $info) {
         if(empty($info)) {
-            Logger::error('empty set info');
-        }
-        if(is_array($info) && $this->model) {
+            //Logger::error('empty set info');
+        } else if(is_array($info) && $this->model) {
             $setter = array();
             $columns = $this->model->columns();
             foreach($info as $field => $v) {
@@ -151,7 +152,7 @@ class Criteria {
     }
     public function setTable($table) {
         if(empty($table)) {
-            Logger::error('empty table name');
+            //Logger::error('empty table name');
         } else if(is_array($table) && $this->model) {
             // end is table name, schema maybe exists
             $tablename = trim(end($table), ' `');
@@ -190,7 +191,7 @@ class Criteria {
     }
     public function setCondition($condition) {
         if(empty($condition)) {
-            Logger::error('empty condition');
+            //Logger::error('empty condition');
         } else if(is_array($condition)) {
             $field = $condition[0];
             $value = $condition[1];
@@ -202,9 +203,9 @@ class Criteria {
             Logger::error('invlid condition');
         }
     }
-    public function setConditions($conditions) {
+    public function addConditions($conditions) {
         if(empty($conditions)) {
-            Logger::error('empty conditions array');
+            //Logger::error('empty conditions array');
         } else if(is_array($conditions)) {
             foreach($conditions as $condition) {
                 $this->setCondition($condition);
@@ -213,17 +214,28 @@ class Criteria {
             Logger::error('invlid conditions array');
         }
     }
-    public function setInfoCondition($info) {
+    public function addInfoCondition($info) {
         if(empty($info)) {
-            Logger::error('empty info conditions array');
+            //Logger::error('empty info conditions array');
         } else if(is_array($info)) {
             foreach($info as $field => $value) {
+                $this->addCondition($field, $value);
+            }
+        } else {
+            Logger::error('invlid info conditions array');
+        }
+    }
+    public function addMultiCondition($mix) {
+        if(empty($mix)) {
+            //Logger::error('empty info conditions array');
+        } else if(is_array($mix)) {
+            foreach($mix as $field => $value) {
                 if(!is_numeric($field)) {
                     $this->addCondition($field, $value);
                 } else if(is_array($value)){
                     $this->setCondition($value);
                 } else {
-                    $this->setCondition($info);
+                    $this->setCondition($mix);
                     break;
                 }
             }
@@ -233,7 +245,7 @@ class Criteria {
     }
     public function addCondition($field, $value, $symbol = '=', $combine = 'AND', $options = array()) {
         if(empty($field)) {
-            Logger::error('empty condition field,or empty condition value');
+            //Logger::error('empty condition field,or empty condition value');
         } else if(is_string($field)) {
             $combines = array(
                     'AND',
@@ -245,21 +257,19 @@ class Criteria {
             }
             $this->condition .= $this->condition ? ' ' . $combine . ' ' : '';
             
-            //option中存在table参数，一般使用不到，可调节优等级
-            if(isset($options['table']) && $options['table']) {
-                $fieldstr = '`' . trim($options['table'], ' `') . '`' . '.' . '`' . trim($field, ' `') . '`';
-                $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
-            } else if($this->model){
+            if($this->model){
                 $table = $this->model->table();
                 $this->setTable($table);//拆分出真实的表名
                 $columns = $this->model->columns();
+                //option中存在table参数，一般使用不到，可调节优等级
+                $fieldstr = $options['table'] ? '`' . trim($this->table, ' `') . '`' . '.' : '';
                 if(array_search($field, $columns)) {
-                    $fieldstr = '`' . trim($this->table, ' `') . '`' . '.' . '`' . trim($field, ' `') . '`';
+                    $fieldstr .= '`' . trim($field, ' `') . '`';
                     $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
                 } else if(array_key_exists($field, $columns)) {
                     //if field is a property
                     $field = $columns[$field];
-                    $fieldstr = '`' . trim($this->table, ' `') . '`' . '.' . '`' . trim($field, ' `') . '`';
+                    $fieldstr .= '`' . trim($field, ' `') . '`';
                     $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
                 } else {
                     Logger::error('invlid condition field');
@@ -327,6 +337,62 @@ class Criteria {
                 break;
         }
         return $condition;
+    }
+    public function setOrder($order) {
+        if(empty($order)) {
+            //Logger::error('empty info conditions array');
+        } else if(is_array($order)) {
+            $signs = array('DESC', 'ASC');
+            foreach($order as $field => $desc) {
+                $desc = strtoupper($desc);
+                $desc = in_array($desc, $signs) ? $desc : 'DESC';
+                $this->order .= $this->order ? ', ' : ' ';
+                if($this->model) {
+                    $columns = $this->model->columns();
+                    if(array_search($field, $columns)) {
+                        $this->order .= '`'.$field.'` '.$desc;
+                    } else if(array_key_exists($field, $columns)) {
+                        $field = $columns[$field];
+                        $this->order .= '`'.$field.'` '.$desc;
+                    } else {
+                        Logger::error('invlid field');
+                    }
+                } else {
+                    $this->order .= '`'.$field.'` '.$desc;
+                }
+            }
+        } else {
+            Logger::error('invlid info conditions array');
+        }
+    }
+    public function setLimit($limit) {
+        if(empty($limit)) {
+            $this->setOffset(0);
+            $this->setNum(20);
+        } else if(is_array($limit) && count($limit) > 1) {
+            $offset = !isset($limit['offset']) ? isset($limit['0']) ? $limit['0'] : 0 : $limit['offset'];
+            $num = !isset($limit['num']) ? isset($limit['1']) ? $limit['1'] : 20 : $limit['num'];
+            $this->setOffset($offset);
+            $this->setNum($num);
+        } else if(is_array($limit)) {
+            $num = !isset($limit['num']) ? isset($limit['0']) ? $limit['0'] : 20 : $limit['num'];
+            $this->setOffset(0);
+            $this->setNum($num);
+        } else {
+            Logger::error('invlid limit array');
+        }
+    }
+    public function setOffset($offset) {
+        $this->offset = intval($offset);
+    }
+    public function setNum($num) {
+        $this->num = intval($num);
+    }
+    public function setGroup() {
+        
+    }
+    public function setHaving() {
+        
     }
     /**
      * make select sql
@@ -501,9 +567,9 @@ class Criteria {
     }
     private function makeLimit() {
         if($this->offset > 0) {
-            $this->sql .= ' LIMIT ' . intval($this->offset) . ',' . intval($this->num);
+            $this->sql .= ' LIMIT ' . $this->offset . ',' . $this->num;
         } elseif($this->num > 0) {
-            $this->sql .= ' LIMIT ' . intval($this->num);
+            $this->sql .= ' LIMIT ' . $this->num;
         }
     }
     private function explodeSetter($str) {
