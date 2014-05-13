@@ -13,6 +13,7 @@ class Logger implements I_Logger {
     const DEBUG_LEVEL_INFO = 0x02;
     const DEBUG_LEVEL_WARN = 0x10;
     const DEBUG_LEVEL_ERROR = 0x20;
+    const DEBUG_LEVEL_ERROR_THROW = 0x21;
     const DEBUG_LEVEL_ALL = 0xFF;
     /**
      * the flag of print out
@@ -229,7 +230,9 @@ class Logger implements I_Logger {
         if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_ERROR))) {
             self::getInstance()->log($msg, self::DEBUG_LEVEL_ERROR, $tag);
         }
-        throw new Exception($msg);
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_ERROR_THROW))) {
+            throw new Exception($msg);
+        }
     }
     
     /**

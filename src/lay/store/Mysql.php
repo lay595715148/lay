@@ -93,8 +93,10 @@ class Mysql extends Store {
         $pk = $model->primary();
         if(!$link) { $this->connect(); }
         
-        
-        $sql = "SELECT * FROM `{$this->schema}`.`{$table}` WHERE `{$pk}` = '{$id}'";
+        $criteria = new Criteria($model);
+        $criteria->setCondition(array($pk, $id));
+        $sql = $criteria->makeSelect();
+        //$sql = "SELECT * FROM `{$this->schema}`.`{$table}` WHERE `{$pk}` = '{$id}'";
         $this->query($sql, 'UTF8', true);
         
         return $this->toArray(1);
@@ -112,8 +114,11 @@ class Mysql extends Store {
         $table = $model->table();
         $pk = $model->primary();
         if(!$link) { $this->connect(); }
-        
-        $sql = "DELETE FROM `{$this->schema}`.`{$table}` WHERE `{$pk}` = '{$id}'";
+
+        $criteria = new Criteria($model);
+        $criteria->setCondition(array($pk, $id));
+        $sql = $criteria->makeDelete();
+        //$sql = "DELETE FROM `{$this->schema}`.`{$table}` WHERE `{$pk}` = '{$id}'";
         return $this->query($sql, 'UTF8', true);
     }
     /**
@@ -150,8 +155,11 @@ class Mysql extends Store {
         }
         $fstr = implode("`, `", array_keys($into));
         $vstr = implode("', '", array_values($into));
-        
-        $sql = "INSERT INTO `{$this->schema}`.`{$table}`(`{$fstr}`) VALUES('{$vstr}')";
+
+        $criteria = new Criteria($model);
+        $criteria->setValues($info);
+        $sql = $criteria->makeInsert();
+        //$sql = "INSERT INTO `{$this->schema}`.`{$table}`(`{$fstr}`) VALUES('{$vstr}')";
         
         return $this->query($sql, 'UTF8', true);
     }
@@ -188,8 +196,12 @@ class Mysql extends Store {
             }
         }
         $setstr = implode(", ", array_values($into));
-        
-        $sql = "UPDATE `{$this->schema}`.`{$table}` SET {$setstr} WHERE `{$pk}` = '{$id}'";
+
+        $criteria = new Criteria($model);
+        $criteria->setSetter($info);
+        $criteria->setCondition(array($pk, $id));
+        $sql = $criteria->makeUpdate();
+        //$sql = "UPDATE `{$this->schema}`.`{$table}` SET {$setstr} WHERE `{$pk}` = '{$id}'";
         
         return $this->query($sql, 'UTF8', true);
     }
@@ -223,6 +235,11 @@ class Mysql extends Store {
             $setstr = implode(" AND ", array_values($into));
             $sql = "SELECT COUNT(*) AS count FROM `{$this->schema}`.`{$table}` WHERE {$setstr}";
         }
+
+        $criteria = new Criteria($model);
+        $criteria->setInfoCondition($info);
+        $sql = $criteria->makeCount();
+        
         $result = $this->query($sql, 'UTF8', true);
         return $this->toScalar();
     }

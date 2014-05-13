@@ -81,6 +81,7 @@ class EventEmitter implements I_EventEmitter {
         }
         $level = abs(intval($level));
         self::$_EventStack[$eventid][$level][] = $func;
+        ksort(self::$_EventStack[$eventid]);
         return true;
     }
 }

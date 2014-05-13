@@ -1,6 +1,6 @@
 <?php
 return array(
-    'logger' => array(0x01 | 0x02 | 0x10 | 0x20, false),
+    'logger' => array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false),
     'code' => array(
         '404' => '/404.html'
     ),
