@@ -240,18 +240,18 @@ class Criteria {
                 }
             }
         } else {
-            Logger::error('invlid info conditions array');
+            Logger::error('invlid multi conditions,must be array');
         }
     }
     public function addCondition($field, $value, $symbol = '=', $combine = 'AND', $options = array()) {
         if(empty($field)) {
             //Logger::error('empty condition field,or empty condition value');
         } else if(is_string($field)) {
+            $combine = strtoupper($combine);
             $combines = array(
                     'AND',
                     'OR'
             );
-            $combine = strtoupper($combine);
             if(! in_array($combine, $combines)) {
                 $combine = 'AND';
             }
@@ -346,7 +346,7 @@ class Criteria {
             foreach($order as $field => $desc) {
                 $desc = strtoupper($desc);
                 $desc = in_array($desc, $signs) ? $desc : 'DESC';
-                $this->order .= $this->order ? ', ' : ' ';
+                $this->order .= $this->order ? ', ' : '';
                 if($this->model) {
                     $columns = $this->model->columns();
                     if(array_search($field, $columns)) {
@@ -536,6 +536,8 @@ class Criteria {
     private function makeSetter() {
         if($this->setter) {
             $this->sql .= ' SET ' . $this->setter;
+        } else {
+            Logger::error('setter empty!');
         }
     }
     private function makeCondition() {

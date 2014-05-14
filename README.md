@@ -3,22 +3,47 @@ Lay
 
 Php simple framework,upgrade from laywork
 
+目录
+===
+
+1. [依赖关系](#依赖关系)
+2. 文件目录结构
+3. 运行时序图
+4. 编码规范
+5. 结束语
+
 依赖关系
 ===
 
 php >= 5.2
 
-目录结构
+文件目录结构
 ===
 
 	-root
 		-api
 		-cmd
 		-doc
+			...  documents directory
 		-inc
+			-config  configuration directory
+				classpath.php  configurated classpath
+				main.env.php  configurated environment
+				main.env.prd.php  production environment
+				main.env.pre.php  previous environment
+				main.env.test.php  testing environment
+			-resource
 		-lib
+			...  other released libraries
 		-plu
+			-oauth2  plugin name
+				index.php  main plugin source file
+				...
+			...  maybe other plugins
 		-src
+			-lay  framework core package
+			-demo  demo example
+			...  maybe other packages or examples
 		-web
 		.htaccess
 		index.php

@@ -221,7 +221,7 @@ class Mysql extends Store {
         }
         
         $criteria = new Criteria($model);
-        $criteria->addMultiCondition($info);
+        $criteria->addMultiCondition($condition);
         $criteria->setOrder($order);
         $criteria->setLimit($limit);
         $criteria->setGroup($group);
