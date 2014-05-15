@@ -6,12 +6,15 @@ class DemoModel extends Model {
                 'name' => '',
                 'datetime' => '0000-00-00 00:00:00',
                 'type' => 0
-        ),array(
+        ));
+    }
+    protected function rules() {
+        return array(
                 'id' => Bean::PROPETYPE_INTEGER,
                 'name' => Bean::PROPETYPE_STRING,
                 'datetime' => Bean::PROPETYPE_DATETIME,
                 'type' => Bean::PROPETYPE_INTEGER
-        ));
+        );
     }
     public function schema() {
         return 'laysoft';

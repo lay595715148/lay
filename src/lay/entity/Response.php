@@ -10,11 +10,14 @@ class Response extends Entity {
             'action' => '',
             'content' => '',
             'code' => 0
-        ), array(
+        ));
+    }
+    protected function rules() {
+        return  array(
             'success' => Bean::PROPETYPE_BOOLEAN,
             'action' => Bean::PROPETYPE_STRING,
             'code' => Bean::PROPETYPE_INTEGER
-        ));
+        );
     }
     public function summary() {
         return array(

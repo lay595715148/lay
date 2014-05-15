@@ -132,6 +132,7 @@ final class App {
     private $classpath = array(
             'src'
     );
+    private $action;
     public function initilize() {
         $sep = DIRECTORY_SEPARATOR;
         $rootpath = App::$_RootPath;
@@ -302,7 +303,7 @@ final class App {
             $name = $uri;
         }
         try {
-            $action = Action::getInstance($name, $classname);
+            $this->action = $action = Action::getInstance($name, $classname);
         } catch (Exception $e) {
             //do 404
             //header('');
@@ -332,15 +333,15 @@ final class App {
         ), 1);
         
         // 触发action的request事件
-        EventEmitter::emit(Action::EVENT_REQUEST, $matches);
+        EventEmitter::emit(Action::EVENT_REQUEST, array($action));
         switch($_SERVER['REQUEST_METHOD']) {
             case 'GET':
                 // 触发action的get事件
-                EventEmitter::emit(Action::EVENT_GET, $matches);
+                EventEmitter::emit(Action::EVENT_GET, array($action));
                 break;
             case 'POST':
                 // 触发action的post事件
-                EventEmitter::emit(Action::EVENT_POST, $matches);
+                EventEmitter::emit(Action::EVENT_POST, array($action));
                 break;
             default:
                 break;
@@ -353,11 +354,11 @@ final class App {
         $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
         // 触发action的HOOK_STOP钩子
         PluginManager::exec(Action::HOOK_STOP, array(
-                $this
+                $this->action
         ));
         // 触发action的stop事件
         EventEmitter::emit(Action::EVENT_STOP, array(
-                $this
+                $this->action
         ));
         // if is fastcgi
         if(function_exists('fastcgi_finish_request')) {
@@ -580,10 +581,10 @@ final class App {
             $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
         
-        EventEmitter::emit(App::EVENT_CREATE);
+        EventEmitter::emit(App::EVENT_CREATE, array($this));
     }
     public function __destruct() {
-        EventEmitter::emit(App::EVENT_DESTROY);
+        EventEmitter::emit(App::EVENT_DESTROY, array($this));
     }
 }
 ?>

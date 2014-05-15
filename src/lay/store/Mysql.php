@@ -23,7 +23,7 @@ class Mysql extends Store {
         try {
             $this->link = Connection::mysql($this->name, $this->config)->connection;
         } catch (Exception $e) {
-            Logger::error($e->getTraceAsString());
+            Logger::error($e->getTraceAsString(), 'MYSQL');
             return false;
         }
         return mysql_select_db($this->schema, $this->link);
@@ -71,13 +71,13 @@ class Mysql extends Store {
         }
         if($encoding && $this->connection->encoding != $encoding) {
             if($showsql) {
-                Logger::info('SET NAMES ' . $encoding, 'Mysql');
+                Logger::info('SET NAMES ' . $encoding, 'MYSQL');
             }
             $this->connection->encoding = $encoding;
             mysql_query('SET NAMES ' . $encoding, $link);
         }
         if($showsql) {
-            Logger::info($sql, 'Mysql');
+            Logger::info($sql, 'MYSQL');
         }
         if($sql) {
             $result = mysql_query($sql, $link);

@@ -12,7 +12,6 @@ if(!defined('INIT_LAY')) {
  *
  */
 abstract class Action extends AbstractAction {
-    const ACTION_PROVIDER_CONFIG_TAG = 'action-provider';
     const EVENT_CREATE = 'action_create';
     const EVENT_REQUEST = 'action_request';
     const EVENT_GET = 'action_get';
@@ -91,9 +90,9 @@ abstract class Action extends AbstractAction {
         $this->name = $name;
         $this->template = is_a($template, 'Template') ? $template : new Template();
         $this->scope = new Scope();
-        EventEmitter::on(self::EVENT_CREATE, array($this, 'onCreate'));
+        EventEmitter::on(self::EVENT_CREATE, array($this, 'onCreate'), 1);
         PluginManager::exec(self::HOOK_CREATE, array($this));
-        EventEmitter::emit(self::EVENT_CREATE);
+        EventEmitter::emit(self::EVENT_CREATE, array($this));
     }
     /**
      * 
@@ -117,7 +116,7 @@ abstract class Action extends AbstractAction {
         return $this->name;
     }
     public function __destruct() {
-        EventEmitter::emit(Action::EVENT_DESTROY);
+        EventEmitter::emit(Action::EVENT_DESTROY, array($this));
     }
     /**
      * 

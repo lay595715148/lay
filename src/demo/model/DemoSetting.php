@@ -5,11 +5,14 @@ class DemoSetting extends Model {
                 'id' => 0,
                 'k' => '',
                 'v' => ''
-        ),array(
+        ));
+    }
+    protected function rules() {
+        return array(
                 'id' => Bean::PROPETYPE_INTEGER,
                 'k' => Bean::PROPETYPE_STRING,
                 'v' => Bean::PROPETYPE_STRING
-        ));
+        );
     }
     public function table() {
         return 'lay_cfg_setting';

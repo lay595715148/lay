@@ -9,11 +9,14 @@ class Lister extends Entity {
             'list' => array(),
             'total' => 0,
             'hasNext' => false
-        ), array(
+        ));
+    }
+    protected function rules() {
+        return  array(
             'list' => Bean::PROPETYPE_ARRAY,
             'total' => Bean::PROPETYPE_INTEGER,
             'hasNext' => Bean::PROPETYPE_BOOLEAN
-        ));
+        );
     }
     public function summary() {
         return array(

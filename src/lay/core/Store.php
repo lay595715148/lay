@@ -120,8 +120,15 @@ abstract class Store extends AbstractStore {
      *
      * @param Model $model            
      */
-    public function getModel($model) {
+    public function getModel() {
         return $this->model;
+    }
+    /**
+     *
+     * @param Model $model            
+     */
+    public function getName() {
+        return $this->name;
     }
 }
 ?>

@@ -9,6 +9,9 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li
  */
 abstract class Service extends AbstractService {
+    const EVENT_CREATE = 'service_create';
+    const HOOK_CREATE = 'hook_service_create';
+    
     protected static $_Instances = array();
     /**
      * 获取池中的一个Store实例
@@ -49,6 +52,8 @@ abstract class Service extends AbstractService {
     protected $store;
     public function __construct($store) {
         $this->store = $store;
+        PluginManager::exec(Service::HOOK_CREATE, array($this));
+        EventEmitter::emit(Service::EVENT_CREATE, array($this));
     }
     /**
      * 获取某条记录

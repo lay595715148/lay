@@ -8,7 +8,7 @@ if(! defined('INIT_LAY')) {
  * <p>核心类，继承至此类的对象将会拥有setter和getter方法和build方法</p>
  *
  * @abstract
- *
+ * @author Lay Li
  */
 abstract class Bean extends AbstractBean {
     const PROPETYPE_S_STRING = 'string';
@@ -40,29 +40,18 @@ abstract class Bean extends AbstractBean {
      */
     protected $properties = array();
     /**
-     * class property types.
-     * string[1,'string'],number[2,'number'],integer[3,'integer'],boolean[4,'boolean'],datetime[5,'datetime'],
-     * date[6,'date'],time[7,'time'],float[8,'float'],double[9,'double'],enum[array(1,2,3)],dateformat[array('dateformat'=>'Y-m-d')],other[array('other'=>...)]...
-     * default nothing to do
-     * example: array('id'=>'integer','name'=>0)
-     */
-    protected $propetypes = array();
-    /**
      * 构造方法
-     * 
+     *
      * @param array $properties            
      */
-    public function __construct($properties, $propetypes = array()) {
+    public function __construct($properties) {
         if(is_array($properties)) {
             $this->properties = $properties;
-        }
-        if(is_array($propetypes)) {
-            $this->propetypes = $propetypes;
         }
     }
     /**
      * isset property
-     * 
+     *
      * @param string $name            
      * @return bool
      */
@@ -71,7 +60,7 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * unset property
-     * 
+     *
      * @param string $name            
      * @return void
      */
@@ -86,11 +75,11 @@ abstract class Bean extends AbstractBean {
      * @return void
      */
     public function __set($name, $value) {
-        $propetypes = &$this->propetypes;
+        $propetypes = &$this->rules();
         $properties = &$this->properties;
         
         if(array_key_exists($name, $properties)) {
-            if(array_key_exists($name, $propetypes)) {
+            if(!empty($propetypes) && array_key_exists($name, $propetypes)) {
                 switch($propetypes[$name]) {
                     case Model::PROPETYPE_STRING:
                     case Model::PROPETYPE_S_STRING:
@@ -145,13 +134,13 @@ abstract class Bean extends AbstractBean {
                         if(is_array($value)) {
                             $properties[$name] = $value;
                         } else {
-                            Logger::error('invalid value,property:'.$name.'\'s value must be an array in class:' . get_class($this), 'MODEL');
+                            Logger::error('invalid value,property:' . $name . '\'s value must be an array in class:' . get_class($this), 'MODEL');
                         }
                         break;
                     default:
                         if(is_array($propetypes[$name])) {
                             if(array_key_exists(Model::PROPETYPE_S_DATEFORMAT, $propetypes[$name])) {
-                                //自定义日期格式
+                                // 自定义日期格式
                                 $dateformart = $propetypes[$name][Model::PROPETYPE_S_DATEFORMAT];
                                 if(is_numeric($value)) {
                                     $properties[$name] = date($dateformart, intval($value));
@@ -159,10 +148,10 @@ abstract class Bean extends AbstractBean {
                                     $properties[$name] = date($dateformart, strtotime($value));
                                 }
                             } else if(array_key_exists(Model::PROPETYPE_S_OTHER, $propetypes[$name])) {
-                                //other
+                                // other
                                 $properties[$name] = $this->otherFormat($value, $propetypes[$name]);
                             } else {
-                                //enum
+                                // enum
                                 $key = array_search($value, $propetypes[$name]);
                                 if($key !== false) {
                                     $properties[$name] = $propetypes[$name][$key];
@@ -184,7 +173,7 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * please implement this method in sub class
-     * 
+     *
      * @return mixed
      */
     protected function otherFormat($value, $propertype) {
@@ -193,7 +182,6 @@ abstract class Bean extends AbstractBean {
     /**
      * magic setter,get value of class property
      *
-     * @see AbstractBase::__get()
      * @param string $name            
      * @return mixed void
      */
@@ -209,7 +197,6 @@ abstract class Bean extends AbstractBean {
     /**
      * magic call method,auto call setter or getter
      *
-     * @see AbstractBase::__call()
      * @param string $method            
      * @param array $arguments            
      * @return mixed void
@@ -248,7 +235,24 @@ abstract class Bean extends AbstractBean {
             }
         }
     }
-
+    public function __toString() {
+        return serialize($this);
+    }
+    /**
+     * 字段属性规则，过滤属性，子类需要实现此方法
+     * 
+     * class property types.
+     * string[1,'string'],number[2,'number'],integer[3,'integer'],boolean[4,'boolean'],datetime[5,'datetime'],
+     * date[6,'date'],time[7,'time'],float[8,'float'],double[9,'double'],enum[array(1,2,3)],dateformat[array('dateformat'=>'Y-m-d')],other[array('other'=>...)]...
+     * default nothing to do
+     * example: array('id'=>'integer','name'=>0)
+     * 
+     * @return array
+     */
+    protected function rules() {
+        return array();
+    }
+    
     /**
      * return array values of class properties
      *
@@ -272,7 +276,7 @@ abstract class Bean extends AbstractBean {
      */
     public function toObject() {
         $o = new stdClass();
-        foreach ($this->properties as $k=>$v) {
+        foreach($this->properties as $k => $v) {
             $o->{$k} = $v;
         }
         return $o;
@@ -281,7 +285,7 @@ abstract class Bean extends AbstractBean {
     /**
      * read values from variables(super global varibles or user-defined variables) then auto inject to this.
      * default read from $_REQUEST
-     * 
+     *
      * @param integer|array $scope            
      * @return void Bean
      */
