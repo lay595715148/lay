@@ -231,7 +231,11 @@ class Logger implements I_Logger {
             self::getInstance()->log($msg, self::DEBUG_LEVEL_ERROR, $tag);
         }
         if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_ERROR_THROW))) {
-            throw new Exception($msg);
+            if(is_string($msg)) {
+                throw new Exception($msg);
+            } else if(is_a($msg, 'Exception')) {
+                throw $msg;
+            }
         }
     }
     
@@ -431,8 +435,9 @@ class Logger implements I_Logger {
             $tag = 'MAIN';
         $lv = $this->parseLevel($lv);
         $ip = $this->ip();
+        $classexplode = explode("\\", $class);
         echo '<pre style="padding:0px;font-family:Consolas;margin:0px;border:0px;' . $this->parseColor($lv) . '">';
-        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 8, 16) . "($line)</span>]\t<span title=\"$class\">" . end(explode("\\", $class)) . "</span>$type$method()\t$msg\r\n";
+        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 8, 16) . "($line)</span>]\t<span title=\"$class\">" . end($classexplode) . "</span>$type$method()\t$msg\r\n";
         echo '</pre>';
     }
     /**
@@ -466,8 +471,9 @@ class Logger implements I_Logger {
             $tag = 'MAIN';
         $lv = $this->parseLevel($lv);
         $ip = $this->ip();
+        $classexplode = explode("\\", $class);
         echo '<pre style="padding:0px;font-family:Consolas;margin:0px;border:0px;' . $this->parseColor($lv) . '">';
-        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 8, 16) . "($line)</span>]\t<span title=\"$class\">" . end(explode("\\", $class)) . "</span>$type$method()\r\n";
+        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 8, 16) . "($line)</span>]\t<span title=\"$class\">" . end($classexplode) . "</span>$type$method()\r\n";
         echo '</pre>';
         echo '<pre style="padding:0 0 0 1em;font-family:Consolas;margin:0px;border:0px;' . $this->parseColor($lv) . '">';
         print_r($msg);

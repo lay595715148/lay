@@ -94,10 +94,10 @@ class Criteria {
             foreach($values as $field => $value) {
                 if(array_search($field, $columns)) {
                     $tmpfields[] = $field;
-                    $tmpvalues[] = mysql_escape_string($value);
+                    $tmpvalues[] = addslashes($value);
                 } else if(array_key_exists($field, $columns)) {
                     $tmpfields[] = $columns[$field];
-                    $tmpvalues[] = mysql_escape_string($value);
+                    $tmpvalues[] = addslashes($value);
                 } else {
                     Logger::warn('invalid field:' . $field);
                 }
@@ -106,7 +106,7 @@ class Criteria {
             $this->values = ! empty($tmpvalues) ? '\'' . implode('\', \'', $tmpvalues) . '\'' : '';
         } else if(is_array($values)) {
             $this->fields = '`' . implode('`, `', array_keys($values)) . '`';
-            $this->values = '\'' . implode('\', \'', array_map('mysql_escape_string', array_values($values))) . '\'';
+            $this->values = '\'' . implode('\', \'', array_map('addslashes', array_values($values))) . '\'';
         } else {
             Logger::error('invalid values');
         }
@@ -123,7 +123,7 @@ class Criteria {
             $setter = array();
             $columns = $this->model->columns();
             foreach($info as $field => $v) {
-                $val = mysql_escape_string($v);
+                $val = addslashes($v);
                 if(array_search($field, $columns)) {
                     $setter[] = "`{$field}` = '{$val}'";
                 } else if(array_key_exists($field, $columns)) {
@@ -137,8 +137,8 @@ class Criteria {
             $setter = array();
             foreach($info as $f => $v) {
                 $f = trim($f, ' `');
-                $field = mysql_escape_string($f);
-                $val = mysql_escape_string($v);
+                $field = addslashes($f);
+                $val = addslashes($v);
                 $setter[] = "`{$field}` = '{$val}'";
             }
             $this->setter = implode(', ', $setter);
@@ -155,9 +155,9 @@ class Criteria {
             //Logger::error('empty table name');
         } else if(is_array($table) && $this->model) {
             // end is table name, schema maybe exists
-            $tablename = trim(end($table), ' `');
-            $schema = trim(array_shift($tablearr), ' `');
-            if($tablename == $this->model->table()) {
+            $tablename = trim(array_pop($table), ' `');
+            $schema = trim(array_shift($table), ' `');
+            if($tablename == trim($this->model->table(), ' `')) {
                 $this->table = '`' . trim($tablename, ' `') . '`';
                 if($schema) {
                     $this->schema = '`' . trim($schema, ' `') . '`';
@@ -262,7 +262,7 @@ class Criteria {
                 $this->setTable($table);//拆分出真实的表名
                 $columns = $this->model->columns();
                 //option中存在table参数，一般使用不到，可调节优等级
-                $fieldstr = $options['table'] ? '`' . trim($this->table, ' `') . '`' . '.' : '';
+                $fieldstr = isset($options['table']) && $options['table'] ? '`' . trim($this->table, ' `') . '`' . '.' : '';
                 if(array_search($field, $columns)) {
                     $fieldstr .= '`' . trim($field, ' `') . '`';
                     $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
@@ -293,7 +293,7 @@ class Criteria {
             case '<>':
             case '!=':
             case '=':
-                $value = mysql_escape_string($value);
+                $value = addslashes($value);
                 $condition = $fieldstr . ' '.$symbol.' \'' . $value . '\'';
                 break;
             case 'in':
@@ -303,10 +303,10 @@ class Criteria {
                 if(is_string($value)) {
                     //去除可能存在于两边的单引号
                     $value = preg_replace('/^\'(.*)\'$/', '$1', explode(',', $value));
-                    $value = array_map('mysql_escape_string', $value);
+                    $value = array_map('addslashes', $value);
                     $condition = $fieldstr . ' '.$tmp.' (\'' . implode('\', \'', $value) . '\')';
                 } else if(is_array($value)) {
-                    $value = array_map('mysql_escape_string', $value);
+                    $value = array_map('addslashes', $value);
                     $condition = $fieldstr . ' '.$tmp.' (\'' . implode('\', \'', $value) . '\')';
                 } else {
                     Logger::error('"in" condition value is not an array or string');
@@ -318,13 +318,13 @@ class Criteria {
                 //unlike一般会使用不到
                 $tmp = $symbol == 'like' ? 'LIKE' : 'NOT LIKE';
                 if(is_string($value)) {
-                    $value = mysql_escape_string($value);
+                    $value = addslashes($value);
                     //like 选项left,right,默认都有
                     $left = isset($option['left']) ? $option['left'] : true;
                     $right = isset($option['right']) ? $option['right'] : true;
                     $condition = $fieldstr . ' '.$tmp.' \'';
                     $condition .= $left ? '%' : '';
-                    $condition .= mysql_escape_string($value);
+                    $condition .= addslashes($value);
                     $condition .= $right ? '%' : '';
                     $condition .= '\'';
                 } else {
@@ -332,7 +332,7 @@ class Criteria {
                 }
                 break;
             default:
-                $value = mysql_escape_string($value);
+                $value = addslashes($value);
                 $condition = $fieldstr . ' = \'' . $value . '\'';
                 break;
         }

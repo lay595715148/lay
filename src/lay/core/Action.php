@@ -86,7 +86,7 @@ abstract class Action extends AbstractAction {
      *
      * @param array $config
      */
-    public function __construct($name, $template) {
+    public function __construct($name, $template = null) {
         $this->name = $name;
         $this->template = is_a($template, 'Template') ? $template : new Template();
         $this->scope = new Scope();

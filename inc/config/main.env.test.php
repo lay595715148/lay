@@ -57,6 +57,13 @@ return array(
             'username' => 'root',
             'password' => 'yuiopas',
             'schema' => 'laysoft'
+        ),
+        'mongo' => array(
+            'host' => '127.0.0.1',
+            'port' => 27017,
+            'username' => 'lay',
+            'password' => '123456',
+            'schema' => 'laysoft'
         )
     )
 );

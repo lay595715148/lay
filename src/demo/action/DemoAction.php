@@ -13,24 +13,24 @@ class DemoAction extends JsonAction {
         $this->demoService = $this->service('DemoService');
     }
     public function onGet2() {
-        $ret = $this->service('DemoService')->add(array('name' => 'demo'.rand(1, 100000), 'datetime' => date('Y-m-d H:i:s')));
-        Logger::debug($ret);
-        //$ret = $this->service('DemoService')->count(array('type' => '0'));
+        //$ret = $this->demoService->add(array('name' => 'demo'.rand(1, 100000), 'datetime' => date('Y-m-d H:i:s')));
+        //Logger::debug($ret);
+        //$ret = $this->demoService->count(array('type' => '0'));
+        //Logger::debug($ret);
+        //$ret = $this->demoService->select(array('type' => '0'), array(0, 2));
         //Logger::debug($ret);
     }
     public function onGet() {
         $ret = $this->demoService->test();
         //$this->demoService->test()
-        $ret = $this->demoService->del(50);
-        Logger::debug($ret);
-        $ret = $this->demoService->get(32);
-        Logger::debug($ret);
-        $ret = $this->demoService->upd(32, array('name' => $_GET['name'].rand(1, 100000)));
-        Logger::debug($ret);
-        $ret = $this->demoService->get(32);
-        Logger::debug($ret);
-        $ret = $this->demoService->count(array(array('type', '1,2', 'in', 'OR', array('table' => true))));
-        Logger::debug($ret);
+        //$ret = $this->demoService->del(50);
+        //Logger::debug($ret);
+        //$ret = $this->demoService->get(32);
+        //Logger::debug($ret);
+        //$ret = $this->demoService->upd(32, array('name' => $_GET['name'].rand(1, 100000)));
+        //Logger::debug($ret);
+        //$ret = $this->demoService->count(array(array('type', '1,2', 'in', 'OR', array('table' => true))));
+        //Logger::debug($ret);
     }
 }
 ?>

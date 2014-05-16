@@ -75,7 +75,7 @@ abstract class Bean extends AbstractBean {
      * @return void
      */
     public function __set($name, $value) {
-        $propetypes = &$this->rules();
+        $propetypes = $this->rules();
         $properties = &$this->properties;
         
         if(array_key_exists($name, $properties)) {

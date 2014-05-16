@@ -21,12 +21,14 @@ class Mysql extends Store {
      */
     public function connect() {
         try {
-            $this->link = Connection::mysql($this->name, $this->config)->connection;
+            $this->connection = Connection::mysql($this->name, $this->config);
+            $this->link = $this->connection->connection;
         } catch (Exception $e) {
             Logger::error($e->getTraceAsString(), 'MYSQL');
             return false;
         }
-        return mysql_select_db($this->schema, $this->link);
+        //return mysql_select_db($this->schema, $this->link);
+        return mysqli_select_db($this->link, $this->schema);
     }
     /**
      * 切换Mysql数据库
@@ -40,7 +42,8 @@ class Mysql extends Store {
             $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
             $this->connection = Connection::mysql($name, $config);
             $this->link = $this->connection->connection;
-            return mysql_select_db($schema, $this->link);
+            //return mysql_select_db($schema, $this->link);
+            return mysqli_select_db($this->link, $schema);
         } else {
             return $this->connect();
         }
@@ -58,6 +61,7 @@ class Mysql extends Store {
     public function query($sql, $encoding = 'UTF8', $showsql = false) {
         $config = &$this->config;
         $result = &$this->result;
+        $connection = &$this->connection;
         $link = &$this->link;
         if(! $link) {
             $this->connect();
@@ -69,18 +73,20 @@ class Mysql extends Store {
         if(! $showsql && $config['showsql']) {
             $showsql = $config['showsql'];
         }
-        if($encoding && $this->connection->encoding != $encoding) {
+        if($encoding && $connection->encoding != $encoding) {
             if($showsql) {
                 Logger::info('SET NAMES ' . $encoding, 'MYSQL');
             }
-            $this->connection->encoding = $encoding;
-            mysql_query('SET NAMES ' . $encoding, $link);
+            $connection->encoding = $encoding;
+            //mysql_query('SET NAMES ' . $encoding, $link);
+            mysqli_query($link, 'SET NAMES ' . $encoding);
         }
         if($showsql) {
             Logger::info($sql, 'MYSQL');
         }
         if($sql) {
-            $result = mysql_query($sql, $link);
+            $result = mysqli_query($link, $sql);
+            //$result = mysql_query($sql, $link);
         }
         
         return $result;
@@ -102,10 +108,7 @@ class Mysql extends Store {
         }
         
         $criteria = new Criteria($model);
-        $criteria->setCondition(array(
-                $pk,
-                $id
-        ));
+        $criteria->addCondition($pk, $id);
         $sql = $criteria->makeSelect();
         $this->query($sql, 'UTF8', true);
         
@@ -241,7 +244,7 @@ class Mysql extends Store {
      */
     public function toCount($isselect = true) {
         if($isselect) {
-            return mysql_num_rows($result);
+            return mysqli_num_rows($result);
         } else {
             return mysql_affected_rows($this->link);
         }
@@ -253,7 +256,7 @@ class Mysql extends Store {
      *
      */
     public function toLastid() {
-        return mysql_insert_id($this->link);
+        return mysqli_insert_id($this->link);
     }
     /**
      * return SCALAR
@@ -262,7 +265,7 @@ class Mysql extends Store {
      *
      */
     public function toScalar() {
-        $row = mysql_fetch_row($this->result);
+        $row = mysqli_fetch_row($this->result);
         return $row['0'];
     }
     /**
@@ -280,8 +283,8 @@ class Mysql extends Store {
             // TODO result is empty or null
         } else if($count != 0) {
             $i = 0;
-            if(@mysql_num_rows($result)) {
-                while($i < $count && $row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+            if(mysqli_num_rows($result)) {
+                while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build(( array )$row);
                     $rows[$i] = $obj->toArray();
@@ -290,8 +293,8 @@ class Mysql extends Store {
             }
         } else {
             $i = 0;
-            if(@mysql_num_rows($result)) {
-                while($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+            if(mysqli_num_rows($result)) {
+                while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build(( array )$row);
                     $rows[$i] = $obj->toArray();
@@ -317,8 +320,8 @@ class Mysql extends Store {
             // TODO result is empty or null
         } else if($count != 0) {
             $i = 0;
-            if(@mysql_num_rows($result)) {
-                while($i < $count && $row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+            if(mysqli_num_rows($result)) {
+                while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build(( array )$row);
                     $rows[$i] = $obj;
@@ -327,8 +330,8 @@ class Mysql extends Store {
             }
         } else {
             $i = 0;
-            if(@mysql_num_rows($result)) {
-                while($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+            if(mysqli_num_rows($result)) {
+                while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build(( array )$row);
                     $rows[$i] = $obj;
@@ -354,8 +357,8 @@ class Mysql extends Store {
             // TODO result is empty or null
         } else if($count != 0) {
             $i = 0;
-            if(@mysql_num_rows($result)) {
-                while($i < $count && $row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+            if(mysqli_num_rows($result)) {
+                while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build(( array )$row);
                     $rows[$i] = $obj->toObject();
@@ -364,8 +367,8 @@ class Mysql extends Store {
             }
         } else {
             $i = 0;
-            if(@mysql_num_rows($result)) {
-                while($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+            if(mysqli_num_rows($result)) {
+                while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build(( array )$row);
                     $rows[$i] = $obj->toObject();

@@ -3,10 +3,14 @@ if(! defined('INIT_LAY')) {
     exit();
 }
 
-class Mongo extends Store {
-    public function __construct($model, $name = 'mongo') {
+/**
+ * Memcache Store
+ * @author Lay Li
+ */
+class Mcache extends Store {
+    public function __construct($model, $name = 'memcache') {
         if(is_string($name)) {
-            $config = Lay::get('stores.'.$name);
+            $config = App::get('stores.'.$name);
         } else if(is_array($name)) {
             $config = $name;
         }
@@ -22,19 +26,9 @@ class Mongo extends Store {
      * 连接Mongo数据库
      */
     public function connect() {
-        //$config = $this->config;
-        //$options = array();
-        //$host = isset($config['host']) ? $config['host'] : 'localhost';
-        //$port = isset($config['port']) ? $config['port'] : 27017;
-        //$options['username'] = isset($config['username']) && is_string($config['username']) ? $config['username'] : '';
-        //$options['password'] = isset($config['password']) && is_string($config['password']) ? $config['password'] : '';
-        //$database = isset($config['schema']) && is_string($config['database']) ? $config['database'] : '';
-        //$options['authSource'] = '';
     
         try {
-            $this->link = Connection::mongo($this->name, $this->config);
-            $this->link->selectDB($this->schema);
-            $this->link->connect();
+            $this->link = Connection::memcache($this->name, $this->config);
         } catch (Exception $e) {
             Logger::error($e->getTraceAsString());
             return false;
@@ -42,7 +36,7 @@ class Mongo extends Store {
         return true;
     }
     /**
-     * 切换Mongo数据库
+     * 切换Memcache
      *
      * @param string $name
      *            名称
@@ -50,10 +44,7 @@ class Mongo extends Store {
     public function change($name = '') {
         if($name) {
             $config = App::getStoreConfig($name);
-            $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
-            $this->link = Connection::mongo($name, $config);
-            $this->link->selectDB($schema);
-            $this->link->connect();
+            $this->link = Connection::memcache($name, $config);
         } else {
             $this->connect();
         }
@@ -108,7 +99,7 @@ class Mongo extends Store {
      * @param array $info
      *            information array
      */
-    public function count(array $info) {
+    public function count(array $info = array()) {
     }
     /**
      * close connection

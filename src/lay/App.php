@@ -2,6 +2,8 @@
 if(! defined('INIT_LAY')) {
     exit();
 }
+error_reporting(E_ALL & ~E_NOTICE);
+define('ROOT_PATH', dirname(dirname(__DIR__)));
 
 /**
  * 主类，创建生命周期
@@ -120,7 +122,7 @@ final class App {
             'JsonAction' => '/lay/action/JsonAction.php',
             'XmlAction' => '/lay/action/XmlAction.php',
             'Mysql' => '/lay/store/Mysql.php',
-            'Mongo' => '/lay/store/Mongo.php',
+            'MongoStore' => '/lay/store/MongoStore.php',
             'Connection' => '/lay/core/Connection.php',
             
             //'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
@@ -374,7 +376,9 @@ final class App {
         ));
         
         $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
+        //Logger::initialize(array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false));
         Logger::debug(array($_START, $_END));
+        //Logger::initialize(false);
     }
     /**
      * 类自动加载
@@ -512,7 +516,7 @@ final class App {
     /**
      */
     private function loadCache() {
-        $cachename = sys_get_temp_dir() . 'lay-classes.php';
+        $cachename = realpath(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lay-classes.php');
         if(is_file($cachename)) {
             $this->caches = include $cachename;
         } else {
@@ -531,8 +535,14 @@ final class App {
         Logger::debug('$this->cached:' . $this->cached);
         if($this->cached) {
             Logger::debug($this->caches);
+            //先读取，再merge，再存储
+            $cachename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lay-classes.php';
+            if(is_file($cachename)) {
+                $caches = include realpath($cachename);
+                $this->caches = array_merge($caches, $this->caches);
+            }
+            //写入
             $content = Util::array2PHPContent($this->caches);
-            $cachename = sys_get_temp_dir() . 'lay-classes.php';
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);
             $return = fflush($handle);
