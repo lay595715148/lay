@@ -30,7 +30,7 @@ class MongoStore extends Store {
         try {
             $this->connection = Connection::mongo($this->name, $this->config);
             //$this->link = $this->connection->connection;
-            $this->link = $this->connection->connection->selectDB($this->schema);
+            $this->link = $this->connection->connection->{$this->schema};
             //$this->link->connect();
         } catch (Exception $e) {
             Logger::error($e);
@@ -50,7 +50,7 @@ class MongoStore extends Store {
             $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
             $this->connection = Connection::mongo($this->name, $this->config)->connection;
             //$this->link = Connection::mongo($name, $config);
-            $this->link = $this->connection->selectDB($schema);
+            $this->link = $this->connection->$schema;
             //$this->link->connect();
         } else {
             $this->connect();
@@ -114,6 +114,9 @@ class MongoStore extends Store {
         if(! $link) {
             $this->connect();
         }
+
+        $sql = "return db.lay_user.find({}, {_id:1}).sort({_id:-1}).skip(5).limit(5)";
+        $ret = $link->execute($sql);var_dump($ret['retval']);
         
         $result = $link->selectCollection($table)->findOne(array($pk => $id));
         //$sql = "db.$table.find({\"$pk\":$id})";var_dump($sql);
@@ -195,13 +198,38 @@ class MongoStore extends Store {
         }
         
         $sql = "db.$table.count()";;
+        $result = $link->selectCollection($table)->count($info);
         $result = $this->query($sql, 'UTF8', true);
         return $result['retval'];
     }
     /**
      * find and modify
      */
-    public function fam() {
+    public function find($query, $fields, $sort = array(), $skip = 0, $limit = 20) {
+        $result = &$this->result;
+        $link = &$this->link;
+        $model = &$this->model;
+        $table = $model->table();
+        $pk = $model->primary();
+        if(! $link) {
+            $this->connect();
+        }
+        $result = $link->selectCollection($table)->find($query, $fields);
+        if(!empty($sort)) {
+            $result = $result->sort($sort);
+        }
+        if($skip > 0) {
+            $result = $result->skip($skip);
+        }
+        if($limit > 0) {
+            $result = $result->limit($limit);
+        }
+        return iterator_to_array($result);
+    }
+    /**
+     * find and modify
+     */
+    public function findModify() {
         
     }
     /**

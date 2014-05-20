@@ -19,7 +19,8 @@ class DemoService extends Service {
     public function test() {
         $this->demoUserMongo = Store::getInstance('DemoUserMongo');
         $this->demoUserMongo->connect();
-        $ret = $this->demoUserMongo->get(2014);
+        //$ret = $this->demoUserMongo->get(2014);
+        $ret = $this->demoUserMongo->find(array(), array('_id', 'name'), array(), 5, 5);
         Logger::debug($ret);
         //$dsStore = Store::getInstance('DemoSettingStore');
         //Logger::debug($dsStore->count(array('k', 'att', 'like')));

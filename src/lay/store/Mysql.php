@@ -109,7 +109,7 @@ class Mysql extends Store {
         
         $criteria = new Criteria($model);
         $criteria->addCondition($pk, $id);
-        $sql = $criteria->makeSelect();
+        $sql = $criteria->makeSelectSQL();
         $this->query($sql, 'UTF8', true);
         
         return $this->toArray(1);
@@ -135,7 +135,7 @@ class Mysql extends Store {
                 $pk,
                 $id
         ));
-        $sql = $criteria->makeDelete();
+        $sql = $criteria->makeDeleteSQL();
         
         return $this->query($sql, 'UTF8', true);
     }
@@ -161,7 +161,7 @@ class Mysql extends Store {
         
         $criteria = new Criteria($model);
         $criteria->setValues($info);
-        $sql = $criteria->makeInsert();
+        $sql = $criteria->makeInsertSQL();
         
         $result = $this->query($sql, 'UTF8', true);
         return $result ? $this->toLastid() : false;
@@ -192,7 +192,7 @@ class Mysql extends Store {
                 $pk,
                 $id
         ));
-        $sql = $criteria->makeUpdate();
+        $sql = $criteria->makeUpdateSQL();
         
         return $this->query($sql, 'UTF8', true);
     }
@@ -208,7 +208,7 @@ class Mysql extends Store {
         
         $criteria = new Criteria($model);
         $criteria->addMultiCondition($info);
-        $sql = $criteria->makeCount();
+        $sql = $criteria->makeCountSQL();
         
         $result = $this->query($sql, 'UTF8', true);
         return $this->toScalar();
@@ -229,7 +229,7 @@ class Mysql extends Store {
         $criteria->setLimit($limit);
         $criteria->setGroup($group);
         $criteria->setHaving($having);
-        $sql = $criteria->makeSelect();
+        $sql = $criteria->makeSelectSQL();
         
         $result = $this->query($sql, 'UTF8', true);
         return $this->toModel();

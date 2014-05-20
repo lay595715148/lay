@@ -12,6 +12,7 @@ class Criteria {
      * @var Model
      */
     private $model = false;
+    private $modifier = true;
     private $operation = 'SELECT';
     private $fields = '';
     private $values = '';
@@ -25,6 +26,7 @@ class Criteria {
     private $offset = - 1; // for paging
     private $num = - 1; // for paging
     private $sql = '';
+    private $code = '';
     
     /**
      * please always set model
@@ -32,11 +34,10 @@ class Criteria {
      * @param Model $model            
      */
     public function __construct($model = false) {
-        if(is_subclass_of($model, 'Model')) {
-            $this->model = $model;
-            $this->setTable($model->table());
-            $this->setSchema($model->schema());
-        }
+        $this->setModel($model);
+    }
+    public function setModifier($modifier = true) {
+        $this->modifier = $modifier ? true : false;
     }
     public function setModel($model) {
         if(is_subclass_of($model, 'Model')) {
@@ -51,11 +52,13 @@ class Criteria {
      * @param array $fields            
      */
     public function setFields(array $fields) {
+        $m = $this->modifier;
         if(empty($fields)) {
             //Logger::error('empty fields');
         } else if(is_array($fields) && $this->model) {
             $tmp = array();
-            $fields = array_map('trim', $fields);
+            //去除可能存在于两边的着重号
+            //$fields = $this->trimModifier($fields);
             $columns = $this->model->columns();
             foreach($fields as $field) {
                 if(array_search($field, $columns)) {
@@ -66,13 +69,21 @@ class Criteria {
                     Logger::warn('invalid field:' . $field);
                 }
             }
-            $this->fields = '`' . implode('`, `', $tmp) . '`';
+            if($this->modifier) {
+                $tmp = $this->untrimModifier($tmp);
+            }
+            $this->fields = implode(", ", $tmp);
         } else if(is_array($fields)) {
-            $fields = array_map('trim', $fields);
-            $this->fields = '`' . implode('`, `', $fields) . '`';
+            //去除可能存在于两边的着重号
+            //$fields = $this->trimModifier($fields);
+            if($this->modifier) {
+                $fields = $this->untrimModifier($fields);
+            }
+            $this->fields = implode(", ", $fields);
         } else if(is_string($fields)) {
-            $fields = str_replace('`', '', $fields);
             $fields = explode(',', $fields);
+            //去除可能存在于两边的着重号
+            $fields = $this->trimModifier($fields);
             $this->setFields($fields);
         } else {
             Logger::error('invalid fields');
@@ -85,6 +96,7 @@ class Criteria {
      * @param array $values            
      */
     public function setValues(array $values) {
+        $m = $this->modifier;
         if(empty($values)) {
             //Logger::error('empty values');
         } else if(is_array($values) && $this->model) {
@@ -92,6 +104,8 @@ class Criteria {
             $tmpvalues = array();
             $columns = $this->model->columns();
             foreach($values as $field => $value) {
+                //去除可能存在于两边的着重号
+                //$field = $this->trimModifier($field);
                 if(array_search($field, $columns)) {
                     $tmpfields[] = $field;
                     $tmpvalues[] = addslashes($value);
@@ -102,11 +116,20 @@ class Criteria {
                     Logger::warn('invalid field:' . $field);
                 }
             }
-            $this->fields = ! empty($tmpfields) ? '`' . implode('`, `', $tmpfields) . '`' : '';
-            $this->values = ! empty($tmpvalues) ? '\'' . implode('\', \'', $tmpvalues) . '\'' : '';
+            if($this->modifier) {
+                $tmpfields = $this->untrimModifier($tmpfields);
+            }
+            $tmpvalues = $this->untrimQuote($tmpvalues);
+            
+            $this->fields = ! empty($tmpfields) ? implode(", ", $tmpfields) : '';
+            $this->values = ! empty($tmpvalues) ? implode(', ', $tmpvalues) : '';
         } else if(is_array($values)) {
-            $this->fields = '`' . implode('`, `', array_keys($values)) . '`';
-            $this->values = '\'' . implode('\', \'', array_map('addslashes', array_values($values))) . '\'';
+            $fields = array_keys($values);
+            //去除可能存在于两边的着重号
+            //$tmpfields = $this->trimModifier($fields);
+            $tmpvalues = $this->untrimQuote(array_map('addslashes', $values));
+            $this->fields = implode(', ', $tmpfields);
+            $this->values = implode(', ', $tmpvalues);
         } else {
             Logger::error('invalid values');
         }
@@ -117,17 +140,24 @@ class Criteria {
      * @param array $info            
      */
     public function setSetter(array $info) {
+        $m = $this->modifier;
         if(empty($info)) {
             //Logger::error('empty set info');
         } else if(is_array($info) && $this->model) {
             $setter = array();
             $columns = $this->model->columns();
-            foreach($info as $field => $v) {
-                $val = addslashes($v);
+            foreach($info as $field => $value) {
+                //去除可能存在于两边的着重号
+                //$field = $this->trimModifier($field);
+                $value = addslashes($value);
                 if(array_search($field, $columns)) {
-                    $setter[] = "`{$field}` = '{$val}'";
+                    $fieldstr = $this->modifier ? $this->untrimModifier($field) : $field;
+                    $valuestr = $this->untrimQuote(addslashes($value));
+                    $setter[] = "$fieldstr = $valuestr";
                 } else if(array_key_exists($field, $columns)) {
-                    $setter[] = "`{$columns[$field]}` = '{$val}'";
+                    $fieldstr = $this->modifier ? $this->untrimModifier($columns[$field]) : $columns[$field];
+                    $valuestr = $this->untrimQuote(addslashes($value));
+                    $setter[] = "$fieldstr = $valuestr";
                 } else {
                     Logger::warn('invalid field:' . $field);
                 }
@@ -135,58 +165,43 @@ class Criteria {
             $this->setter = implode(', ', $setter);
         } else if(is_array($info)) {
             $setter = array();
-            foreach($info as $f => $v) {
-                $f = trim($f, ' `');
-                $field = addslashes($f);
-                $val = addslashes($v);
-                $setter[] = "`{$field}` = '{$val}'";
+            foreach($info as $field => $value) {
+                //去除可能存在于两边的着重号
+                //$field = $this->trimModifier($field);
+                $fieldstr = $this->modifier ? $this->untrimModifier($field) : $field;
+                $valuestr = $this->untrimQuote(addslashes($value));
+                $setter[] = "$fieldstr = $valuestr";
             }
             $this->setter = implode(', ', $setter);
         } else if(is_string($info)) {
-            $info = explode(',', $fields);
-            $info = array_map('trim', $info);
-            $this->explodeSetter($info);
+            $info = explode(',', $info);
+            $info = $this->explodeSetter($info);
+            $this->setSetter($info);
         } else {
             Logger::error('invalid set info string or array!');
         }
     }
     public function setTable($table) {
+        $m = $this->modifier;
         if(empty($table)) {
             //Logger::error('empty table name');
-        } else if(is_array($table) && $this->model) {
-            // end is table name, schema maybe exists
-            $tablename = trim(array_pop($table), ' `');
-            $schema = trim(array_shift($table), ' `');
-            if($tablename == trim($this->model->table(), ' `')) {
-                $this->table = '`' . trim($tablename, ' `') . '`';
-                if($schema) {
-                    $this->schema = '`' . trim($schema, ' `') . '`';
-                }
-            } else {
-                Logger::error('invalid table name');
-            }
-        } else if(is_array($table)) {
-            // end is table name, fisrt is schema,schema maybe exists
-            $tablename = trim(end($table), ' `');
-            $schema = trim(array_shift($table), ' `');
-            $this->table = '`' . trim($tablename, ' `') . '`';
-            if($schema) {
-                $this->schema = '`' . trim($schema, ' `') . '`';
-            }
         } else if(is_string($table)) {
-            $tablearr = array_slice(explode('.', $table), 0, 2);
-            $this->setTable($tablearr);
+            //去除可能存在于两边的着重号
+            //$table = $this->trimModifier($table);
+            $this->table = $this->modifier ? $this->untrimModifier($table) : $table;
         } else {
-            Logger::error('invlid table,table must be string or array');
+            Logger::error('invlid table,table name must be string');
         }
     }
     public function setSchema($schema) {
         if(empty($schema)) {
             //Logger::error('empty schema');
         } else if(is_string($schema)) {
-            $this->schema = '`' . trim($schema, ' `') . '`';
+            //去除可能存在于两边的着重号
+            //$schema = $this->trimModifier($schema);
+            $this->schema = $this->modifier ? $this->untrimModifier($schema) : $schema;
         } else {
-            Logger::error('invlid schema,schema must be string');
+            Logger::error('invlid schema,schema name must be string');
         }
     }
     public function setCondition($condition) {
@@ -211,7 +226,7 @@ class Criteria {
                 $this->setCondition($condition);
             }
         } else {
-            Logger::error('invlid conditions array');
+            Logger::error('invlid condition array');
         }
     }
     public function addInfoCondition($info) {
@@ -222,7 +237,7 @@ class Criteria {
                 $this->addCondition($field, $value);
             }
         } else {
-            Logger::error('invlid info conditions array');
+            Logger::error('invlid info condition array');
         }
     }
     public function addMultiCondition($mix) {
@@ -240,10 +255,11 @@ class Criteria {
                 }
             }
         } else {
-            Logger::error('invlid multi conditions,must be array');
+            Logger::error('invlid multi condition array');
         }
     }
     public function addCondition($field, $value, $symbol = '=', $combine = 'AND', $options = array()) {
+        $m = $this->modifier;
         if(empty($field)) {
             //Logger::error('empty condition field,or empty condition value');
         } else if(is_string($field)) {
@@ -258,31 +274,33 @@ class Criteria {
             $this->condition .= $this->condition ? ' ' . $combine . ' ' : '';
             
             if($this->model){
+                //去除可能存在于两边的着重号
+                //$field = $this->trimModifier($field);
                 $table = $this->model->table();
-                $this->setTable($table);//拆分出真实的表名
-                $columns = $this->model->columns();
+                //去除可能存在于两边的着重号
+                //$table = $this->trimModifier($table);
+                $tablestr = $this->modifier ? $this->untrimModifier($table) : $table;
                 //option中存在table参数，一般使用不到，可调节优等级
-                $fieldstr = isset($options['table']) && $options['table'] ? '`' . trim($this->table, ' `') . '`' . '.' : '';
+                $fieldstr = isset($options['table']) && $options['table'] ? $tablestr . '.' : '';
+                $columns = $this->model->columns();
                 if(array_search($field, $columns)) {
-                    $fieldstr .= '`' . trim($field, ' `') . '`';
+                    $fieldstr .= $this->modifier ? $this->untrimModifier($field) : $field;
                     $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
                 } else if(array_key_exists($field, $columns)) {
-                    //if field is a property
-                    $field = $columns[$field];
-                    $fieldstr .= '`' . trim($field, ' `') . '`';
+                    $fieldstr .= $this->modifier ? $this->untrimModifier($columns[$field]) : $columns[$field];
                     $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
                 } else {
                     Logger::error('invlid condition field');
                 }
             } else {
-                $fieldstr = '`' . trim($field, ' `') . '`';
+                $fieldstr = $this->modifier ? $this->untrimModifier($field) : $field;
                 $this->condition .= $this->switchSymbolCondition($symbol, $fieldstr, $value, $options);
             }
         } else {
             Logger::error('invlid condition field');
         }
     }
-    private function switchSymbolCondition($symbol, $fieldstr, $value, $options = array()) {
+    protected function switchSymbolCondition($symbol, $fieldstr, $value, $options = array()) {
         $condition = '';
         $symbol = strtolower($symbol);//变成小写
         switch($symbol) {
@@ -301,13 +319,18 @@ class Criteria {
             case 'unin':
                 $tmp = $symbol == 'in' ? 'IN' : 'NOT IN';
                 if(is_string($value)) {
+                    $value = explode(',', $value);
                     //去除可能存在于两边的单引号
-                    $value = preg_replace('/^\'(.*)\'$/', '$1', explode(',', $value));
+                    //$value = $this->trimQuote($value);
                     $value = array_map('addslashes', $value);
-                    $condition = $fieldstr . ' '.$tmp.' (\'' . implode('\', \'', $value) . '\')';
+                    $value = $this->untrimQuote($value);
+                    $condition = $fieldstr . ' '.$tmp.' (' . implode(', ', $value) . ')';
                 } else if(is_array($value)) {
+                    //去除可能存在于两边的单引号
+                    //$value = $this->trimQuote($value);
                     $value = array_map('addslashes', $value);
-                    $condition = $fieldstr . ' '.$tmp.' (\'' . implode('\', \'', $value) . '\')';
+                    $value = $this->untrimQuote($value);
+                    $condition = $fieldstr . ' '.$tmp.' (' . implode(', ', $value) . ')';
                 } else {
                     Logger::error('"in" condition value is not an array or string');
                 }
@@ -318,27 +341,32 @@ class Criteria {
                 //unlike一般会使用不到
                 $tmp = $symbol == 'like' ? 'LIKE' : 'NOT LIKE';
                 if(is_string($value)) {
-                    $value = addslashes($value);
                     //like 选项left,right,默认都有
                     $left = isset($option['left']) ? $option['left'] : true;
                     $right = isset($option['right']) ? $option['right'] : true;
-                    $condition = $fieldstr . ' '.$tmp.' \'';
-                    $condition .= $left ? '%' : '';
-                    $condition .= addslashes($value);
-                    $condition .= $right ? '%' : '';
-                    $condition .= '\'';
+                    //去除可能存在于两边的单引号
+                    //$value = $this->trimQuote($value);
+                    $valuestr = $left ? '%' : '';
+                    $valuestr .= addslashes($value);
+                    $valuestr .= $right ? '%' : '';
+                    $valuestr = $this->untrimQuote($valuestr);
+                    $condition = $fieldstr . ' '.$tmp.' '.$valuestr;
                 } else {
                     Logger::error('"like" condition value is not a string');
                 }
                 break;
             default:
+                //去除可能存在于两边的单引号
+                //$value = $this->trimQuote($value);
                 $value = addslashes($value);
-                $condition = $fieldstr . ' = \'' . $value . '\'';
+                $valuestr = $this->untrimQuote($value);
+                $condition = $fieldstr . ' = ' . $valuestr;
                 break;
         }
         return $condition;
     }
     public function setOrder($order) {
+        $m = $this->modifier;
         if(empty($order)) {
             //Logger::error('empty info conditions array');
         } else if(is_array($order)) {
@@ -346,19 +374,23 @@ class Criteria {
             foreach($order as $field => $desc) {
                 $desc = strtoupper($desc);
                 $desc = in_array($desc, $signs) ? $desc : 'DESC';
+                //去除可能存在于两边的着重号
+                //$field = $this->trimModifier($field);
                 $this->order .= $this->order ? ', ' : '';
                 if($this->model) {
                     $columns = $this->model->columns();
                     if(array_search($field, $columns)) {
-                        $this->order .= '`'.$field.'` '.$desc;
+                        $fieldstr = $this->untrimModifier($field);
+                        $this->order .= $fieldstr.' '.$desc;
                     } else if(array_key_exists($field, $columns)) {
-                        $field = $columns[$field];
-                        $this->order .= '`'.$field.'` '.$desc;
+                        $fieldstr = $this->untrimModifier($columns[$field]);
+                        $this->order .= $fieldstr.' '.$desc;
                     } else {
                         Logger::error('invlid field');
                     }
                 } else {
-                    $this->order .= '`'.$field.'` '.$desc;
+                    $fieldstr = $this->untrimModifier($field);
+                    $this->order .= $fieldstr.' '.$desc;
                 }
             }
         } else {
@@ -399,15 +431,15 @@ class Criteria {
      *
      * @return string
      */
-    public function makeSelect() {
+    public function makeSelectSQL() {
         $this->sql = $this->operation = 'SELECT';
-        $this->makeFields();
-        $this->makeFromTable();
-        $this->makeCondition();
-        $this->makeGroup();
-        $this->makeHaving();
-        $this->makeOrder();
-        $this->makeLimit();
+        $this->makeFieldsSQL();
+        $this->makeFromTableSQL();
+        $this->makeConditionSQL();
+        $this->makeGroupSQL();
+        $this->makeHavingSQL();
+        $this->makeOrderSQL();
+        $this->makeLimitSQL();
         return $this->sql;
     }
     /**
@@ -415,11 +447,11 @@ class Criteria {
      *
      * @return string
      */
-    public function makeInsert() {
+    public function makeInsertSQL() {
         $this->sql = $this->operation = 'INSERT';
-        $this->makeIntoTable();
-        $this->makeIntoFields();
-        $this->makeValues();
+        $this->makeIntoTableSQL();
+        $this->makeIntoFieldsSQL();
+        $this->makeValuesSQL();
         return $this->sql;
     }
     /**
@@ -427,11 +459,11 @@ class Criteria {
      *
      * @return string
      */
-    public function makeReplace() {
+    public function makeReplaceSQL() {
         $this->sql = $this->operation = 'REPLACE';
-        $this->makeIntoTable();
-        $this->makeIntoFields();
-        $this->makeValues();
+        $this->makeIntoTableSQL();
+        $this->makeIntoFieldsSQL();
+        $this->makeValuesSQL();
         return $this->sql;
     }
     /**
@@ -439,10 +471,10 @@ class Criteria {
      *
      * @return string
      */
-    public function makeDelete() {
+    public function makeDeleteSQL() {
         $this->sql = $this->operation = 'DELETE';
-        $this->makeFromTable();
-        $this->makeStrictCondition();
+        $this->makeFromTableSQL();
+        $this->makeStrictConditionSQL();
         return $this->sql;
     }
     /**
@@ -450,129 +482,69 @@ class Criteria {
      *
      * @return string
      */
-    public function makeUpdate() {
+    public function makeUpdateSQL() {
         $this->sql = $this->operation = 'UPDATE';
-        $this->makeTable();
-        $this->makeSetter();
-        $this->makeStrictCondition();
+        $this->makeTableSQL();
+        $this->makeSetterSQL();
+        $this->makeStrictConditionSQL();
         return $this->sql;
     }
-    public function makeCount() {
+    public function makeCountSQL() {
         $this->sql = $this->operation = 'SELECT';
-        $this->makeCountField();
-        $this->makeFromTable();
-        $this->makeCondition();
-        $this->makeGroup();
-        $this->makeHaving();
+        $this->makeCountFieldSQL();
+        $this->makeFromTableSQL();
+        $this->makeConditionSQL();
+        $this->makeGroupSQL();
+        $this->makeHavingSQL();
         return $this->sql;
     }
-    private function makeCountField() {
-        $this->fields = 'COUNT(*)';
-        $this->sql .= ' ' . $this->fields;
-    }
-    private function makeIntoFields() {
-        if($this->fields) {
-            $this->sql .= ' (' . $this->fields . ')';
-        } else {
-            Logger::error('empty into fields!');
+    public function trimModifier($var) {
+        if(is_array($var) && !empty($var)) {
+            return array_map(array($this, 'trimModifier'), $var);
+        } else if(is_string($var)) {
+            return preg_replace('/^`(.*)`$/', '$1', trim($var));
         }
+        return $var;
     }
-    private function makeFields() {
-        if($this->fields) {
-            $this->sql .= ' ' . $this->fields;
-        } else if($this->model) {
-            $fields = $this->model->toFields();
-            $this->sql .= ' ' . '`' . implode('`, `', $fields) . '`';
-        } else {
-            $this->sql .= ' *';
+    public function untrimModifier($var) {
+        if(is_array($var) && !empty($var)) {
+            return array_map(array($this, 'untrimModifier'), $var);
+        } else if(is_string($var)) {
+            return '`'.$var.'`';
         }
+        return $var;
     }
-    private function makeFromTable() {
-        if($this->table && $this->schema) {
-            $this->sql .= ' FROM ' . $this->schema . '.' . $this->table;
-        } else if($this->table) {
-            $this->sql .= ' FROM ' . $this->table;
-        } else if($this->model) {
-            $this->setTable($this->model->table());
-            $this->setSchema($this->model->schema());
-            $this->makeFromTable();
-        } else {
-            Logger::error('no given table name!');
+    public function trimQuote($var) {
+        if(is_array($var) && !empty($var)) {
+            return array_map(array($this, 'trimQuote'), $var);
+        } else if(is_string($var)) {
+            return preg_replace('/^\'(.*)\'$/', '$1', trim($var));
         }
+        return $var;
     }
-    private function makeIntoTable() {
-        if($this->table && $this->schema) {
-            $this->sql .= ' INTO ' . $this->schema . '.' . $this->table;
-        } else if($this->table) {
-            $this->sql .= ' INTO ' . $this->table;
-        } else if($this->model) {
-            $this->setTable($this->model->table());
-            $this->setSchema($this->model->schema());
-            $this->makeIntoTable();
-        } else {
-            Logger::error('no given table name!');
+    public function untrimQuote($var) {
+        if(is_array($var) && !empty($var)) {
+            return array_map(array($this, 'untrimQuote'), $var);
+        } else if(is_string($var)) {
+            return '\''.$var.'\'';
         }
+        return $var;
     }
-    private function makeTable() {
-        if($this->table && $this->schema) {
-            $this->sql .= ' ' . $this->schema . '.' . $this->table;
-        } else if($this->table) {
-            $this->sql .= ' ' . $this->table;
-        } else if($this->model) {
-            $this->setTable($this->model->table());
-            $this->setSchema($this->model->schema());
-            $this->makeTable();
-        } else {
-            Logger::error('no given table name!');
+    public function trimQuotes($var) {
+        if(is_array($var) && !empty($var)) {
+            return array_map(array($this, 'trimQuotes'), $var);
+        } else if(is_string($var)) {
+            return preg_replace('/^"(.*)"$/', '$1', trim($var));
         }
+        return $var;
     }
-    private function makeValues() {
-        if($this->values) {
-            $this->sql .= ' VALUES (' . $this->values . ')';
-        } else {
-            Logger::error('values empty!');
+    public function untrimQuotes($var) {
+        if(is_array($var) && !empty($var)) {
+            return array_map(array($this, 'untrimQuotes'), $var);
+        } else if(is_string($var)) {
+            return '"'.$var.'"';
         }
-    }
-    private function makeSetter() {
-        if($this->setter) {
-            $this->sql .= ' SET ' . $this->setter;
-        } else {
-            Logger::error('setter empty!');
-        }
-    }
-    private function makeCondition() {
-        if($this->condition) {
-            $this->sql .= ' WHERE ' . $this->condition;
-        }
-    }
-    private function makeStrictCondition() {
-        if($this->condition) {
-            $this->sql .= ' WHERE ' . $this->condition;
-        } else {
-            $this->sql .= ' WHERE 1 = 0';
-        }
-    }
-    private function makeGroup() {
-        if($this->group) {
-            $this->sql .= ' GROUP BY ' . $this->group;
-        }
-    }
-    private function makeHaving() {
-        if($this->group && $this->having) {
-            $this->sql .= ' HAVING ' . $this->having;
-        }
-    }
-    private function makeOrder() {
-        if($this->order) {
-            $this->sql .= ' ORDER BY ' . $this->order;
-        }
-    }
-    private function makeLimit() {
-        if($this->offset > 0) {
-            $this->sql .= ' LIMIT ' . $this->offset . ',' . $this->num;
-        } elseif($this->num > 0) {
-            $this->sql .= ' LIMIT ' . $this->num;
-        }
+        return $var;
     }
     private function explodeSetter($str) {
         if(is_array($str)) {
@@ -585,16 +557,124 @@ class Criteria {
             return $setter;
         } else if(is_string($str)) {
             $setter = explode('=', $str);
-            $field = trim($setter[0], ' `');
-            $value = trim($setter[1]);
+            //去除可能存在于两边的着重号
+            $field = $this->trimModifier($setter[0]);
             // 如果两边有单引号则去除掉
-            $value = preg_replace('/^\'(.*)\'$/', '$1', $value);
+            $value = $this->trimQuote($setter[1]);
             return array(
                     $field => $value
             );
         } else {
             Logger::error('invalid set string or array to explode!');
             return false;
+        }
+    }
+    private function makeCountFieldSQL() {
+        $this->fields = 'COUNT(*)';
+        $this->sql .= ' ' . $this->fields;
+    }
+    private function makeIntoFieldsSQL() {
+        if($this->fields) {
+            $this->sql .= ' (' . $this->fields . ')';
+        } else {
+            Logger::error('empty into fields!');
+        }
+    }
+    private function makeFieldsSQL() {
+        if($this->fields) {
+            $this->sql .= ' ' . $this->fields;
+        } else if($this->model) {
+            $this->setFields($this->model->toFields());
+            $this->makeFieldsSQL();
+        } else {
+            $this->sql .= ' *';
+        }
+    }
+    private function makeFromTableSQL() {
+        if($this->table && $this->schema) {
+            $this->sql .= ' FROM ' . $this->schema . '.' . $this->table;
+        } else if($this->table) {
+            $this->sql .= ' FROM ' . $this->table;
+        } else if($this->model) {
+            $this->setTable($this->model->table());
+            $this->setSchema($this->model->schema());
+            $this->makeFromTableSQL();
+        } else {
+            Logger::error('no given table name!');
+        }
+    }
+    private function makeIntoTableSQL() {
+        if($this->table && $this->schema) {
+            $this->sql .= ' INTO ' . $this->schema . '.' . $this->table;
+        } else if($this->table) {
+            $this->sql .= ' INTO ' . $this->table;
+        } else if($this->model) {
+            $this->setTable($this->model->table());
+            $this->setSchema($this->model->schema());
+            $this->makeIntoTableSQL();
+        } else {
+            Logger::error('no given table name!');
+        }
+    }
+    private function makeTableSQL() {
+        if($this->table && $this->schema) {
+            $this->sql .= ' ' . $this->schema . '.' . $this->table;
+        } else if($this->table) {
+            $this->sql .= ' ' . $this->table;
+        } else if($this->model) {
+            $this->setTable($this->model->table());
+            $this->setSchema($this->model->schema());
+            $this->makeTableSQL();
+        } else {
+            Logger::error('no given table name!');
+        }
+    }
+    private function makeValuesSQL() {
+        if($this->values) {
+            $this->sql .= ' VALUES (' . $this->values . ')';
+        } else {
+            Logger::error('values empty!');
+        }
+    }
+    private function makeSetterSQL() {
+        if($this->setter) {
+            $this->sql .= ' SET ' . $this->setter;
+        } else {
+            Logger::error('setter empty!');
+        }
+    }
+    private function makeConditionSQL() {
+        if($this->condition) {
+            $this->sql .= ' WHERE ' . $this->condition;
+        }
+    }
+    private function makeStrictConditionSQL() {
+        if($this->condition) {
+            $this->sql .= ' WHERE ' . $this->condition;
+        } else {
+            $this->sql .= ' WHERE 1 = 0';
+        }
+    }
+    private function makeGroupSQL() {
+        if($this->group) {
+            $this->sql .= ' GROUP BY ' . $this->group;
+        }
+    }
+    private function makeHavingSQL() {
+        if($this->group && $this->having) {
+            $this->sql .= ' HAVING ' . $this->having;
+        }
+    }
+    private function makeOrderSQL() {
+        if($this->order) {
+            $this->sql .= ' ORDER BY ' . $this->order;
+        }
+    }
+    private function makeLimitSQL() {
+        if($this->offset > 0) {
+            $this->sql .= ' LIMIT ' . $this->offset . ',' . $this->num;
+        } elseif($this->num > 0) {
+            $this->sql .= ' LIMIT ' . $this->num;
         }
     }
 }
