@@ -18,22 +18,17 @@ class DemoService extends Service {
     }
     public function test() {
         $this->demoUserMongo = Store::getInstance('DemoUserMongo');
-        $this->demoUserMongo->connect();
+        //$this->demoUserMongo->connect();
         //$ret = $this->demoUserMongo->get(2014);
         $ret = $this->demoUserMongo->upd(2009, array('name' => 'demo'.rand(1, 100000)));
         Logger::debug($ret);
         $ret = $this->demoUserMongo->del(2008);
         Logger::debug($ret);
-        $ret = $this->demoUserMongo->add(array('name' => 'name'.rand(1, 10000), 'pass' => '060bade8c5f6306ee81c832bb469e067', 'nick' => 'lay'.rand(1, 1000)));
-        Logger::debug($ret);
+        //$ret = $this->demoUserMongo->add(array('name' => 'name'.rand(1, 10000), 'pass' => '060bade8c5f6306ee81c832bb469e067', 'nick' => 'lay'.rand(1, 1000)));
+        //Logger::debug($ret);
         $ret = $this->demoUserMongo->select(array(), array('_id', 'name'), array(), array(5, 5));
         Logger::debug($ret);
         $ret = $this->demoUserMongo->count(array('_id' => array('$gt' => 2013)));
-        Logger::debug($ret);
-        $a = array('$f','$d', '_id' => array('$gt' => 2010));
-        $ret = Coder::array2Code($a);
-        Logger::debug($ret);
-        $ret = json_encode($a);
         Logger::debug($ret);
         //$dsStore = Store::getInstance('DemoSettingStore');
         //Logger::debug($dsStore->count(array('k', 'att', 'like')));

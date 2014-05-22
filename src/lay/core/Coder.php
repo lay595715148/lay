@@ -34,7 +34,6 @@ class Coder {
      * @var Model
      */
     private $model = false;
-    private $modifier = false;
     private $code = '';
     private $operation = 'find';
     private $fields = array();

@@ -1,5 +1,5 @@
 <?php
-class DemoSettingStore extends Mysql {
+class DemoSettingStore extends MysqlStore {
     public function __construct() {
         parent::__construct(new DemoSetting());
     }

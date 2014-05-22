@@ -4,6 +4,7 @@ if(! defined('INIT_LAY')) {
 }
 /**
  * SQL处理器
+ * 
  * @author Lay Li
  */
 class Criteria {
@@ -26,7 +27,6 @@ class Criteria {
     private $offset = - 1; // for paging
     private $num = - 1; // for paging
     private $sql = '';
-    private $code = '';
     
     /**
      * please always set model
@@ -54,11 +54,11 @@ class Criteria {
     public function setFields(array $fields) {
         $m = $this->modifier;
         if(empty($fields)) {
-            //Logger::error('empty fields');
+            // Logger::error('empty fields');
         } else if(is_array($fields) && $this->model) {
             $tmp = array();
-            //去除可能存在于两边的着重号
-            //$fields = $this->trimModifier($fields);
+            // 去除可能存在于两边的着重号
+            // $fields = $this->trimModifier($fields);
             $columns = $this->model->columns();
             foreach($fields as $field) {
                 if(array_search($field, $columns)) {
@@ -74,15 +74,15 @@ class Criteria {
             }
             $this->fields = implode(", ", $tmp);
         } else if(is_array($fields)) {
-            //去除可能存在于两边的着重号
-            //$fields = $this->trimModifier($fields);
+            // 去除可能存在于两边的着重号
+            // $fields = $this->trimModifier($fields);
             if($this->modifier) {
                 $fields = $this->untrimModifier($fields);
             }
             $this->fields = implode(", ", $fields);
         } else if(is_string($fields)) {
             $fields = explode(',', $fields);
-            //去除可能存在于两边的着重号
+            // 去除可能存在于两边的着重号
             $fields = $this->trimModifier($fields);
             $this->setFields($fields);
         } else {
@@ -98,14 +98,14 @@ class Criteria {
     public function setValues(array $values) {
         $m = $this->modifier;
         if(empty($values)) {
-            //Logger::error('empty values');
+            // Logger::error('empty values');
         } else if(is_array($values) && $this->model) {
             $tmpfields = array();
             $tmpvalues = array();
             $columns = $this->model->columns();
             foreach($values as $field => $value) {
-                //去除可能存在于两边的着重号
-                //$field = $this->trimModifier($field);
+                // 去除可能存在于两边的着重号
+                // $field = $this->trimModifier($field);
                 if(array_search($field, $columns)) {
                     $tmpfields[] = $field;
                     $tmpvalues[] = addslashes($value);
@@ -125,8 +125,8 @@ class Criteria {
             $this->values = ! empty($tmpvalues) ? implode(', ', $tmpvalues) : '';
         } else if(is_array($values)) {
             $fields = array_keys($values);
-            //去除可能存在于两边的着重号
-            //$tmpfields = $this->trimModifier($fields);
+            // 去除可能存在于两边的着重号
+            // $tmpfields = $this->trimModifier($fields);
             $tmpvalues = $this->untrimQuote(array_map('addslashes', $values));
             $this->fields = implode(', ', $tmpfields);
             $this->values = implode(', ', $tmpvalues);
@@ -142,13 +142,13 @@ class Criteria {
     public function setSetter(array $info) {
         $m = $this->modifier;
         if(empty($info)) {
-            //Logger::error('empty set info');
+            // Logger::error('empty set info');
         } else if(is_array($info) && $this->model) {
             $setter = array();
             $columns = $this->model->columns();
             foreach($info as $field => $value) {
-                //去除可能存在于两边的着重号
-                //$field = $this->trimModifier($field);
+                // 去除可能存在于两边的着重号
+                // $field = $this->trimModifier($field);
                 $value = addslashes($value);
                 if(array_search($field, $columns)) {
                     $fieldstr = $this->modifier ? $this->untrimModifier($field) : $field;
@@ -166,8 +166,8 @@ class Criteria {
         } else if(is_array($info)) {
             $setter = array();
             foreach($info as $field => $value) {
-                //去除可能存在于两边的着重号
-                //$field = $this->trimModifier($field);
+                // 去除可能存在于两边的着重号
+                // $field = $this->trimModifier($field);
                 $fieldstr = $this->modifier ? $this->untrimModifier($field) : $field;
                 $valuestr = $this->untrimQuote(addslashes($value));
                 $setter[] = "$fieldstr = $valuestr";
@@ -184,10 +184,10 @@ class Criteria {
     public function setTable($table) {
         $m = $this->modifier;
         if(empty($table)) {
-            //Logger::error('empty table name');
+            // Logger::error('empty table name');
         } else if(is_string($table)) {
-            //去除可能存在于两边的着重号
-            //$table = $this->trimModifier($table);
+            // 去除可能存在于两边的着重号
+            // $table = $this->trimModifier($table);
             $this->table = $this->modifier ? $this->untrimModifier($table) : $table;
         } else {
             Logger::error('invlid table,table name must be string');
@@ -195,10 +195,10 @@ class Criteria {
     }
     public function setSchema($schema) {
         if(empty($schema)) {
-            //Logger::error('empty schema');
+            // Logger::error('empty schema');
         } else if(is_string($schema)) {
-            //去除可能存在于两边的着重号
-            //$schema = $this->trimModifier($schema);
+            // 去除可能存在于两边的着重号
+            // $schema = $this->trimModifier($schema);
             $this->schema = $this->modifier ? $this->untrimModifier($schema) : $schema;
         } else {
             Logger::error('invlid schema,schema name must be string');
@@ -206,7 +206,7 @@ class Criteria {
     }
     public function setCondition($condition) {
         if(empty($condition)) {
-            //Logger::error('empty condition');
+            // Logger::error('empty condition');
         } else if(is_array($condition)) {
             $field = $condition[0];
             $value = $condition[1];
@@ -220,7 +220,7 @@ class Criteria {
     }
     public function addConditions($conditions) {
         if(empty($conditions)) {
-            //Logger::error('empty conditions array');
+            // Logger::error('empty conditions array');
         } else if(is_array($conditions)) {
             foreach($conditions as $condition) {
                 $this->setCondition($condition);
@@ -231,7 +231,7 @@ class Criteria {
     }
     public function addInfoCondition($info) {
         if(empty($info)) {
-            //Logger::error('empty info conditions array');
+            // Logger::error('empty info conditions array');
         } else if(is_array($info)) {
             foreach($info as $field => $value) {
                 $this->addCondition($field, $value);
@@ -242,12 +242,12 @@ class Criteria {
     }
     public function addMultiCondition($mix) {
         if(empty($mix)) {
-            //Logger::error('empty info conditions array');
+            // Logger::error('empty info conditions array');
         } else if(is_array($mix)) {
             foreach($mix as $field => $value) {
-                if(!is_numeric($field)) {
+                if(! is_numeric($field)) {
                     $this->addCondition($field, $value);
-                } else if(is_array($value)){
+                } else if(is_array($value)) {
                     $this->setCondition($value);
                 } else {
                     $this->setCondition($mix);
@@ -261,7 +261,7 @@ class Criteria {
     public function addCondition($field, $value, $symbol = '=', $combine = 'AND', $options = array()) {
         $m = $this->modifier;
         if(empty($field)) {
-            //Logger::error('empty condition field,or empty condition value');
+            // Logger::error('empty condition field,or empty condition value');
         } else if(is_string($field)) {
             $combine = strtoupper($combine);
             $combines = array(
@@ -273,14 +273,14 @@ class Criteria {
             }
             $this->condition .= $this->condition ? ' ' . $combine . ' ' : '';
             
-            if($this->model){
-                //去除可能存在于两边的着重号
-                //$field = $this->trimModifier($field);
+            if($this->model) {
+                // 去除可能存在于两边的着重号
+                // $field = $this->trimModifier($field);
                 $table = $this->model->table();
-                //去除可能存在于两边的着重号
-                //$table = $this->trimModifier($table);
+                // 去除可能存在于两边的着重号
+                // $table = $this->trimModifier($table);
                 $tablestr = $this->modifier ? $this->untrimModifier($table) : $table;
-                //option中存在table参数，一般使用不到，可调节优等级
+                // option中存在table参数，一般使用不到，可调节优等级
                 $fieldstr = isset($options['table']) && $options['table'] ? $tablestr . '.' : '';
                 $columns = $this->model->columns();
                 if(array_search($field, $columns)) {
@@ -302,7 +302,7 @@ class Criteria {
     }
     protected function switchSymbolCondition($symbol, $fieldstr, $value, $options = array()) {
         $condition = '';
-        $symbol = strtolower($symbol);//变成小写
+        $symbol = strtolower($symbol); // 变成小写
         switch($symbol) {
             case '>':
             case '<':
@@ -312,7 +312,7 @@ class Criteria {
             case '!=':
             case '=':
                 $value = addslashes($value);
-                $condition = $fieldstr . ' '.$symbol.' \'' . $value . '\'';
+                $condition = $fieldstr . ' ' . $symbol . ' \'' . $value . '\'';
                 break;
             case 'in':
             case '!in':
@@ -320,17 +320,17 @@ class Criteria {
                 $tmp = $symbol == 'in' ? 'IN' : 'NOT IN';
                 if(is_string($value)) {
                     $value = explode(',', $value);
-                    //去除可能存在于两边的单引号
-                    //$value = $this->trimQuote($value);
+                    // 去除可能存在于两边的单引号
+                    // $value = $this->trimQuote($value);
                     $value = array_map('addslashes', $value);
                     $value = $this->untrimQuote($value);
-                    $condition = $fieldstr . ' '.$tmp.' (' . implode(', ', $value) . ')';
+                    $condition = $fieldstr . ' ' . $tmp . ' (' . implode(', ', $value) . ')';
                 } else if(is_array($value)) {
-                    //去除可能存在于两边的单引号
-                    //$value = $this->trimQuote($value);
+                    // 去除可能存在于两边的单引号
+                    // $value = $this->trimQuote($value);
                     $value = array_map('addslashes', $value);
                     $value = $this->untrimQuote($value);
-                    $condition = $fieldstr . ' '.$tmp.' (' . implode(', ', $value) . ')';
+                    $condition = $fieldstr . ' ' . $tmp . ' (' . implode(', ', $value) . ')';
                 } else {
                     Logger::error('"in" condition value is not an array or string');
                 }
@@ -338,26 +338,26 @@ class Criteria {
             case 'like':
             case '!like':
             case 'unlike':
-                //unlike一般会使用不到
+                // unlike一般会使用不到
                 $tmp = $symbol == 'like' ? 'LIKE' : 'NOT LIKE';
                 if(is_string($value)) {
-                    //like 选项left,right,默认都有
+                    // like 选项left,right,默认都有
                     $left = isset($option['left']) ? $option['left'] : true;
                     $right = isset($option['right']) ? $option['right'] : true;
-                    //去除可能存在于两边的单引号
-                    //$value = $this->trimQuote($value);
+                    // 去除可能存在于两边的单引号
+                    // $value = $this->trimQuote($value);
                     $valuestr = $left ? '%' : '';
                     $valuestr .= addslashes($value);
                     $valuestr .= $right ? '%' : '';
                     $valuestr = $this->untrimQuote($valuestr);
-                    $condition = $fieldstr . ' '.$tmp.' '.$valuestr;
+                    $condition = $fieldstr . ' ' . $tmp . ' ' . $valuestr;
                 } else {
                     Logger::error('"like" condition value is not a string');
                 }
                 break;
             default:
-                //去除可能存在于两边的单引号
-                //$value = $this->trimQuote($value);
+                // 去除可能存在于两边的单引号
+                // $value = $this->trimQuote($value);
                 $value = addslashes($value);
                 $valuestr = $this->untrimQuote($value);
                 $condition = $fieldstr . ' = ' . $valuestr;
@@ -368,29 +368,32 @@ class Criteria {
     public function setOrder($order) {
         $m = $this->modifier;
         if(empty($order)) {
-            //Logger::error('empty info conditions array');
+            // Logger::error('empty info conditions array');
         } else if(is_array($order)) {
-            $signs = array('DESC', 'ASC');
+            $signs = array(
+                    'DESC',
+                    'ASC'
+            );
             foreach($order as $field => $desc) {
                 $desc = strtoupper($desc);
                 $desc = in_array($desc, $signs) ? $desc : 'DESC';
-                //去除可能存在于两边的着重号
-                //$field = $this->trimModifier($field);
+                // 去除可能存在于两边的着重号
+                // $field = $this->trimModifier($field);
                 $this->order .= $this->order ? ', ' : '';
                 if($this->model) {
                     $columns = $this->model->columns();
                     if(array_search($field, $columns)) {
                         $fieldstr = $this->untrimModifier($field);
-                        $this->order .= $fieldstr.' '.$desc;
+                        $this->order .= $fieldstr . ' ' . $desc;
                     } else if(array_key_exists($field, $columns)) {
                         $fieldstr = $this->untrimModifier($columns[$field]);
-                        $this->order .= $fieldstr.' '.$desc;
+                        $this->order .= $fieldstr . ' ' . $desc;
                     } else {
                         Logger::error('invlid field');
                     }
                 } else {
                     $fieldstr = $this->untrimModifier($field);
-                    $this->order .= $fieldstr.' '.$desc;
+                    $this->order .= $fieldstr . ' ' . $desc;
                 }
             }
         } else {
@@ -402,12 +405,12 @@ class Criteria {
             $this->setOffset(0);
             $this->setNum(20);
         } else if(is_array($limit) && count($limit) > 1) {
-            $offset = !isset($limit['offset']) ? isset($limit['0']) ? $limit['0'] : 0 : $limit['offset'];
-            $num = !isset($limit['num']) ? isset($limit['1']) ? $limit['1'] : 20 : $limit['num'];
+            $offset = ! isset($limit['offset']) ? isset($limit['0']) ? $limit['0'] : 0 : $limit['offset'];
+            $num = ! isset($limit['num']) ? isset($limit['1']) ? $limit['1'] : 20 : $limit['num'];
             $this->setOffset($offset);
             $this->setNum($num);
         } else if(is_array($limit)) {
-            $num = !isset($limit['num']) ? isset($limit['0']) ? $limit['0'] : 20 : $limit['num'];
+            $num = ! isset($limit['num']) ? isset($limit['0']) ? $limit['0'] : 20 : $limit['num'];
             $this->setOffset(0);
             $this->setNum($num);
         } else {
@@ -421,10 +424,8 @@ class Criteria {
         $this->num = intval($num);
     }
     public function setGroup() {
-        
     }
     public function setHaving() {
-        
     }
     /**
      * make select sql
@@ -499,50 +500,68 @@ class Criteria {
         return $this->sql;
     }
     public function trimModifier($var) {
-        if(is_array($var) && !empty($var)) {
-            return array_map(array($this, 'trimModifier'), $var);
+        if(is_array($var) && ! empty($var)) {
+            return array_map(array(
+                    $this,
+                    'trimModifier'
+            ), $var);
         } else if(is_string($var)) {
             return preg_replace('/^`(.*)`$/', '$1', trim($var));
         }
         return $var;
     }
     public function untrimModifier($var) {
-        if(is_array($var) && !empty($var)) {
-            return array_map(array($this, 'untrimModifier'), $var);
+        if(is_array($var) && ! empty($var)) {
+            return array_map(array(
+                    $this,
+                    'untrimModifier'
+            ), $var);
         } else if(is_string($var)) {
-            return '`'.$var.'`';
+            return '`' . $var . '`';
         }
         return $var;
     }
     public function trimQuote($var) {
-        if(is_array($var) && !empty($var)) {
-            return array_map(array($this, 'trimQuote'), $var);
+        if(is_array($var) && ! empty($var)) {
+            return array_map(array(
+                    $this,
+                    'trimQuote'
+            ), $var);
         } else if(is_string($var)) {
             return preg_replace('/^\'(.*)\'$/', '$1', trim($var));
         }
         return $var;
     }
     public function untrimQuote($var) {
-        if(is_array($var) && !empty($var)) {
-            return array_map(array($this, 'untrimQuote'), $var);
+        if(is_array($var) && ! empty($var)) {
+            return array_map(array(
+                    $this,
+                    'untrimQuote'
+            ), $var);
         } else if(is_string($var)) {
-            return '\''.$var.'\'';
+            return '\'' . $var . '\'';
         }
         return $var;
     }
     public function trimQuotes($var) {
-        if(is_array($var) && !empty($var)) {
-            return array_map(array($this, 'trimQuotes'), $var);
+        if(is_array($var) && ! empty($var)) {
+            return array_map(array(
+                    $this,
+                    'trimQuotes'
+            ), $var);
         } else if(is_string($var)) {
             return preg_replace('/^"(.*)"$/', '$1', trim($var));
         }
         return $var;
     }
     public function untrimQuotes($var) {
-        if(is_array($var) && !empty($var)) {
-            return array_map(array($this, 'untrimQuotes'), $var);
+        if(is_array($var) && ! empty($var)) {
+            return array_map(array(
+                    $this,
+                    'untrimQuotes'
+            ), $var);
         } else if(is_string($var)) {
-            return '"'.$var.'"';
+            return '"' . $var . '"';
         }
         return $var;
     }
@@ -557,7 +576,7 @@ class Criteria {
             return $setter;
         } else if(is_string($str)) {
             $setter = explode('=', $str);
-            //去除可能存在于两边的着重号
+            // 去除可能存在于两边的着重号
             $field = $this->trimModifier($setter[0]);
             // 如果两边有单引号则去除掉
             $value = $this->trimQuote($setter[1]);

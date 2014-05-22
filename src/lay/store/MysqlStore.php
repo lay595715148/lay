@@ -2,7 +2,7 @@
 if(! defined('INIT_LAY')) {
     exit();
 }
-class Mysql extends Store {
+class MysqlStore extends Store {
     /**
      *
      * @var Connection

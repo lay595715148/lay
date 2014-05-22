@@ -7,7 +7,7 @@ if(! defined('INIT_LAY')) {
  * Memcache Store
  * @author Lay Li
  */
-class Mcache extends Store {
+class MemcacheStore extends Store {
     public function __construct($model, $name = 'memcache') {
         if(is_string($name)) {
             $config = App::get('stores.'.$name);
