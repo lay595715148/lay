@@ -117,6 +117,7 @@ final class App {
             'Scope' => '/lay/util/Scope.php',
             'Logger' => '/lay/util/Logger.php',
             'Criteria' => '/lay/util/Criteria.php',
+            'Coder' => '/lay/util/Coder.php',
             'PluginManager' => '/lay/core/PluginManager.php',
             'HtmlAction' => '/lay/action/HtmlAction.php',
             'JsonAction' => '/lay/action/JsonAction.php',
@@ -124,9 +125,9 @@ final class App {
             'Mysql' => '/lay/store/Mysql.php',
             'MongoStore' => '/lay/store/MongoStore.php',
             'Connection' => '/lay/core/Connection.php',
+            'MongoSequence' => '/lay/core/MongoSequence.php',
             
-            //'I_Action_Provider' => '/lay/core/I_Action_Provider.php',
-            //'I_Provider' => '/lay/core/I_Provider.php',
+            'I_Increment' => '/lay/core/I_Increment.php',
             'I_Configuration' => '/lay/core/I_Configuration.php',
             'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
             'I_Logger' => '/lay/util/I_Logger.php'

@@ -14,6 +14,11 @@ class MongoStore extends Store {
     }
     
     /**
+     * auto increment sequence table name
+     * @var string
+     */
+    private $sequence;
+    /**
      * 
      * @var MongoClient
      */
@@ -29,9 +34,8 @@ class MongoStore extends Store {
     public function connect() {
         try {
             $this->connection = Connection::mongo($this->name, $this->config);
-            //$this->link = $this->connection->connection;
+            $this->sequence = is_string($this->config['sequence']) ? $this->config['sequence'] : 'lay_sequence';
             $this->link = $this->connection->connection->{$this->schema};
-            //$this->link->connect();
         } catch (Exception $e) {
             Logger::error($e);
             return false;
@@ -47,11 +51,10 @@ class MongoStore extends Store {
     public function change($name = '') {
         if($name) {
             $config = App::getStoreConfig($name);
-            $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
-            $this->connection = Connection::mongo($this->name, $this->config)->connection;
-            //$this->link = Connection::mongo($name, $config);
+            $schema = is_string($config['schema']) ? $config['schema'] : '';
+            $this->connection = Connection::mongo($name, $config)->connection;
+            $this->sequence = is_string($config['sequence']) ? $config['sequence'] : 'lay_sequence';
             $this->link = $this->connection->$schema;
-            //$this->link->connect();
         } else {
             $this->connect();
         }
@@ -140,7 +143,9 @@ class MongoStore extends Store {
             $this->connect();
         }
 
-        $result = $link->selectCollection($table)->remove(array($pk => $id));
+        $coder = new Coder($model, $link);
+        $coder->setQuery(array($pk => $id));
+        $result = $coder->makeDelete();
         return $result;
     }
     /**
@@ -154,12 +159,23 @@ class MongoStore extends Store {
         $link = &$this->link;
         $model = &$this->model;
         $table = $model->table();
+        $columns = $model->columns();
         $pk = $model->primary();
+        $seq = is_subclass_of($model, 'I_Increment') ? $model->sequence() : '';
         if(! $link) {
             $this->connect();
         }
 
-        $result = $link->selectCollection($table)->insert($info);
+        $coder = new Coder($model, $link);
+        if($seq) {
+            $k = array_search($seq, $columns);
+            if(!array_key_exists($seq, $info) && !array_key_exists($columns[$k], $info)) {
+                $new = $this->nextSequence();
+                $info[$seq] = $new;
+            }
+        }
+        $coder->setValues($info);
+        $result = $coder->makeInsert();
         return $result;
     }
     /**
@@ -179,7 +195,10 @@ class MongoStore extends Store {
             $this->connect();
         }
 
-        $result = $link->selectCollection($table)->update(array($pk => $id), $info);
+        $coder = new Coder($model, $link);
+        $coder->setSetter($info);
+        $coder->setQuery(array($pk => $id));
+        $result = $coder->makeUpdate();
         return $result;
     }
     /**
@@ -196,16 +215,19 @@ class MongoStore extends Store {
         if(! $link) {
             $this->connect();
         }
-        
-        $sql = "db.$table.count()";;
-        $result = $link->selectCollection($table)->count($info);
-        $result = $this->query($sql, 'UTF8', true);
-        return $result['retval'];
+
+        $coder = new Coder($model, $link);
+        $coder->setQuery($info);
+        $result = $coder->makeCount();
+        return $result;
     }
     /**
-     * find and modify
+     * find 
      */
-    public function find($query, $fields, $sort = array(), $skip = 0, $limit = 20) {
+    public function select($query, $fields, $sort = array(), $limit = array()) {
+        return $this->find($query, $fields, $sort, $limit);
+    }
+    public function find($query, $fields, $sort = array(), $limit = array()) {
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
@@ -214,23 +236,34 @@ class MongoStore extends Store {
         if(! $link) {
             $this->connect();
         }
-        $result = $link->selectCollection($table)->find($query, $fields);
-        if(!empty($sort)) {
-            $result = $result->sort($sort);
-        }
-        if($skip > 0) {
-            $result = $result->skip($skip);
-        }
-        if($limit > 0) {
-            $result = $result->limit($limit);
-        }
-        return iterator_to_array($result);
+        
+        $coder = new Coder($model, $link);
+        $coder->setQuery($query);
+        $coder->setFields($fields);
+        $coder->setOrder($sort);
+        $coder->setLimit($limit);
+        $coder->makeSelect();
+        return $coder->makeIterator();
     }
     /**
      * find and modify
      */
-    public function findModify() {
-        
+    public function findModify($query, $setter, $fields = array(), $new = false) {
+        $result = &$this->result;
+        $link = &$this->link;
+        $model = &$this->model;
+        $table = $model->table();
+        if(! $link) {
+            $this->connect();
+        }
+
+        $coder = new Coder($model, $link);
+        $coder->setFields($fields);
+        $coder->setQuery($query);
+        $coder->setSetter($setter);
+        $coder->setNew($new);
+        $result = $coder->makeFindModify();
+        return $result;
     }
     /**
      * close connection
@@ -238,6 +271,25 @@ class MongoStore extends Store {
     public function close() {
         if($this->link)
             $this->link->close();
+    }
+    protected function nextSequence($step = 1) {Logger::debug('do next');
+        if(!is_subclass_of($this->model, 'I_Increment')) {
+            return false;
+        }
+        $result = &$this->result;
+        $link = &$this->link;
+        $model = &$this->model;
+        $table = $model->table();
+        $pk = $model->primary();
+        $seq = $model->sequence();
+        if(! $link) {
+            $this->connect();
+        }
+
+        $seqStore = new MongoStore(new MongoSequence(), $this->name);
+        $seqquery = array('name' => $table.'.'.$seq);
+        $ret = $seqStore->findModify(array('name' => $table.'.'.$pk), array('$inc' => array('seq' => $step)), array('seq'), true);
+        return $ret['seq'];
     }
 }
 ?>
