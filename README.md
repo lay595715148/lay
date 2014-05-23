@@ -35,14 +35,19 @@ php >= 5.2
 			-resource
 		-lib
 			...  other released libraries
-		-plu
-			-oauth2  plugin name
-				index.php  main plugin source file
-				...
-			...  maybe other plugins
 		-src
 			-lay  framework core package
 			-demo  demo example
+			-web
+				-image
+				-css
+				-js
+				...  maybe other file or dir
+			-plugin
+				-oauth2  plugin name
+					oauth2.php  main plugin source file
+					...
+				...  maybe other plugins
 			...  maybe other packages or examples
 		-web
 		.htaccess
