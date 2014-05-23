@@ -37,12 +37,15 @@ php >= 5.2
 			...  other released libraries
 		-src
 			-lay  framework core package
+				-action  basis Actions classes
+				-core  core classes
+				-util  utilities classes
+				-store  basis Store classes
+				-entity  
+				...
 			-demo  demo example
 			-web
-				-image
-				-css
-				-js
-				...  maybe other file or dir
+				Index.php  web Action classes
 			-plugin
 				-oauth2  plugin name
 					oauth2.php  main plugin source file
@@ -50,6 +53,12 @@ php >= 5.2
 				...  maybe other plugins
 			...  maybe other packages or examples
 		-web
+			-image
+			-css
+			-js
+			.htaccess
+			index.php
+			...  maybe other file or dir
 		.htaccess
 		index.php
 		index.html
