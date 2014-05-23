@@ -119,9 +119,9 @@ final class App {
             'Criteria' => '/lay/core/Criteria.php',
             'Coder' => '/lay/core/Coder.php',
             'PluginManager' => '/lay/core/PluginManager.php',
-            'HtmlAction' => '/lay/action/HtmlAction.php',
-            'JsonAction' => '/lay/action/JsonAction.php',
-            'XmlAction' => '/lay/action/XmlAction.php',
+            'HTMLAction' => '/lay/action/HTMLAction.php',
+            'JSONAction' => '/lay/action/JSONAction.php',
+            'XMLAction' => '/lay/action/XMLAction.php',
             'MemcacheStore' => '/lay/store/MemcacheStore.php',
             'MysqlStore' => '/lay/store/MysqlStore.php',
             'MongoStore' => '/lay/store/MongoStore.php',
@@ -138,12 +138,12 @@ final class App {
     );
     private $action;
     public function initilize() {
-        $sep = DIRECTORY_SEPARATOR;
+        //$sep = DIRECTORY_SEPARATOR;
         $rootpath = App::$_RootPath;
         // 初始化logger
         Logger::initialize(false);
         // 初始化配置量
-        $this->configure($rootpath . "{$sep}inc{$sep}config{$sep}main.env.php");
+        $this->configure($rootpath . "/inc/config/main.env.php");
         // 注册START事件
         /* EventEmitter::on(App::EVENT_START, array(
                 $this,
@@ -159,7 +159,7 @@ final class App {
         PluginManager::initilize();
         
         // 设置其他类自动加载目录路径
-        $classpaths = include_once $rootpath . "{$sep}inc{$sep}config{$sep}classpath.php";
+        $classpaths = include_once $rootpath . "/inc/config/classpath.php";
         foreach($classpaths as $i => $path) {
             $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
@@ -263,6 +263,8 @@ final class App {
         $rootpath = App::$_RootPath;
         if(is_dir($rootpath . DIRECTORY_SEPARATOR . $classpath)) {
             $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $classpath;
+        } else if(is_dir($classpath)) {
+            $this->classpath[] = $classpath;
         } else {
             Logger::warn("path:$rootpath" . DIRECTORY_SEPARATOR . "$classpath is not exists!");
         }
@@ -286,7 +288,7 @@ final class App {
         $routers = App::get('routers');
         $matches = array();
         $uri = preg_replace('/^(.*)(\?)(.*)$/', '$1', $_SERVER['REQUEST_URI']);
-        Logger::debug($uri);
+        Logger::info('action uri:'.$uri);
         // 首先正则匹配路由规则
         if(is_array($routers)) {
             foreach($routers as $router) {
@@ -308,47 +310,45 @@ final class App {
         }
         try {
             $this->action = $action = Action::getInstance($name, $classname);
+            
+            // 注册action的一些事件
+            EventEmitter::on(Action::EVENT_GET, array(
+                    $action,
+                    'onGet'
+            ), 1);
+            EventEmitter::on(Action::EVENT_POST, array(
+                    $action,
+                    'onPost'
+            ), 1);
+            EventEmitter::on(Action::EVENT_REQUEST, array(
+                    $action,
+                    'onRequest'
+            ), 1);
+            EventEmitter::on(Action::EVENT_STOP, array(
+                    $action,
+                    'onStop'
+            ), 1);
+            EventEmitter::on(Action::EVENT_DESTROY, array(
+                    $action,
+                    'onDestroy'
+            ), 1);
+            
+            // 触发action的request事件
+            EventEmitter::emit(Action::EVENT_REQUEST, array($action));
+            switch($_SERVER['REQUEST_METHOD']) {
+                case 'GET':
+                    // 触发action的get事件
+                    EventEmitter::emit(Action::EVENT_GET, array($action));
+                    break;
+                case 'POST':
+                    // 触发action的post事件
+                    EventEmitter::emit(Action::EVENT_POST, array($action));
+                    break;
+                default:
+                    break;
+            }
         } catch (Exception $e) {
-            //do 404
-            //header('');
-            echo 404;
-            exit();
-        }
-        // 注册action的一些事件
-        EventEmitter::on(Action::EVENT_GET, array(
-                $action,
-                'onGet'
-        ), 1);
-        EventEmitter::on(Action::EVENT_POST, array(
-                $action,
-                'onPost'
-        ), 1);
-        EventEmitter::on(Action::EVENT_REQUEST, array(
-                $action,
-                'onRequest'
-        ), 1);
-        EventEmitter::on(Action::EVENT_STOP, array(
-                $action,
-                'onStop'
-        ), 1);
-        EventEmitter::on(Action::EVENT_DESTROY, array(
-                $action,
-                'onDestroy'
-        ), 1);
-        
-        // 触发action的request事件
-        EventEmitter::emit(Action::EVENT_REQUEST, array($action));
-        switch($_SERVER['REQUEST_METHOD']) {
-            case 'GET':
-                // 触发action的get事件
-                EventEmitter::emit(Action::EVENT_GET, array($action));
-                break;
-            case 'POST':
-                // 触发action的post事件
-                EventEmitter::emit(Action::EVENT_POST, array($action));
-                break;
-            default:
-                break;
+            //catch 
         }
         
         return $this;
@@ -379,7 +379,7 @@ final class App {
         
         $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
         //Logger::initialize(array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false));
-        Logger::debug(array($_START, $_END));
+        Logger::info(array($_START, $_END));
         //Logger::initialize(false);
     }
     /**
@@ -484,7 +484,7 @@ final class App {
                     foreach($matches[1] as $index => $item) {
                         $path .= DIRECTORY_SEPARATOR . $item;
                         $lowerpath .= DIRECTORY_SEPARATOR . strtolower($item);
-                        Logger::debug('$lowerpath:' . $lowerpath);
+                        Logger::info('$lowerpath:' . $lowerpath);
                         if(($isdir = is_dir($path)) || is_dir($lowerpath)) { // 顺序文件夹查找
                             $tmppath = ($isdir ? $path : $lowerpath) . DIRECTORY_SEPARATOR . $classname;
                             foreach($suffixes as $i => $suffix) {
@@ -534,9 +534,8 @@ final class App {
      * @return number
      */
     public function updateCache() {
-        Logger::debug('$this->cached:' . $this->cached);
+        Logger::info('$this->cached:' . $this->cached);
         if($this->cached) {
-            Logger::debug($this->caches);
             //先读取，再merge，再存储
             $cachename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lay-classes.php';
             if(is_file($cachename)) {

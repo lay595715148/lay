@@ -1,5 +1,5 @@
 <?php
-class Index extends JsonAction {
+class Index extends JSONAction {
     public function onCreate() {
         Logger::debug('Index onCreate');
     }
@@ -18,7 +18,7 @@ class Index extends JsonAction {
     }
     public function onStop() {
         parent::onStop();
-        Logger::debug('Index onStop');
+        //Logger::debug('Index onStop');
     }
     public function onDestroy() {
         Logger::debug(EventEmitter::emittedEvents());

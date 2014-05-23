@@ -1,17 +1,11 @@
 <?php
 namespace cms;
 
-use Action;
+use JSONAction;
 use Template;
 use Logger;
 
-class CMS extends Action {
-    public function onCreate() {
-        
-    }
-    public function onRun() {
-        
-    }
+class CMS extends JSONAction {
     public function onGet() {
         
     }
@@ -19,13 +13,8 @@ class CMS extends Action {
         
     }
     public function onRequest() {
+        $this->template->push('$_SERVER', $_SERVER);
         Logger::debug('1');
-    }
-    public function onStop() {
-        
-    }
-    public function onDestroy() {
-        
     }
 }
 ?>

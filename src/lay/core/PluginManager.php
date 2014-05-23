@@ -149,10 +149,7 @@ class PluginManager {
             if(is_array($plugin)) {
                 if(isset($plugin['open']) && !$plugin['open']) {
                     continue;
-                } else if(isset($plugin['open'])){
-                    $time = time();
-                    $start = strtotime($plugin['start']);
-                    $end = strtotime($plugin['end']);
+                } else {
                     if(isset($plugin['action']) && $plugin['action']) {
                         $this->_plugins[Action::EVENT_CREATE][] = $plugin;
                         //注册action初始化时要加载的插件
@@ -180,10 +177,7 @@ class PluginManager {
                         ));
                         continue;
                     }
-                    if(isset($plugin['start']) && $start && $time < $start) {
-                        continue;
-                    }
-                    if(isset($plugin['end']) && $end && $time > $end) {
+                    if(!$this->loadVerify($plugin)) {
                         continue;
                     }
                 }
@@ -276,13 +270,7 @@ class PluginManager {
         $_plugins = $this->_plugins[Action::EVENT_CREATE];
         foreach ($_plugins as $plugin) {
             //$plugin必是数组
-            $time = time();
-            $start = strtotime($plugin['start']);
-            $end = strtotime($plugin['end']);
-            if(isset($plugin['start']) && $start && $time < $start) {
-                continue;
-            }
-            if(isset($plugin['end']) && $end && $time > $end) {
+            if(!$this->loadVerify($plugin)) {
                 continue;
             }
             //$plugin['action']必存在
@@ -300,13 +288,7 @@ class PluginManager {
         $_plugins = $this->_plugins[Service::EVENT_CREATE];
         foreach ($_plugins as $plugin) {
             //$plugin必是数组
-            $time = time();
-            $start = strtotime($plugin['start']);
-            $end = strtotime($plugin['end']);
-            if(isset($plugin['start']) && $start && $time < $start) {
-                continue;
-            }
-            if(isset($plugin['end']) && $end && $time > $end) {
+            if(!$this->loadVerify($plugin)) {
                 continue;
             }
             //$plugin['service']必存在
@@ -324,13 +306,7 @@ class PluginManager {
         $_plugins = $this->_plugins[Store::EVENT_CREATE];
         foreach ($_plugins as $plugin) {
             //$plugin必是数组
-            $time = time();
-            $start = strtotime($plugin['start']);
-            $end = strtotime($plugin['end']);
-            if(isset($plugin['start']) && $start && $time < $start) {
-                continue;
-            }
-            if(isset($plugin['end']) && $end && $time > $end) {
+            if(!$this->loadVerify($plugin)) {
                 continue;
             }
             //$plugin['store']必存在
@@ -339,6 +315,24 @@ class PluginManager {
             }
             $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
         }
+    }
+    private function loadVerify($plugin) {
+        $time = time();
+        $start = strtotime($plugin['start']);
+        $end = strtotime($plugin['end']);
+        if(isset($plugin['start']) && $start && $time < $start) {
+            return false;
+        }
+        if(isset($plugin['end']) && $end && $time > $end) {
+            return false;
+        }
+        if(isset($plugin['host']) && !in_array($_SERVER['HTTP_HOST'], explode('|', $plugin['host']))) {
+            return false;
+        }
+        if(isset($plugin['addr']) && !in_array($_SERVER['SERVER_ADDR'], explode('|', $plugin['addr']))) {
+            return false;
+        }
+        return true;
     }
 }
 ?>

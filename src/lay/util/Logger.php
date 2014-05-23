@@ -9,12 +9,11 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  */
 class Logger {
-    const DEBUG_LEVEL_DEBUG = 0x01;
-    const DEBUG_LEVEL_INFO = 0x02;
-    const DEBUG_LEVEL_WARN = 0x10;
-    const DEBUG_LEVEL_ERROR = 0x20;
-    const DEBUG_LEVEL_ERROR_THROW = 0x21;
-    const DEBUG_LEVEL_ALL = 0xFF;
+    const L_DEBUG = 1;//1
+    const L_INFO = 2;//2
+    const L_WARN = 4;//4
+    const L_ERROR = 8;//8
+    const L_ALL = 32;//64
     /**
      * the flag of print out
      *
@@ -38,6 +37,7 @@ class Logger {
      * @var the instance of current debugger
      */
     private static $_Instance = null;
+    private static $_HasOutput = false;
     /**
      * 获取debugger实例
      * @return Logger
@@ -132,14 +132,15 @@ class Logger {
      * @return void
      */
     public static function debug($msg, $tag = '') {
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_DEBUG))) {
-            self::getInstance()->pre($msg, self::DEBUG_LEVEL_DEBUG, $tag);
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_DEBUG))) {
+            self::$_HasOutput = true;
+            self::getInstance()->pre($msg, self::L_DEBUG, $tag);
             ob_flush();
             flush();
             usleep(self::$_Sleep);
         }
-        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_DEBUG))) {
-            self::getInstance()->log(json_encode($msg), self::DEBUG_LEVEL_DEBUG, $tag);
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_DEBUG))) {
+            self::getInstance()->log(json_encode($msg), self::L_DEBUG, $tag);
         }
     }
     /**
@@ -152,14 +153,15 @@ class Logger {
      * @return void
      */
     public static function info($msg, $tag = '') {
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_INFO))) {
-            self::getInstance()->out($msg, self::DEBUG_LEVEL_INFO, $tag);
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_INFO))) {
+            self::$_HasOutput = true;
+            self::getInstance()->out($msg, self::L_INFO, $tag);
             ob_flush();
             flush();
             usleep(self::$_Sleep);
         }
-        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_INFO))) {
-            self::getInstance()->log($msg, self::DEBUG_LEVEL_INFO, $tag);
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_INFO))) {
+            self::getInstance()->log($msg, self::L_INFO, $tag);
         }
     }
     /**
@@ -172,14 +174,15 @@ class Logger {
      * @return void
      */
     public static function warning($msg, $tag = '') {
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_WARN))) {
-            self::getInstance()->out($msg, self::DEBUG_LEVEL_WARN, $tag);
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_WARN))) {
+            self::$_HasOutput = true;
+            self::getInstance()->out($msg, self::L_WARN, $tag);
             ob_flush();
             flush();
             usleep(self::$_Sleep);
         }
-        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_WARN))) {
-            self::getInstance()->log($msg, self::DEBUG_LEVEL_WARN, $tag);
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_WARN))) {
+            self::getInstance()->log($msg, self::L_WARN, $tag);
         }
     }
     /**
@@ -204,22 +207,26 @@ class Logger {
      * @return void
      */
     public static function error($msg, $tag = '') {
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_ERROR))) {
-            self::getInstance()->out($msg, self::DEBUG_LEVEL_ERROR, $tag);
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR))) {
+            self::$_HasOutput = true;
+            self::getInstance()->out($msg, self::L_ERROR, $tag);
             ob_flush();
             flush();
             usleep(self::$_Sleep);
         }
-        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::DEBUG_LEVEL_ERROR))) {
-            self::getInstance()->log($msg, self::DEBUG_LEVEL_ERROR, $tag);
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_ERROR))) {
+            self::getInstance()->log($msg, self::L_ERROR, $tag);
         }
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::DEBUG_LEVEL_ERROR_THROW))) {
-            if(is_string($msg)) {
-                throw new Exception($msg);
-            } else if(is_a($msg, 'Exception')) {
-                throw $msg;
-            }
+        //if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR_THROW))) {
+        if(is_string($msg)) {
+            throw new Exception($msg);
+        } else if(is_a($msg, 'Exception')) {
+            throw $msg;
         }
+        //}
+    }
+    public static function hasOutput() {
+        return self::$_Out && self::$_HasOutput ? true : false;
     }
     
     /**
@@ -262,19 +269,19 @@ class Logger {
      */
     protected function parseColor($lv) {
         switch($lv) {
-            case Logger::DEBUG_LEVEL_DEBUG:
+            case Logger::L_DEBUG:
             case 'DEBUG':
                 $lv = 'color:#0066FF';
                 break;
-            case Logger::DEBUG_LEVEL_INFO:
+            case Logger::L_INFO:
             case 'INFO':
                 $lv = 'color:#006600';
                 break;
-            case Logger::DEBUG_LEVEL_WARN:
+            case Logger::L_WARN:
             case 'WARN':
                 $lv = 'color:#FF9900';
                 break;
-            case Logger::DEBUG_LEVEL_ERROR:
+            case Logger::L_ERROR:
             case 'ERROR':
                 $lv = 'color:#FF0000';
         }
@@ -289,29 +296,29 @@ class Logger {
      */
     protected function parseLevel($lv) {
         switch($lv) {
-            case Logger::DEBUG_LEVEL_DEBUG:
+            case Logger::L_DEBUG:
                 $lv = 'DEBUG';
                 break;
-            case Logger::DEBUG_LEVEL_INFO:
+            case Logger::L_INFO:
                 $lv = 'INFO';
                 break;
-            case Logger::DEBUG_LEVEL_WARN:
+            case Logger::L_WARN:
                 $lv = 'WARN';
                 break;
-            case Logger::DEBUG_LEVEL_ERROR:
+            case Logger::L_ERROR:
                 $lv = 'ERROR';
                 break;
             case 'DEBUG':
-                $lv = Logger::DEBUG_LEVEL_DEBUG;
+                $lv = Logger::L_DEBUG;
                 break;
             case 'INFO':
-                $lv = Logger::DEBUG_LEVEL_INFO;
+                $lv = Logger::L_INFO;
                 break;
             case 'WARN':
-                $lv = Logger::DEBUG_LEVEL_WARN;
+                $lv = Logger::L_WARN;
                 break;
             case 'ERROR':
-                $lv = Logger::DEBUG_LEVEL_ERROR;
+                $lv = Logger::L_ERROR;
                 break;
         }
         return $lv;
@@ -366,19 +373,19 @@ class Logger {
         $lv = $this->parseLevel($lv);
         $ip = $this->ip();
         switch($lv) {
-            case Logger::DEBUG_LEVEL_DEBUG:
+            case Logger::L_DEBUG:
             case 'DEBUG':
                 syslog(LOG_DEBUG, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
                 break;
-            case Logger::DEBUG_LEVEL_INFO:
+            case Logger::L_INFO:
             case 'INFO':
                 syslog(LOG_INFO, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
                 break;
-            case Logger::DEBUG_LEVEL_WARN:
+            case Logger::L_WARN:
             case 'WARN':
                 syslog(LOG_WARNING, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
                 break;
-            case Logger::DEBUG_LEVEL_ERROR:
+            case Logger::L_ERROR:
             case 'ERROR':
                 syslog(LOG_ERR, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
                 break;

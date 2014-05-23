@@ -1,6 +1,6 @@
 <?php
 return array(
-    'logger' => array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false),
+    'logger' => array(16, false),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
     'code' => array(
         '404' => '/404.html'
     ),
@@ -13,10 +13,10 @@ return array(
     ),
     'actions' => array(
         '/' => array(
-            'classname' => 'DemoAction'
+            'classname' => 'Index'
         ),
         '/test' => array(
-            'classname' => 'Index'
+            'classname' => 'DemoAction'
         ),
         '/index' => array(
             'classname' => 'Index'
@@ -29,8 +29,14 @@ return array(
         )
     ),
     'plugins' => array(
+        '404' => array(
+            'name' => '404',
+            'classname' => 'Http404Action'
+        ),
         'oauth2' => array(
-            'name' => 'oauth2'
+            'name' => 'oauth2',
+            'host' => 'web.lay.laysoft.cn',//多个用|做分隔
+            'addr' => '127.0.0.1'//多个用|做分隔
         ),
         'sso' => array(
             'name' => 'sso',

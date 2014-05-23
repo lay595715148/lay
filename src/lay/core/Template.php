@@ -239,8 +239,12 @@ class Template extends AbstractTemplate {
         $headers      = &$this->headers;
         $templateVars = &$this->vars;
         $templateVars = array_diff_key($templateVars,array('title'=>1));
-        foreach($headers as $header) {
-            header($header);
+        try {
+            foreach($headers as $header) {
+                header($header);
+            }
+        } catch (Exception $e) {
+            
         }
         echo json_encode($templateVars);
     }
@@ -252,8 +256,12 @@ class Template extends AbstractTemplate {
         $headers      = &$this->headers;
         $templateVars = &$this->vars;
         $templateVars = array_diff_key($templateVars,array('title'=>1));
-        foreach($headers as $header) {
-            header($header);
+        try {
+            foreach($headers as $header) {
+                header($header);
+            }
+        } catch (Exception $e) {
+            
         }
         echo Util::array2XML($templateVars);
     }
@@ -279,8 +287,12 @@ class Template extends AbstractTemplate {
         $headers      = &$this->headers;
 
         extract($templateVars);
-        foreach($headers as $header) {
-            header($header);
+        try {
+            foreach($headers as $header) {
+                header($header);
+            }
+        } catch (Exception $e) {
+            
         }
         if(file_exists($templateFile)) {
             include($templateFile);
