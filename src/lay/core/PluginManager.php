@@ -187,7 +187,7 @@ class PluginManager {
                         continue;
                     }
                 }
-                $this->loadPlugin($plugin['name'], $plugin['classname']);
+                $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
             } else if(is_string($plugin)) {
                 $this->loadPlugin($plugin);
             }
@@ -197,20 +197,20 @@ class PluginManager {
         foreach($requires as $require) {
             $loaded = false;
             if(is_array($require)) {
-                if(array_key_exists($plugin['name'], $this->plugins)) {
+                if(array_key_exists($require['name'], $this->plugins)) {
                     $loaded = true;
                 }
                 // load required core plugin if no derivate was found
                 if(! $loaded) {
-                    $loaded = $this->loadPlugin($plugin['name'], $plugin['classname']);
+                    $loaded = $this->loadPlugin($require['name'], $require['classname'], $require);
                 }
-            } else if(is_string($plugin)) {
-                if(array_key_exists($plugin, $this->plugins)) {
+            } else if(is_string($require)) {
+                if(array_key_exists($require, $this->plugins)) {
                     $loaded = true;
                 }
                 // load required core plugin if no derivate was found
                 if(! $loaded) {
-                    $loaded = $this->loadPlugin($name);
+                    $loaded = $this->loadPlugin($require);
                 }
             }
             // trigger fatal error if still not loaded
@@ -229,14 +229,18 @@ class PluginManager {
      *            
      * @return boolean True on success, false if not loaded or failure
      */
-    public function loadPlugin($name, $classname = '') {
+    public function loadPlugin($name, $classname = '', $options = array()) {
         // plugin already loaded
         if(array_key_exists($name, $this->plugins)) {
             return true;
         }
         
-        $separator = DIRECTORY_SEPARATOR;
-        $file = App::$_RootPath . $separator . 'plu' . $separator . $name . $separator . 'index.php';
+        $sep = DIRECTORY_SEPARATOR;
+        if($options['dir']) {
+            $file = App::$_RootPath . $sep . $options['dir'] . $sep . $name . $sep . $name . '.php';
+        } else {
+            $file = App::$_RootPath . $sep . 'src/plugin' . $sep . $name . $sep . $name . '.php';
+        }
         
         if(file_exists($file)) {
             if(! class_exists($classname, false)) {
@@ -285,7 +289,7 @@ class PluginManager {
             if($plugin['action'] != $action->getName() && !(App::classExists($plugin['action'], false) && is_a($action, $plugin['action']))) {
                 continue;
             }
-            $this->loadPlugin($plugin['name'], $plugin['classname']);
+            $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
         }
     }
     /**
@@ -309,7 +313,7 @@ class PluginManager {
             if(!App::classExists($plugin['service'], false) || !is_a($service, $plugin['service'])) {
                 continue;
             }
-            $this->loadPlugin($plugin['name'], $plugin['classname']);
+            $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
         }
     }
     /**
@@ -333,7 +337,7 @@ class PluginManager {
             if($plugin['store'] != $store->getName() && !(App::classExists($plugin['store'], false) && is_a($store, $plugin['store']))) {
                 continue;
             }
-            $this->loadPlugin($plugin['name'], $plugin['classname']);
+            $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
         }
     }
 }

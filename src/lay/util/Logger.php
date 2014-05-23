@@ -8,7 +8,7 @@ if(!defined('INIT_LAY')) {
  *
  * @author Lay Li
  */
-class Logger implements I_Logger {
+class Logger {
     const DEBUG_LEVEL_DEBUG = 0x01;
     const DEBUG_LEVEL_INFO = 0x02;
     const DEBUG_LEVEL_WARN = 0x10;
@@ -40,30 +40,13 @@ class Logger implements I_Logger {
     private static $_Instance = null;
     /**
      * 获取debugger实例
-     * @return I_Logger
+     * @return Logger
      */
     private static function getInstance() {
         if(! self::$_Instance) {
-            self::$_Instance = self::getInstanceByClassname('Logger');
+            self::$_Instance = new Logger();
         }
         return self::$_Instance;
-    }
-    /**
-     * 通过类名获取一个实例
-     *
-     * @param string $classname
-     *            类名
-     * @return I_Logger
-     */
-    private static function getInstanceByClassname($classname = 'Logger') {
-        $class = null;
-        if(self::checkClassname($classname)) {
-            $class = new $classname();
-        }
-        if(! ($class instanceof I_Logger)) {
-            unset($class);
-        }
-        return $class;
     }
     /**
      * 检测是否符合类名格式

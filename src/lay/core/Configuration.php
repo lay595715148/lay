@@ -8,39 +8,22 @@ if(! defined('INIT_LAY'))
  * @author Lay Li
  *
  */
-class Configuration implements I_Configuration {
-    public static $_Instances = array();
+class Configuration {
+    private static $_Instances = array();
     /**
      *
      * @param string $appname
      *            app名称
-     * @return I_Configuration
+     * @return Configuration
     */
-    public static function getInstance($appname = 'lay', $classname = 'Configuration') {
+    public static function getInstance($appname = 'lay') {
         if(! self::checkAppname($appname)) {
             return null;
         }
         if(! isset(self::$_Instances[$appname]) || ! self::$_Instances[$appname]) {
-            self::$_Instances[$appname] = self::getInstanceByClassname($classname);
+            self::$_Instances[$appname] = new Configuration();
         }
         return self::$_Instances[$appname];
-    }
-    /**
-     * 通过类名获取一个实例
-     *
-     * @param string $classname
-     *            类名
-     * @return I_Configuration
-     */
-    public static function getInstanceByClassname($classname = 'Configuration') {
-        $class = null;
-        if(self::checkClassname($classname)) {
-            $class = new $classname();
-        }
-        if(! ($class instanceof I_Configuration)) {
-            unset($class);
-        }
-        return $class;
     }
     /**
      * 获取某个app的节点值
@@ -53,8 +36,8 @@ class Configuration implements I_Configuration {
      *            类名
      * @return mixed
      */
-    public static function get($keystr, $appname = 'lay', $classname = 'Configuration') {
-        return self::getInstance($appname, $classname)->getter($keystr);
+    public static function get($keystr, $appname = 'lay') {
+        return self::getInstance($appname)->getter($keystr);
     }
     /**
      * 设置某个app的节点值
@@ -69,8 +52,8 @@ class Configuration implements I_Configuration {
      *            类名
      * @return void
      */
-    public static function set($keystr, $value, $appname = 'lay', $classname = 'Configuration') {
-        self::getInstance($appname, $classname)->setter($keystr, $value);
+    public static function set($keystr, $value, $appname = 'lay') {
+        self::getInstance($appname)->setter($keystr, $value);
     }
     /**
      * 检测是否符合规定的格式，只支持string
@@ -86,28 +69,14 @@ class Configuration implements I_Configuration {
             return false;
         }
     }
-    /**
-     * 检测是否符合类名格式
-     *
-     * @param string $classname
-     *            类名
-     * @return boolean
-     */
-    private static function checkClassname($classname) {
-        if(is_string($classname) && $classname && class_exists($classname)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     /**
      * 数据根节点
      *
      * @var array
      */
-    protected $configuration = array();
-    protected function __construct() {
+    private $configuration = array();
+    private function __construct() {
     }
     /**
      * 获取节点的值

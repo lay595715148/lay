@@ -2,7 +2,7 @@
 if(! defined('INIT_LAY'))
     exit();
 
-class EventEmitter implements I_EventEmitter {
+class EventEmitter {
     protected static $_EventStack = array();
     private static $_Instance;
     public static function getInstance() {
@@ -17,29 +17,9 @@ class EventEmitter implements I_EventEmitter {
      * @param int|string $eventid            
      */
     public static function emit($eventid, array $params = array()) {
-        if(!self::$_Instance) {
-            $classname = App::get('register_eventemitter');
-            if($classname) {
-                try {
-                    self::$_Instance = new $classname();
-                } catch (Exception $e) {
-                    //
-                }
-            }
-        }
         self::getInstance()->trigger($eventid, $params);
     }
     public static function on($eventid, $func, $level = 0) {
-        if(!self::$_Instance) {
-            $classname = App::get('register_eventemitter');
-            if($classname) {
-                try {
-                    self::$_Instance = new $classname();
-                } catch (Exception $e) {
-                    //
-                }
-            }
-        }
         self::getInstance()->register($eventid, $func, $level);
     }
     public static function emittedEvents() {

@@ -30,7 +30,7 @@ return array(
     ),
     'plugins' => array(
         'oauth2' => array(
-                'name' => 'oauth2'
+            'name' => 'oauth2'
         ),
         'sso' => array(
             'name' => 'sso',
@@ -39,7 +39,7 @@ return array(
             //if date/datetime this would be loaded when it's that date or datetime
             'start' => '2014-5-13',
             //if this is a date, this would be the end date or datetime when this plugin wouldn't be loaded
-            'end' => '2014-5-19',
+            'end' => '2015-5-19',
             //action name or action classname.if undefined this always be loaded.if empty this always be not loaded
             'action' => '/',
             //action name or action classname.if undefined this always be loaded.if empty this always be not loaded
