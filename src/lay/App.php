@@ -108,6 +108,7 @@ final class App {
             'Util' => '/lay/util/Util.php',
             'Bean' => '/lay/core/Bean.php',
             'Model' => '/lay/core/Model.php',
+            'ModelExpire' => '/lay/core/ModelExpire.php',
             'Store' => '/lay/core/Store.php',
             'Service' => '/lay/core/Service.php',
             'Strict' => '/lay/core/Strict.php',
@@ -129,9 +130,10 @@ final class App {
             'MongoSequence' => '/lay/core/MongoSequence.php',
             
             'I_Increment' => '/lay/core/I_Increment.php',
-            'I_Configuration' => '/lay/core/I_Configuration.php',
-            'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
-            'I_Logger' => '/lay/util/I_Logger.php'
+            'I_Expireable' => '/lay/core/I_Expireable.php'
+            //'I_Configuration' => '/lay/core/I_Configuration.php',
+            //'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
+            //'I_Logger' => '/lay/util/I_Logger.php'
     );
     private $classpath = array(
             'src'
@@ -310,7 +312,6 @@ final class App {
         }
         try {
             $this->action = $action = Action::getInstance($name, $classname);
-            
             // 注册action的一些事件
             EventEmitter::on(Action::EVENT_GET, array(
                     $action,

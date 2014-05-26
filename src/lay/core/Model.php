@@ -43,6 +43,19 @@ abstract class Model extends Bean {
     public function relations() {
         return array();
     }
+    /**
+     * to field values array
+     * @return array
+     */
+    public function toData() {
+        $values = array();
+        $columns = $this->columns();
+        foreach ($this->properties as $k => $v) {
+            $field = $columns[$k];
+            $values[$field] = $v;
+        }
+        return $values;
+    }
     public function toFields() {
         return array_values($this->columns());
     }
@@ -62,6 +75,20 @@ abstract class Model extends Bean {
         } else {
             return array_search($field, $columns);
         }
+    }
+    public function build($data) {
+        $columns = $this->columns();
+        if(is_array($data)) {
+            foreach($this->properties as $k => $v) {
+                $field = $columns[$k];
+                if(array_key_exists($k, $data)) {
+                    $this->$k = $data[$k];
+                } else if(array_key_exists($field, $data)) {
+                    $this->$k = $data[$field];
+                }
+            }
+        }
+        return $this;
     }
 }
 ?>

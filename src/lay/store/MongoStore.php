@@ -118,13 +118,7 @@ class MongoStore extends Store {
             $this->connect();
         }
 
-        $sql = "return db.lay_user.find({}, {_id:1}).sort({_id:-1}).skip(5).limit(5)";
-        $ret = $link->execute($sql);var_dump($ret['retval']);
-        
         $result = $link->selectCollection($table)->findOne(array($pk => $id));
-        //$sql = "db.$table.find({\"$pk\":$id})";var_dump($sql);
-        //$result = $link->execute($sql);
-        //$result = $link->listCollections();
         return $result;
     }
     /**
@@ -169,7 +163,7 @@ class MongoStore extends Store {
         $coder = new Coder($model, $link);
         if($seq) {
             $k = array_search($seq, $columns);
-            if(!array_key_exists($seq, $info) && !array_key_exists($columns[$k], $info)) {
+            if(!array_key_exists($seq, $info) && $k !== false && !array_key_exists($columns[$k], $info)) {
                 $new = $this->nextSequence();
                 $info[$seq] = $new;
             }

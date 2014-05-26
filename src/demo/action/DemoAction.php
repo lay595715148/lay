@@ -1,5 +1,5 @@
 <?php
-class DemoAction extends JsonAction {
+class DemoAction extends JSONAction {
     /**
      * 
      * @var DemoService
@@ -28,7 +28,7 @@ class DemoAction extends JsonAction {
     }
     public function onGet() {
         $ret = $this->demoService->test();
-        $this->test();
+        //$this->test();
     }
     public function test() {
         $ret = $this->demoService->del(50);

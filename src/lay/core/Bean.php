@@ -8,6 +8,7 @@ if(! defined('INIT_LAY')) {
  * <p>核心类，继承至此类的对象将会拥有setter和getter方法和build方法</p>
  *
  * @abstract
+ *
  * @author Lay Li
  */
 abstract class Bean extends AbstractBean {
@@ -79,7 +80,7 @@ abstract class Bean extends AbstractBean {
         $properties = &$this->properties;
         
         if(array_key_exists($name, $properties)) {
-            if(!empty($propetypes) && array_key_exists($name, $propetypes)) {
+            if(! empty($propetypes) && array_key_exists($name, $propetypes)) {
                 switch($propetypes[$name]) {
                     case Model::PROPETYPE_STRING:
                     case Model::PROPETYPE_S_STRING:
@@ -240,13 +241,13 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 字段属性规则，过滤属性，子类需要实现此方法
-     * 
+     *
      * class property types.
      * string[1,'string'],number[2,'number'],integer[3,'integer'],boolean[4,'boolean'],datetime[5,'datetime'],
      * date[6,'date'],time[7,'time'],float[8,'float'],double[9,'double'],enum[array(1,2,3)],dateformat[array('dateformat'=>'Y-m-d')],other[array('other'=>...)]...
      * default nothing to do
      * example: array('id'=>'integer','name'=>0)
-     * 
+     *
      * @return array
      */
     protected function rules() {
@@ -260,6 +261,97 @@ abstract class Bean extends AbstractBean {
      */
     public function toProperties() {
         return array_keys($this->properties);
+    }
+    /**
+     * empty this object
+     *
+     * @return Bean
+     */
+    public function distinct() {
+        $propetypes = $this->rules();
+        $properties = &$this->properties;
+        foreach($this->properties as $name => $v) {
+            if(! empty($propetypes) && array_key_exists($name, $propetypes)) {
+                switch($propetypes[$name]) {
+                    case Model::PROPETYPE_STRING:
+                    case Model::PROPETYPE_S_STRING:
+                        $properties[$name] = '';
+                        break;
+                    case Model::PROPETYPE_NUMBER:
+                    case Model::PROPETYPE_S_NUMBER:
+                        $properties[$name] = 0;
+                        break;
+                    case Model::PROPETYPE_INTEGER:
+                    case Model::PROPETYPE_S_INTEGER:
+                        $properties[$name] = 0;
+                        break;
+                    case Model::PROPETYPE_BOOLEAN:
+                    case Model::PROPETYPE_S_BOOLEAN:
+                        $properties[$name] = false;
+                        break;
+                    case Model::PROPETYPE_DATETIME:
+                    case Model::PROPETYPE_S_DATETIME:
+                        $properties[$name] = '0000-00-00 00:00:00';
+                        break;
+                    case Model::PROPETYPE_DATE:
+                    case Model::PROPETYPE_S_DATE:
+                        $properties[$name] = '0000-00-00';
+                        break;
+                    case Model::PROPETYPE_TIME:
+                    case Model::PROPETYPE_S_TIME:
+                        $properties[$name] = '00:00:00';
+                        break;
+                    case Model::PROPETYPE_FLOAT:
+                    case Model::PROPETYPE_S_FLOAT:
+                        $properties[$name] = 0.0;
+                        break;
+                    case Model::PROPETYPE_DOUBLE:
+                    case Model::PROPETYPE_S_DOUBLE:
+                        $properties[$name] = 0.0;
+                        break;
+                    case Model::PROPETYPE_ARRAY:
+                    case Model::PROPETYPE_S_ARRAY:
+                        $properties[$name] = array();
+                        break;
+                    default:
+                        if(is_array($propetypes[$name])) {
+                            if(array_key_exists(Model::PROPETYPE_S_DATEFORMAT, $propetypes[$name])) {
+                                // 自定义日期格式
+                                $dateformart = $propetypes[$name][Model::PROPETYPE_S_DATEFORMAT];
+                                $properties[$name] = date($dateformart, 0);
+                            } else if(array_key_exists(Model::PROPETYPE_S_OTHER, $propetypes[$name])) {
+                                // other
+                                $properties[$name] = $this->otherFormat('', $propetypes[$name]);
+                            } else {
+                                // enum
+                                $properties[$name] = array_shift(array_values($propetypes[$name]));
+                            }
+                        } else {
+                            $properties[$name] = '';
+                        }
+                        break;
+                }
+            } else {
+                if(is_string($v)) {
+                    $properties[$name] = '';
+                } else if(is_double($v)) {
+                    $properties[$name] = 0.0;
+                } else if(is_int($v)) {
+                    $properties[$name] = 0;
+                } else if(is_numeric($v)) {
+                    $properties[$name] = 0;
+                } else if(is_bool($v)) {
+                    $properties[$name] = false;
+                } else if(is_array($v)) {
+                    $properties[$name] = array();
+                } else if(is_object($v) || is_resource($v)) {
+                    $properties[$name] = '';
+                } else {
+                    $properties[$name] = '';
+                }
+            }
+        }
+        return $this;
     }
     /**
      * return array values of class properties
@@ -287,7 +379,7 @@ abstract class Bean extends AbstractBean {
      * default read from $_REQUEST
      *
      * @param integer|array $scope            
-     * @return void Bean
+     * @return Bean
      */
     public function build($data) {
         if(is_array($data)) {

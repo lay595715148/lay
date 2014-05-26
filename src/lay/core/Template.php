@@ -20,17 +20,8 @@ class Template extends AbstractTemplate {
      * @return Template
      */
     public static function getInstance($name = '') {
-        if(self::$instance == null) {//增加provider功能
-            $provider = App::get(self::TEMPLATE_PROVIDER_CONFIG_TAG);
-            if($provider && is_string($provider)) {
-                $provider = new $provider();
-            }
-            if($provider instanceof ITemplateProvider) {
-                self::$instance = $provider->provide($name);//执行provide方法
-            } else if($provider) {
-                Logger::warn('given provider isnot an instance of ITemplateProvider', 'TEMPLATE');
-            }
-            //如果没有自定义实现ITemplateProvider接口的类对象，使用默认的配置项进行实现
+        if(self::$instance == null) {
+            //使用默认的配置项进行实现
             if(!(self::$instance instanceof Template)) {
                 $config = App::getTemplateConfig($name);
                 $config = is_array($name)?$name:App::getTemplateConfig($name);
@@ -239,12 +230,8 @@ class Template extends AbstractTemplate {
         $headers      = &$this->headers;
         $templateVars = &$this->vars;
         $templateVars = array_diff_key($templateVars,array('title'=>1));
-        try {
-            foreach($headers as $header) {
-                header($header);
-            }
-        } catch (Exception $e) {
-            
+        foreach($headers as $header) {
+            @header($header);
         }
         echo json_encode($templateVars);
     }
@@ -256,12 +243,8 @@ class Template extends AbstractTemplate {
         $headers      = &$this->headers;
         $templateVars = &$this->vars;
         $templateVars = array_diff_key($templateVars,array('title'=>1));
-        try {
-            foreach($headers as $header) {
-                header($header);
-            }
-        } catch (Exception $e) {
-            
+        foreach($headers as $header) {
+            @header($header);
         }
         echo Util::array2XML($templateVars);
     }
@@ -287,12 +270,8 @@ class Template extends AbstractTemplate {
         $headers      = &$this->headers;
 
         extract($templateVars);
-        try {
-            foreach($headers as $header) {
-                header($header);
-            }
-        } catch (Exception $e) {
-            
+        foreach($headers as $header) {
+            @header($header);
         }
         if(file_exists($templateFile)) {
             include($templateFile);

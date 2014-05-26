@@ -131,8 +131,8 @@ class Logger {
      *            the tag
      * @return void
      */
-    public static function debug($msg, $tag = '') {
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_DEBUG))) {
+    public static function debug($msg, $tag = '', $enforce = false) {
+        if($enforce || self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_DEBUG))) {
             self::$_HasOutput = true;
             self::getInstance()->pre($msg, self::L_DEBUG, $tag);
             ob_flush();

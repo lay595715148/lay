@@ -75,10 +75,10 @@ class Connection {
     }
     public static function memcache($name, $options = array(), $new = false) {
         if($new) {
-            return new Connection($name, 'memecache', $options);
+            return new Connection($name, 'memcache', $options);
         }
         if(empty(self::$_Instances[$name])) {
-            self::$_Instances[$name] = new Connection($name, 'memecache', $options);
+            self::$_Instances[$name] = new Connection($name, 'memcache', $options);
         }
         return self::$_Instances[$name];
     }

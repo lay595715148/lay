@@ -27,7 +27,6 @@ class MysqlStore extends Store {
             Logger::error($e->getTraceAsString(), 'MYSQL');
             return false;
         }
-        //return mysql_select_db($this->schema, $this->link);
         return mysqli_select_db($this->link, $this->schema);
     }
     /**

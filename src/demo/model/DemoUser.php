@@ -1,5 +1,5 @@
 <?php
-class DemoUser extends Model implements I_Increment {
+class DemoUser extends ModelExpire implements I_Increment {
     public function __construct() {
         parent::__construct(array(
                 'id' => 0,
@@ -7,6 +7,13 @@ class DemoUser extends Model implements I_Increment {
                 'nick' => '',
                 'pass' => ''
         ));
+    }
+    private $lifetime = 1800;
+    public function getLifetime() {
+        return $this->lifetime;
+    }
+    public function setLifetime($lifetime) {
+        $this->lifetime = intval($lifetime);
     }
     protected function rules() {
         return array(

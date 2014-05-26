@@ -17,6 +17,9 @@ class DemoService extends Service {
         return $this->store->select(array(), $info, array('id'=>'desc'), $limit);
     }
     public function test() {
+        //$this->demo();
+    }
+    public function demo() {
         $this->demoUserMongo = Store::getInstance('DemoUserMongo');
         //$this->demoUserMongo->connect();
         //$ret = $this->demoUserMongo->get(2014);
@@ -34,6 +37,16 @@ class DemoService extends Service {
         //Logger::debug($dsStore->count(array('k', 'att', 'like')));
         //$ret = $this->store->select(array(), array(), array('id'=>'desc'), array(0, 5));
         //Logger::debug($ret);
+    }
+    public function memcache() {
+        $memcacheStore = new MemcacheStore(new DemoUser());
+        $r = $memcacheStore->add($ret);
+        $r = $memcacheStore->get(2014);
+        Logger::debug($r, 'DEMO', true);
+        $r = $memcacheStore->upd(2013, $ret);
+        $ret = $memcacheStore->del(2013);
+        $ret = $memcacheStore->get(2013);
+        Logger::debug($ret, 'DEMO', true);
     }
 }
 ?>
