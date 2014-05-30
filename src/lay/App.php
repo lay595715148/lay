@@ -9,7 +9,7 @@ use lay\core\PluginManager;
 use lay\core\Action;
 
 if(! defined('INIT_LAY')) {
-    exit();
+    define('INIT_LAY', true);//标记
 }
 error_reporting(E_ALL & ~E_NOTICE);
 

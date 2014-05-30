@@ -2,7 +2,7 @@
 namespace lay\core;
 
 if(! defined('INIT_LAY')) {
-    define('INIT_LAY', true);
+    exit();
 }
 
 /**

@@ -99,7 +99,7 @@ class Util {
         $f = false;
         $h = false;
         $i = 0;
-        $r .= 'array(' . "\n";
+        $r .= 'array(' . "\r\n";
         foreach($a as $k => $v) {
             if(! $h)
                 $h = array(
@@ -107,14 +107,14 @@ class Util {
                         'v' => $v
                 );
             if($f)
-                $r .= ',' . "\n";
+                $r .= ',' . "\r\n";
             $j = ! is_string($k) && is_numeric($k) && $h['k'] === 0;
             self::o2s($r, $k, $v, $i, $j, $l, $b);
             $f = true;
             if($j && $k >= $i)
                 $i = $k + 1;
         }
-        $r .= "\n$l" . ')';
+        $r .= "\r\n$l" . ')';
     }
     /**
      * to string $r
