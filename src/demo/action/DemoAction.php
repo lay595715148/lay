@@ -1,4 +1,10 @@
 <?php
+use lay\core\Action;
+use lay\action\JSONAction;
+use lay\core\Coder;
+use lay\core\EventEmitter;
+use lay\util\Logger;
+
 class DemoAction extends JSONAction {
     /**
      * 

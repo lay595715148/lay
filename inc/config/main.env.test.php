@@ -1,6 +1,6 @@
 <?php
 return array(
-    'logger' => array(8, false),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
+    'logger' => array(15, false),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
     'code' => array(
         '404' => '/404.html'
     ),
@@ -48,10 +48,10 @@ return array(
             //if this is a date, this would be the end date or datetime when this plugin wouldn't be loaded
             'end' => '2015-5-19',
             //action name or action classname.if undefined this always be loaded.if empty this always be not loaded
-            'action' => '/',
-            //action name or action classname.if undefined this always be loaded.if empty this always be not loaded
+            //'action' => '/',
+            //service name or service classname.if undefined this always be loaded.if empty this always be not loaded
             'service' => 'DemoService',
-            //action name or action classname.if undefined this always be loaded.if empty this always be not loaded
+            //store name or store classname.if undefined this always be loaded.if empty this always be not loaded
             'store' => 'DemoStore',
             //if plugin's class name is not the combination of plugin's name and "Plugin",please config this anyway
             'classname' => 'SSO'

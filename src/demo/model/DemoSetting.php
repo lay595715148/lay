@@ -1,4 +1,6 @@
 <?php
+use lay\core\Model;
+
 class DemoSetting extends Model {
     public function __construct() {
         parent::__construct(array(

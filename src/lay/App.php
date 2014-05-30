@@ -388,7 +388,7 @@ final class App {
         
         $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
         //Logger::initialize(array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false));
-        Logger::info(array($_START, $_END));
+        Logger::info(json_encode(array($_START, $_END)));
         //Logger::initialize(false);
     }
     /**

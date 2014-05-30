@@ -1,4 +1,9 @@
 <?php
+use lay\core\Service;
+use lay\core\Store;
+use lay\store\MemcacheStore;
+use lay\util\Logger;
+
 class DemoService extends Service {
     /**
      * 
@@ -17,7 +22,7 @@ class DemoService extends Service {
         return $this->store->select(array(), $info, array('id'=>'desc'), $limit);
     }
     public function test() {
-        //$this->demo();
+        $this->demo();
     }
     public function demo() {
         $this->demoUserMongo = Store::getInstance('DemoUserMongo');

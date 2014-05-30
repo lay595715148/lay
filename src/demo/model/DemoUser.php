@@ -1,4 +1,8 @@
 <?php
+use lay\core\Model;
+use lay\core\I_Increment;
+use lay\model\ModelExpire;
+
 class DemoUser extends ModelExpire implements I_Increment {
     public function __construct() {
         parent::__construct(array(

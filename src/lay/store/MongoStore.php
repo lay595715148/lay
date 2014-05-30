@@ -5,6 +5,8 @@ use lay\App;
 use lay\core\Connection;
 use lay\core\I_Increment;
 use lay\core\Coder;
+use lay\core\Store;
+use lay\model\MongoSequence;
 use Mongo;
 use MongoClient;
 use Exception;
