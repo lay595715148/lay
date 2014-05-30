@@ -106,42 +106,6 @@ final class App {
     private $cached = false;
     private $caches = array();
     private $classes = array(
-            'AbstractAction' => '/lay/core/AbstractAction.php',
-            'AbstractBean' => '/lay/core/AbstractBean.php',
-            'AbstractTemplate' => '/lay/core/AbstractTemplate.php',
-            'AbstractService' => '/lay/core/AbstractService.php',
-            'AbstractStore' => '/lay/core/AbstractStore.php',
-            'AbstractPlugin' => '/lay/core/AbstractPlugin.php',
-            'Action' => '/lay/core/Action.php',
-            'Util' => '/lay/util/Util.php',
-            'Bean' => '/lay/core/Bean.php',
-            'Model' => '/lay/core/Model.php',
-            'ModelExpire' => '/lay/core/ModelExpire.php',
-            'Store' => '/lay/core/Store.php',
-            'Service' => '/lay/core/Service.php',
-            'Strict' => '/lay/core/Strict.php',
-            'Configuration' => '/lay/core/Configuration.php',
-            'Template' => '/lay/core/Template.php',
-            'EventEmitter' => '/lay/core/EventEmitter.php',
-            'Scope' => '/lay/util/Scope.php',
-            'Logger' => '/lay/util/Logger.php',
-            'Criteria' => '/lay/core/Criteria.php',
-            'Coder' => '/lay/core/Coder.php',
-            'PluginManager' => '/lay/core/PluginManager.php',
-            'HTMLAction' => '/lay/action/HTMLAction.php',
-            'JSONAction' => '/lay/action/JSONAction.php',
-            'XMLAction' => '/lay/action/XMLAction.php',
-            'MemcacheStore' => '/lay/store/MemcacheStore.php',
-            'MysqlStore' => '/lay/store/MysqlStore.php',
-            'MongoStore' => '/lay/store/MongoStore.php',
-            'Connection' => '/lay/core/Connection.php',
-            'MongoSequence' => '/lay/core/MongoSequence.php',
-            
-            'I_Increment' => '/lay/core/I_Increment.php',
-            'I_Expireable' => '/lay/core/I_Expireable.php'
-            //'I_Configuration' => '/lay/core/I_Configuration.php',
-            //'I_EventEmitter' => '/lay/core/I_EventEmitter.php',
-            //'I_Logger' => '/lay/util/I_Logger.php'
     );
     private $classpath = array(
             'src'
@@ -150,6 +114,8 @@ final class App {
     public function initilize() {
         //$sep = DIRECTORY_SEPARATOR;
         $rootpath = App::$_RootPath;
+        // 加载类文件路径缓存
+        $this->loadCache();
         // 初始化logger
         Logger::initialize(false);
         // 初始化配置量
@@ -173,8 +139,6 @@ final class App {
         foreach($classpaths as $i => $path) {
             $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
-        // 加载类文件路径缓存
-        $this->loadCache();
         // 触发lay的HOOK_INIT钩子
         PluginManager::exec(App::HOOK_INIT, array(
                 $this
@@ -411,6 +375,7 @@ final class App {
             }
             if(! App::classExists($classname, false)) {
                 $this->checkAutoloadFunctions();
+            } else {
             }
         }
     }

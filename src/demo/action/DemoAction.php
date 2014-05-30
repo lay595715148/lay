@@ -1,9 +1,12 @@
 <?php
+namespace demo\action;
+
 use lay\core\Action;
 use lay\action\JSONAction;
 use lay\core\Coder;
 use lay\core\EventEmitter;
 use lay\util\Logger;
+use demo\service\DemoService;
 
 class DemoAction extends JSONAction {
     /**
@@ -16,7 +19,7 @@ class DemoAction extends JSONAction {
             $this,
             'onGet2'
         ), 2);
-        $this->demoService = $this->service('DemoService');
+        $this->demoService = $this->service('demo\service\DemoService');
     }
     public function onGet2() {
         //$ret = $this->demoService->test();

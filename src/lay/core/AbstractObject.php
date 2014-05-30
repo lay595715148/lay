@@ -7,7 +7,7 @@ if(! defined('INIT_LAY')) {
     exit();
 }
 
-abstract class Strict {
+abstract class AbstractObject {
     /**
      * magic setter
      *

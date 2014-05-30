@@ -16,7 +16,7 @@ return array(
             'classname' => 'web\Index'
         ),
         '/test' => array(
-            'classname' => 'DemoAction'
+            'classname' => 'demo\action\DemoAction'
         ),
         '/index' => array(
             'classname' => 'web\Index'
@@ -50,9 +50,9 @@ return array(
             //action name or action classname.if undefined this always be loaded.if empty this always be not loaded
             //'action' => '/',
             //service name or service classname.if undefined this always be loaded.if empty this always be not loaded
-            'service' => 'DemoService',
+            'service' => 'demo\service\DemoService',
             //store name or store classname.if undefined this always be loaded.if empty this always be not loaded
-            'store' => 'DemoStore',
+            'store' => 'demo\store\DemoStore',
             //if plugin's class name is not the combination of plugin's name and "Plugin",please config this anyway
             'classname' => 'SSO'
         )

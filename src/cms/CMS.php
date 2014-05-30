@@ -1,9 +1,9 @@
 <?php
 namespace cms;
 
-use JSONAction;
-use Template;
-use Logger;
+use lay\action\JSONAction;
+use lay\core\emplate;
+use lay\util\Logger;
 
 class CMS extends JSONAction {
     public function onGet() {

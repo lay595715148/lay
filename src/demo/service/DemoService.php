@@ -1,8 +1,14 @@
 <?php
+namespace demo\service;
+
 use lay\core\Service;
 use lay\core\Store;
 use lay\store\MemcacheStore;
 use lay\util\Logger;
+use demo\model\DemoUser;
+use demo\store\DemoUserMongo;
+use demo\store\DemoStore;
+use web;
 
 class DemoService extends Service {
     /**
@@ -16,16 +22,18 @@ class DemoService extends Service {
      */
     private $demoUserMongo;
     public function __construct() {
-        parent::__construct(Store::getInstance('DemoStore'));
+        parent::__construct(Store::getInstance('demo\store\DemoStore'));
     }
     public function select($info, $limit = array()) {
         return $this->store->select(array(), $info, array('id'=>'desc'), $limit);
     }
     public function test() {
+        $a = new web\v2\Web();
+        $b = new web\Web();
         $this->demo();
     }
     public function demo() {
-        $this->demoUserMongo = Store::getInstance('DemoUserMongo');
+        $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
         //$this->demoUserMongo->connect();
         //$ret = $this->demoUserMongo->get(2014);
         $ret = $this->demoUserMongo->upd(2009, array('name' => 'demo'.rand(1, 100000)));

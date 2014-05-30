@@ -5,7 +5,7 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
-abstract class AbstractPlugin {
+abstract class AbstractPlugin extends AbstractObject {
     /**
      * 
      * @var string

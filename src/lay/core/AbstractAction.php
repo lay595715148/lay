@@ -5,7 +5,7 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
-abstract class AbstractAction {
+abstract class AbstractAction extends AbstractObject {
     public abstract function onCreate();
     public abstract function onRequest();
     public abstract function onGet();

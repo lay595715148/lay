@@ -118,7 +118,7 @@ abstract class Action extends AbstractAction {
      * @return Service
      */
     public function service($classname) {
-        return Service::getInstance('DemoService');
+        return Service::getInstance($classname);
     }
     public function onCreate() {
         

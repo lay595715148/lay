@@ -5,7 +5,7 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
-abstract class AbstractService {
+abstract class AbstractService extends AbstractObject {
     public abstract function get($id);
     public abstract function add(array $info);
     public abstract function del($id);

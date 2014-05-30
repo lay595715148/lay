@@ -5,7 +5,7 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
-abstract class AbstractStore {
+abstract class AbstractStore extends AbstractObject {
     /**
      * 连接数据库
      */

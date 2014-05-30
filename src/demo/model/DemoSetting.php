@@ -1,5 +1,8 @@
 <?php
+namespace demo\model;
+
 use lay\core\Model;
+use lay\core\Bean;
 
 class DemoSetting extends Model {
     public function __construct() {

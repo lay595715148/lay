@@ -1,5 +1,8 @@
 <?php
+namespace demo\model;
+
 use lay\core\Model;
+use lay\core\Bean;
 use lay\core\I_Increment;
 use lay\model\ModelExpire;
 

@@ -5,6 +5,7 @@ use lay\App;
 use lay\core\Connection;
 use lay\core\Criteria;
 use lay\core\Store;
+use lay\util\Logger;
 use Exception;
 
 if(! defined('INIT_LAY')) {
