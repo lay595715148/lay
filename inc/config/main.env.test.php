@@ -8,21 +8,21 @@ return array(
         array(
             'rule' => '/^\/u\/(?P<id>[0-9]+)$/',
             'name' => 'user',
-            'classname' => 'Index'
+            'classname' => 'web\Index'
         )
     ),
     'actions' => array(
         '/' => array(
-            'classname' => 'Index'
+            'classname' => 'web\Index'
         ),
         '/test' => array(
             'classname' => 'DemoAction'
         ),
         '/index' => array(
-            'classname' => 'Index'
+            'classname' => 'web\Index'
         ),
         '/index.php' => array(
-            'classname' => 'Index'
+            'classname' => 'web\Index'
         ),
         '/bootstrap.php' => array(
             'classname' => 'cms\CMS'
@@ -36,7 +36,8 @@ return array(
         'oauth2' => array(
             'name' => 'oauth2',
             'host' => 'web.lay.laysoft.cn',//多个用|做分隔
-            'addr' => '127.0.0.1'//多个用|做分隔
+            'ip' => '127.0.0.1',//多个用|做分隔
+            'port' => 80//多个用|做分隔
         ),
         'sso' => array(
             'name' => 'sso',

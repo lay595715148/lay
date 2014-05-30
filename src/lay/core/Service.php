@@ -1,4 +1,8 @@
 <?php
+namespace lay\core;
+
+use lay\util\Logger;
+
 if(! defined('INIT_LAY')) {
     exit();
 }
@@ -21,7 +25,7 @@ abstract class Service extends AbstractService {
     public static function getInstance($classname) {
         if(empty(self::$_Instances[$classname])) {
             $instance = new $classname();
-            if(is_subclass_of($instance, 'Service')) {
+            if(is_subclass_of($instance, 'lay\core\Service')) {
                 self::$_Instances[$classname] = $instance;
             } else {
                 unset($instance);
@@ -37,7 +41,7 @@ abstract class Service extends AbstractService {
      */
     public static function newInstance($classname) {
         $instance = new $classname();
-        if(is_subclass_of($instance, 'Service')) {
+        if(is_subclass_of($instance, 'lay\core\Service')) {
             return $instance;
         } else {
             unset($instance);

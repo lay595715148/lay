@@ -1,4 +1,6 @@
 <?php
+use lay\core\AbstractPlugin;
+use lay\core\Action;
 
 class Http404Action extends AbstractPlugin {
     public function initilize() {

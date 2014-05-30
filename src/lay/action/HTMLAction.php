@@ -1,4 +1,8 @@
 <?php
+namespace lay\action;
+
+use \lay\core\Action;
+
 if(!defined('INIT_LAY')) {
     exit();
 }

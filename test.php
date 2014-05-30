@@ -1,5 +1,6 @@
 <?php
 //echo urlencode('%');
+echo '<pre>';$ret = preg_match_all('/(#[^#]{1,}#)/', 'aaa#gas#aa#s#', $matches);print_r($ret);print_r($matches);echo '</pre>';
 echo '<pre>';print_r(get_extension_funcs('http'));echo '</pre>';
 echo '<pre>';print_r(get_loaded_extensions());echo '</pre>';
 echo function_exists('http_get_request_headers')?'true':'false';

@@ -1,4 +1,14 @@
 <?php
+namespace lay\store;
+
+use lay\App;
+use lay\core\Connection;
+use lay\core\I_Increment;
+use lay\core\Coder;
+use Mongo;
+use MongoClient;
+use Exception;
+
 if(! defined('INIT_LAY')) {
     exit();
 }
@@ -155,7 +165,7 @@ class MongoStore extends Store {
         $table = $model->table();
         $columns = $model->columns();
         $pk = $model->primary();
-        $seq = is_subclass_of($model, 'I_Increment') ? $model->sequence() : '';
+        $seq = is_subclass_of($model, 'lay\core\I_Increment') ? $model->sequence() : '';
         if(! $link) {
             $this->connect();
         }
@@ -267,7 +277,7 @@ class MongoStore extends Store {
             $this->link->close();
     }
     protected function nextSequence($step = 1) {Logger::debug('do next');
-        if(!is_subclass_of($this->model, 'I_Increment')) {
+        if(!is_subclass_of($this->model, 'lay\core\I_Increment')) {
             return false;
         }
         $result = &$this->result;

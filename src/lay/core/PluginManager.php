@@ -1,4 +1,10 @@
 <?php
+namespace lay\core;
+
+use lay\App;
+use lay\core\AbstractPlugin;
+use lay\util\Logger;
+
 if(!defined('INIT_LAY')) {
     exit();
 }
@@ -247,7 +253,7 @@ class PluginManager {
             if(class_exists($classname, false)) {
                 $plugin = new $classname($name, $this);
                 // check inheritance...
-                if(is_subclass_of($plugin, 'AbstractPlugin')) {
+                if(is_subclass_of($plugin, 'lay\core\AbstractPlugin')) {
                     $plugin->initilize();
                     $this->plugins[$name] = $plugin;
                     Logger::info("using plugin:$classname", 'PLUGIN');
@@ -329,7 +335,10 @@ class PluginManager {
         if(isset($plugin['host']) && !in_array($_SERVER['HTTP_HOST'], explode('|', $plugin['host']))) {
             return false;
         }
-        if(isset($plugin['addr']) && !in_array($_SERVER['SERVER_ADDR'], explode('|', $plugin['addr']))) {
+        if(isset($plugin['ip']) && !in_array($_SERVER['SERVER_ADDR'], explode('|', $plugin['ip']))) {
+            return false;
+        }
+        if(isset($plugin['port']) && !in_array($_SERVER['SERVER_PORT'], explode('|', $plugin['port']))) {
             return false;
         }
         return true;

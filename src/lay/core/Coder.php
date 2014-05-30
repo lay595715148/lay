@@ -1,4 +1,12 @@
 <?php
+namespace lay\core;
+
+use \Mongo;
+use \MongoDB;
+use \MongoClient;
+use \MongoCollection;
+use \MongoCursor;
+
 if(! defined('INIT_LAY')) {
     exit();
 }
@@ -105,7 +113,7 @@ class Coder {
         $this->setMongoDB($db);
     }
     public function setModel($model) {
-        if(is_subclass_of($model, 'Model')) {
+        if(is_subclass_of($model, 'lay\core\Model')) {
             $this->model = $model;
             $this->setTable($model->table());
             $this->setSchema($model->schema());

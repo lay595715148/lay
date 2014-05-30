@@ -1,9 +1,17 @@
 <?php
+namespace lay;
+
+use lay\util\Logger;
+use lay\util\Util;
+use lay\core\EventEmitter;
+use lay\core\Configuration;
+use lay\core\PluginManager;
+use lay\core\Action;
+
 if(! defined('INIT_LAY')) {
     exit();
 }
 error_reporting(E_ALL & ~E_NOTICE);
-define('ROOT_PATH', dirname(dirname(__DIR__)));
 
 /**
  * 主类，创建生命周期

@@ -1,4 +1,8 @@
 <?php
+namespace lay\model;
+
+use lay\core\Model;
+
 class MongoSequence extends Model {
     public function __construct() {
         parent::__construct(array(

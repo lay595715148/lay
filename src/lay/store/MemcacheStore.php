@@ -1,4 +1,12 @@
 <?php
+namespace lay\store;
+
+use lay\App;
+use lay\core\Connection;
+use lay\core\Store;
+use lay\core\I_Expireable;
+use Exception;
+
 if(! defined('INIT_LAY')) {
     exit();
 }
@@ -14,7 +22,7 @@ class MemcacheStore extends Store {
         } else if(is_array($name)) {
             $config = $name;
         }
-        if(is_subclass_of($model, I_Expireable)) {
+        if(is_subclass_of($model, 'lay\core\I_Expireable')) {
             parent::__construct($name, $model, $config);
         } else {
             throw new Exception('error I_Expireable instance!');
@@ -94,6 +102,7 @@ class MemcacheStore extends Store {
         }
         $key = $table.'.'.$pk.'.'.$id;
         $result = $this->link->get($key);
+        $result = json_decode($result, true);
         return $result;
     }
     /**

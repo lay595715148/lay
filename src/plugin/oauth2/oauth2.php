@@ -1,4 +1,11 @@
 <?php
+use lay\App;
+use lay\core\Action;
+use lay\core\EventEmitter;
+use lay\core\PluginManager;
+use lay\core\AbstractPlugin;
+use lay\util\Logger;
+
 class Oauth2Plugin extends AbstractPlugin {
     private $action;
     public function initilize() {

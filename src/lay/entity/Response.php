@@ -1,4 +1,8 @@
 <?php
+namespace lay\entity;
+
+use \lay\core\Entity;
+
 if(! defined('INIT_LAY')) {
     exit();
 }

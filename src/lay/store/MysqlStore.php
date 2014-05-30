@@ -1,4 +1,11 @@
 <?php
+namespace lay\store;
+
+use lay\App;
+use lay\core\Connection;
+use lay\core\Criteria;
+use Exception;
+
 if(! defined('INIT_LAY')) {
     exit();
 }

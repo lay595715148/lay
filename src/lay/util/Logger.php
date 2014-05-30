@@ -1,4 +1,9 @@
 <?php 
+namespace lay\util;
+
+use \lay\App;
+use Exception;
+
 if(!defined('INIT_LAY')) {
     exit();
 }
@@ -174,16 +179,7 @@ class Logger {
      * @return void
      */
     public static function warning($msg, $tag = '') {
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_WARN))) {
-            self::$_HasOutput = true;
-            self::getInstance()->out($msg, self::L_WARN, $tag);
-            ob_flush();
-            flush();
-            usleep(self::$_Sleep);
-        }
-        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_WARN))) {
-            self::getInstance()->log($msg, self::L_WARN, $tag);
-        }
+        self::warn($msg, $tag);
     }
     /**
      * print out warning infomation
@@ -195,7 +191,23 @@ class Logger {
      * @return void
      */
     public static function warn($msg, $tag = '') {
-        self::warning($msg, $tag);
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR))) {
+            self::$_HasOutput = true;
+            self::getInstance()->out($msg, self::L_ERROR, $tag);
+            ob_flush();
+            flush();
+            usleep(self::$_Sleep);
+        }
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_ERROR))) {
+            self::getInstance()->log($msg, self::L_ERROR, $tag);
+        }
+        //if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR_THROW))) {
+        if(is_string($msg)) {
+            throw new Exception($msg);
+        } else if(is_a($msg, 'Exception')) {
+            throw $msg;
+        }
+        //}
     }
     /**
      * print out error infomation
@@ -356,7 +368,7 @@ class Logger {
         $stack = debug_backtrace();
         $first = array_shift($stack);
         $second = array_shift($stack);
-        while($second['class'] == 'Logger') { // 判定是不是还在Logger类里
+        while($second['class'] == 'lay\util\Logger') { // 判定是不是还在Logger类里
             $first = $second;
             $second = array_shift($stack);
         }
@@ -409,7 +421,7 @@ class Logger {
         $stack = debug_backtrace();
         $first = array_shift($stack);
         $second = array_shift($stack);
-        while($second['class'] == 'Logger') { // 判定是不是还在Logger类里
+        while($second['class'] == 'lay\util\Logger') { // 判定是不是还在Logger类里
             $first = $second;
             $second = array_shift($stack);
         }
@@ -427,7 +439,7 @@ class Logger {
         $ip = $this->ip();
         $classexplode = explode("\\", $class);
         echo '<pre style="padding:0px;font-family:Consolas;margin:0px;border:0px;' . $this->parseColor($lv) . '">';
-        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 8, 16) . "($line)</span>]\t<span title=\"$class\">" . end($classexplode) . "</span>$type$method()\t$msg\r\n";
+        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 4, 16) . "($line)</span>]\t<span title=\"$class\">" . $class . "</span>$type$method()\t$msg\r\n";
         echo '</pre>';
     }
     /**
@@ -445,7 +457,7 @@ class Logger {
         $stack = debug_backtrace();
         $first = array_shift($stack);
         $second = array_shift($stack);
-        while($second['class'] == 'Logger') { // 判定是不是还在Logger类里
+        while($second['class'] == 'lay\util\Logger') { // 判定是不是还在Logger类里
             $first = $second;
             $second = array_shift($stack);
         }
@@ -463,7 +475,7 @@ class Logger {
         $ip = $this->ip();
         $classexplode = explode("\\", $class);
         echo '<pre style="padding:0px;font-family:Consolas;margin:0px;border:0px;' . $this->parseColor($lv) . '">';
-        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 8, 16) . "($line)</span>]\t<span title=\"$class\">" . end($classexplode) . "</span>$type$method()\r\n";
+        echo date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[$lv]\t[<span title=\"$tag\">" . $this->cutString($tag, 4, 0) . "</span>]\t[<span title=\"$file\">" . $this->cutString($file, 4, 16) . "($line)</span>]\t<span title=\"$class\">" . $class . "</span>$type$method()\r\n";
         echo '</pre>';
         echo '<pre style="padding:0 0 0 1em;font-family:Consolas;margin:0px;border:0px;' . $this->parseColor($lv) . '">';
         print_r($msg);

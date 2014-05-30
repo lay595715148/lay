@@ -1,4 +1,9 @@
 <?php
+namespace lay\core;
+
+use \MongoClient;
+use \Memcache;
+
 if(! defined('INIT_LAY')) {
     exit();
 }

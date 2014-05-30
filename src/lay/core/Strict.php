@@ -1,4 +1,8 @@
 <?php
+namespace lay\core;
+
+use lay\util\Logger;
+
 if(! defined('INIT_LAY')) {
     exit();
 }

@@ -1,4 +1,6 @@
 <?php
+namespace lay\util;
+
 if(! defined('INIT_LAY')) {
     exit();
 }

@@ -1,4 +1,11 @@
 <?php
+namespace web;
+
+use lay\action\JSONAction;
+use lay\core\EventEmitter;
+use lay\core\PluginManager;
+use lay\util\Logger;
+
 class Index extends JSONAction {
     public function onCreate() {
         Logger::debug('Index onCreate');

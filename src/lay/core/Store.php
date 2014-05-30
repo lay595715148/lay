@@ -1,4 +1,8 @@
 <?php
+namespace lay\core;
+
+use lay\util\Logger;
+
 if(! defined('INIT_LAY')) {
     exit();
 }
@@ -25,7 +29,7 @@ abstract class Store extends AbstractStore {
     public static function getInstance($classname) {
         if(empty(self::$_Instances[$classname])) {
             $instance = new $classname();
-            if(is_subclass_of($instance, 'Store')) {
+            if(is_subclass_of($instance, 'lay\core\Store')) {
                 self::$_Instances[$classname] = $instance;
             } else {
                 unset($instance);
@@ -41,7 +45,7 @@ abstract class Store extends AbstractStore {
      */
     public static function newInstance($classname) {
         $instance = new $classname();
-        if(is_subclass_of($instance, 'Store')) {
+        if(is_subclass_of($instance, 'lay\core\Store')) {
             return $instance;
         } else {
             unset($instance);
@@ -97,7 +101,7 @@ abstract class Store extends AbstractStore {
     protected $result;
     public function __construct($name, $model, $config = array()) {
         $this->name = $name;
-        $this->model = is_subclass_of($model, 'Model') ? $model : false;
+        $this->model = is_subclass_of($model, 'lay\core\Model') ? $model : false;
         $this->config = is_array($config) ? $config : array();
         $this->schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
         PluginManager::exec(self::HOOK_CREATE, array(
@@ -113,7 +117,7 @@ abstract class Store extends AbstractStore {
      * @param Model $model            
      */
     public function setModel($model) {
-        if(is_subclass_of($model, 'Model'))
+        if(is_subclass_of($model, 'lay\core\Model'))
             $this->model = $model;
     }
     /**

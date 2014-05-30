@@ -1,4 +1,9 @@
 <?php
+namespace lay\util;
+
+use \lay\entity\Lister;
+use \lay\entity\Response;
+
 if(! defined('INIT_LAY')) {
     exit();
 }

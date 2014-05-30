@@ -1,4 +1,9 @@
 <?php
+use lay\App;
+use lay\core\Action;
+use lay\core\AbstractPlugin;
+use lay\util\Logger;
+
 class SSO extends AbstractPlugin {
     public function initilize() {
         $this->addHook(App::HOOK_INIT, array($this, 'sayhello'));

@@ -1,4 +1,6 @@
 <?php
+namespace lay\core;
+
 if(! defined('INIT_LAY')) {
     exit();
 }
@@ -40,7 +42,7 @@ class Criteria {
         $this->modifier = $modifier ? true : false;
     }
     public function setModel($model) {
-        if(is_subclass_of($model, 'Model')) {
+        if(is_subclass_of($model, 'lay\core\Model')) {
             $this->model = $model;
             $this->setTable($model->table());
             $this->setSchema($model->schema());
