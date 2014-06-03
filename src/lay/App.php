@@ -1,4 +1,5 @@
 <?php
+
 namespace lay;
 
 use lay\util\Logger;
@@ -7,11 +8,12 @@ use lay\core\EventEmitter;
 use lay\core\Configuration;
 use lay\core\PluginManager;
 use lay\core\Action;
+use Exception;
 
 if(! defined('INIT_LAY')) {
-    define('INIT_LAY', true);//标记
+    define('INIT_LAY', true); // 标记
 }
-error_reporting(E_ALL & ~E_NOTICE);
+error_reporting(E_ALL & ~ E_NOTICE);
 
 /**
  * 主类，创建生命周期
@@ -35,8 +37,8 @@ final class App {
     }
     public static function start() {
         global $_START;
-        $_START = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
-        self::getInstance()->initilize()->run()->stop();
+        $_START = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
+        self::getInstance()->initilize()->run();
     }
     /**
      * set configuration
@@ -105,14 +107,13 @@ final class App {
     // private function
     private $cached = false;
     private $caches = array();
-    private $classes = array(
-    );
+    private $classes = array();
     private $classpath = array(
             'src'
     );
     private $action;
     public function initilize() {
-        //$sep = DIRECTORY_SEPARATOR;
+        // $sep = DIRECTORY_SEPARATOR;
         $rootpath = App::$_RootPath;
         // 加载类文件路径缓存
         $this->loadCache();
@@ -121,10 +122,9 @@ final class App {
         // 初始化配置量
         $this->configure($rootpath . "/inc/config/main.env.php");
         // 注册START事件
-        /* EventEmitter::on(App::EVENT_START, array(
-                $this,
-                'run'
-        )); */
+        /*
+         * EventEmitter::on(App::EVENT_START, array( $this, 'run' ));
+         */
         // 注册STOP事件 ,最后始终要执行updateCache来更新类文件路径映射， 注意这里增加了级别
         // 用户可以注册在updateCache前的STOP事件
         EventEmitter::on(App::EVENT_STOP, array(
@@ -255,80 +255,137 @@ final class App {
         }
         return true;
     }
-    /**
-     * 创建Action生命周期
-     */
-    public function run() {
+    private function createActionByConfig($name, $config) {
+        if(empty($name) || empty($config)) {
+            return false;
+        }
+        // 两个必有项
+        $classname = $config['classname'];
+        
+        if(! $classname || ! class_exists($classname)) {
+            return false;
+        }
+        if(isset($config['host']) && ! in_array($_SERVER['HTTP_HOST'], explode('|', $config['host']))) {
+            return false;
+        }
+        if(isset($config['ip']) && ! in_array($_SERVER['SERVER_ADDR'], explode('|', $config['ip']))) {
+            return false;
+        }
+        if(isset($config['port']) && ! in_array($_SERVER['SERVER_PORT'], explode('|', $config['port']))) {
+            return false;
+        }
+        
+        return Action::getInstance($name, $classname);
+    }
+    private function createActionByRouter($uri, $router) {
+        if(empty($uri) || empty($router)) {
+            return false;
+        }
+        // 两个必有项
+        $classname = $router['classname'];
+        $name = $router['name'];
+        
+        $ismatch = $uri ? preg_match_all($router['rule'], $uri, $matches, PREG_SET_ORDER) : false;
+        
+        if(! $ismatch) {
+            return false;
+        } else {
+            // 将匹配到的数组放到$_PARAM全局变量中
+            global $_PARAM;
+            $_PARAM = $matches;
+        }
+        if(! $classname || ! class_exists($classname)) {
+            return false;
+        }
+        if(isset($router['host']) && ! in_array($_SERVER['HTTP_HOST'], explode('|', $router['host']))) {
+            return false;
+        }
+        if(isset($router['ip']) && ! in_array($_SERVER['SERVER_ADDR'], explode('|', $router['ip']))) {
+            return false;
+        }
+        if(isset($router['port']) && ! in_array($_SERVER['SERVER_PORT'], explode('|', $router['port']))) {
+            return false;
+        }
+        
+        return Action::getInstance($name, $classname);
+    }
+    private function createAction($name) {
         $routers = App::get('routers');
-        $matches = array();
-        $uri = preg_replace('/^(.*)(\?)(.*)$/', '$1', $_SERVER['REQUEST_URI']);
-        Logger::info('action uri:'.$uri);
-        // 首先正则匹配路由规则
-        if(is_array($routers)) {
+        // 非给出
+        if($name) {
+            Logger::info('action name:' . $name);
+            $config = App::getActionConfig($name);
+            $action = $this->createActionByConfig($name, $config);
+        }
+        // 非给出name时使用REQUEST_URI
+        if(! $action && $_SERVER['REQUEST_URI']) {
+            $uri = preg_replace('/^(.*)(\?)(.*)$/', '$1', $_SERVER['REQUEST_URI']);
+            Logger::info('action uri:' . $uri);
+            $config = App::getActionConfig($uri);
+            $action = $this->createActionByConfig($uri, $config);
+        }
+        // 如果以下没有再正则匹配
+        if(! $action && $uri) {
             foreach($routers as $router) {
-                $ismatch = preg_match_all($router['rule'], $uri, $matches, PREG_SET_ORDER);
-                if($ismatch) {
-                    global $_PARAM;
-                    $_PARAM = $matches;
-                } else {
-                    continue;
+                $action = $this->createActionByRouter($uri, $router);
+                if($action) {
+                    break;
                 }
-                $classname = $router['classname'];
-                $name = $router['name'];
-                break;
             }
         }
-        // 再根据请求名称
-        if(empty($classname) && empty($name)) {
-            $name = $uri;
+        if(! $action) {
+            Logger::error('have no action');
         }
-        try {
-            $this->action = $action = Action::getInstance($name, $classname);
+        $this->action = $action;
+    }
+    private function createLifecycle() {
+        global $_START, $_END;
+        if($this->action) {
             // 注册action的一些事件
             EventEmitter::on(Action::EVENT_GET, array(
-                    $action,
+                    $this->action,
                     'onGet'
             ), 1);
             EventEmitter::on(Action::EVENT_POST, array(
-                    $action,
+                    $this->action,
                     'onPost'
             ), 1);
             EventEmitter::on(Action::EVENT_REQUEST, array(
-                    $action,
+                    $this->action,
                     'onRequest'
             ), 1);
             EventEmitter::on(Action::EVENT_STOP, array(
-                    $action,
+                    $this->action,
                     'onStop'
             ), 1);
             EventEmitter::on(Action::EVENT_DESTROY, array(
-                    $action,
+                    $this->action,
                     'onDestroy'
             ), 1);
             
             // 触发action的request事件
-            EventEmitter::emit(Action::EVENT_REQUEST, array($action));
+            EventEmitter::emit(Action::EVENT_REQUEST, array(
+                    $this->action
+            ));
             switch($_SERVER['REQUEST_METHOD']) {
                 case 'GET':
                     // 触发action的get事件
-                    EventEmitter::emit(Action::EVENT_GET, array($action));
+                    EventEmitter::emit(Action::EVENT_GET, array(
+                            $this->action
+                    ));
                     break;
                 case 'POST':
                     // 触发action的post事件
-                    EventEmitter::emit(Action::EVENT_POST, array($action));
+                    EventEmitter::emit(Action::EVENT_POST, array(
+                            $this->action
+                    ));
                     break;
                 default:
                     break;
             }
-        } catch (Exception $e) {
-            //catch 
         }
         
-        return $this;
-    }
-    public function stop() {
-        global $_START, $_END;
-        $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
+        $_END = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
         // 触发action的HOOK_STOP钩子
         PluginManager::exec(Action::HOOK_STOP, array(
                 $this->action
@@ -350,10 +407,26 @@ final class App {
                 $this
         ));
         
-        $_END = date('Y-m-d H:i:s') . substr((string)microtime(), 1, 8);
-        //Logger::initialize(array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false));
-        Logger::info(json_encode(array($_START, $_END)));
-        //Logger::initialize(false);
+        $_END = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
+        // Logger::initialize(array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false));
+        Logger::info(json_encode(array(
+                $_START,
+                $_END
+        )));
+        // Logger::initialize(false);
+    }
+    /**
+     * 创建Action生命周期
+     */
+    public function run($name = '') {
+        try {
+            $this->createAction($name);
+        } catch (Exception $e) {
+            // catch
+        }
+
+        $this->createLifecycle();
+        return $this;
     }
     /**
      * 类自动加载
@@ -510,13 +583,13 @@ final class App {
     public function updateCache() {
         Logger::info('$this->cached:' . $this->cached);
         if($this->cached) {
-            //先读取，再merge，再存储
+            // 先读取，再merge，再存储
             $cachename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lay-classes.php';
             if(is_file($cachename)) {
                 $caches = include realpath($cachename);
                 $this->caches = array_merge($caches, $this->caches);
             }
-            //写入
+            // 写入
             $content = Util::array2PHPContent($this->caches);
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);
@@ -552,7 +625,7 @@ final class App {
         }
     }
     private function __construct() {
-        //构造时把autoload、rootpath和基本的classpath定义好
+        // 构造时把autoload、rootpath和基本的classpath定义好
         $sep = DIRECTORY_SEPARATOR;
         // 使用自定义的autoload方法
         spl_autoload_register(array(
@@ -566,10 +639,14 @@ final class App {
             $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
         
-        EventEmitter::emit(App::EVENT_CREATE, array($this));
+        EventEmitter::emit(App::EVENT_CREATE, array(
+                $this
+        ));
     }
     public function __destruct() {
-        EventEmitter::emit(App::EVENT_DESTROY, array($this));
+        EventEmitter::emit(App::EVENT_DESTROY, array(
+                $this
+        ));
     }
 }
 ?>

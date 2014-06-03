@@ -42,8 +42,10 @@ abstract class Action extends AbstractAction {
         if(self::$instance == null) {
             // 使用默认的配置项进行实现
             if(! (self::$instance instanceof Action)) {
-                $config = App::getActionConfig($name);
-                $classname = is_string($classname) && $classname && class_exists($classname) ? $classname : $config['classname'];
+                if(!$classname || !class_exists($classname)) {
+                    $config = App::getActionConfig($name);
+                    $classname = $config ? $config['classname'] : '';
+                }
                 if(class_exists($classname)) {
                     self::$instance = new $classname($name);
                     if(! (self::$instance instanceof Action)) {

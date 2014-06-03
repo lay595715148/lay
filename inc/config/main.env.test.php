@@ -1,17 +1,33 @@
 <?php
 return array(
-    'logger' => array(15, false),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
+    'logger' => array(0, false),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
     'code' => array(
         '404' => '/404.html'
     ),
     'routers' => array(
         array(
+            'host' => 'web.lay.laysoft.cn',//多个用|做分隔
+            'ip' => '127.0.0.1',//多个用|做分隔
+            'port' => 80,//多个用|做分隔
             'rule' => '/^\/u\/(?P<id>[0-9]+)$/',
             'name' => 'user',
             'classname' => 'web\Index'
         )
     ),
     'actions' => array(
+        array(
+            'host' => 'web.lay.laysoft.cn',//多个用|做分隔
+            'ip' => '127.0.0.1',//多个用|做分隔
+            'port' => 80,//多个用|做分隔
+            'rule' => '/^\/u\/(?P<id>[0-9]+)$/',
+            'name' => 'user',
+            'classname' => 'web\Index'
+        ),
+        'hosts' => array(
+            'host' => 'web.lay.laysoft.cn',//多个用|做分隔
+            'ip' => '127.0.0.1',//多个用|做分隔
+            'port' => 80//多个用|做分隔
+        ),
         '/' => array(
             'classname' => 'web\Index'
         ),

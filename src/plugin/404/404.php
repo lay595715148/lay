@@ -9,7 +9,7 @@ class Http404Action extends AbstractPlugin {
     public function isFound($action) {
         if(!$action) {
             try {
-                header("HTTP/1.1 404 Not Found");
+                @header("HTTP/1.1 404 Not Found");
             } catch (Exception $e) {
                 // has output
             }
