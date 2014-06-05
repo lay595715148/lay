@@ -5,6 +5,13 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
+/**
+ * 核心动作抽象类
+ *
+ * @api
+ * @author Lay Li
+ * @abstract
+ */
 abstract class AbstractAction extends AbstractObject {
     public abstract function onCreate();
     public abstract function onRequest();

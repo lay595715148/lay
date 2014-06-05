@@ -5,6 +5,13 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
+/**
+ * 核心插件抽象类
+ *
+ * @api
+ * @author Lay Li
+ * @abstract
+ */
 abstract class AbstractPlugin extends AbstractObject {
     /**
      * 

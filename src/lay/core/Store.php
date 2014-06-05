@@ -11,18 +11,27 @@ if(! defined('INIT_LAY')) {
  * 数据库访问类
  * 
  * @author Lay Li
+ * @abstract
  */
 abstract class Store extends AbstractStore {
-    const EVENT_CREATE = 'store_create';
-    const HOOK_CREATE = 'hook_store_create';
+    /**
+     * 事件常量，数据访问对象创建时
+     * @var string
+     */
+    const E_CREATE = 'store_create';
+    /**
+     * 钩子常量，数据访问对象创建时
+     * @var string
+     */
+    const H_CREATE = 'hook_store_create';
     /**
      * 数据访问对象数组
      * 
-     * @var array<Store>
+     * @var array
      */
     protected static $_Instances = array();
     /**
-     * 获取池中的一个Store实例
+     * 获取池中的一个<Store>实例
      * @param string $classname
      * @return Store
      */
@@ -38,7 +47,7 @@ abstract class Store extends AbstractStore {
         return self::$_Instances[$classname];
     }
     /**
-     * 获取一个新Store实例
+     * 获取一个新<Store>实例
      * @param Model $model
      * @param string $classname
      * @return Store
@@ -53,7 +62,7 @@ abstract class Store extends AbstractStore {
         }
     }
     /**
-     * close all connections
+     * 关闭所有数据库连接句柄
      * 
      * @return boolean
      */
@@ -65,7 +74,7 @@ abstract class Store extends AbstractStore {
         return true;
     }
     /**
-     * 名称，唯一
+     * 名称
      * 
      * @var string
      */
@@ -89,14 +98,14 @@ abstract class Store extends AbstractStore {
      */
     protected $config = array();
     /**
-     * database connection resource
+     * 数据库连接句柄
      * 
-     * @var #resource
+     * @var mixed
      */
     protected $link;
     /**
-     * database query result
-     * @var #resource
+     * 数据库查询结果集
+     * @var mixed
      */
     protected $result;
     public function __construct($name, $model, $config = array()) {
@@ -104,10 +113,10 @@ abstract class Store extends AbstractStore {
         $this->model = is_subclass_of($model, 'lay\core\Model') ? $model : false;
         $this->config = is_array($config) ? $config : array();
         $this->schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
-        PluginManager::exec(self::HOOK_CREATE, array(
+        PluginManager::exec(self::H_CREATE, array(
                 $this
         ));
-        EventEmitter::emit(self::EVENT_CREATE, array(
+        EventEmitter::emit(self::E_CREATE, array(
                 $this
         ));
     }

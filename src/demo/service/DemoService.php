@@ -30,9 +30,14 @@ class DemoService extends Service {
     public function test() {
         $a = new web\v2\Web();
         $b = new web\Web();
-        $this->demo();
+        $this->memcache();
     }
     public function demo() {
+    }
+    /**
+     * 测试mongo
+     */
+    public function mongo() {
         $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
         //$this->demoUserMongo->connect();
         //$ret = $this->demoUserMongo->get(2014);
@@ -51,13 +56,18 @@ class DemoService extends Service {
         //$ret = $this->store->select(array(), array(), array('id'=>'desc'), array(0, 5));
         //Logger::debug($ret);
     }
+    /**
+     * 测试mecmache
+     */
     public function memcache() {
+        $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
+        $ret = $this->demoUserMongo->get(2014);
         $memcacheStore = new MemcacheStore(new DemoUser());
         $r = $memcacheStore->add($ret);
         $r = $memcacheStore->get(2014);
         Logger::debug($r, 'DEMO', true);
         $r = $memcacheStore->upd(2013, $ret);
-        $ret = $memcacheStore->del(2013);
+        //$ret = $memcacheStore->del(2013);
         $ret = $memcacheStore->get(2013);
         Logger::debug($ret, 'DEMO', true);
     }

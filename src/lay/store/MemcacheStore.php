@@ -5,6 +5,8 @@ use lay\App;
 use lay\core\Connection;
 use lay\core\Store;
 use lay\core\I_Expireable;
+use lay\model\ModelExpire;
+use Memcache;
 use Exception;
 
 if(! defined('INIT_LAY')) {

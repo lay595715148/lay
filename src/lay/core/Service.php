@@ -1,6 +1,7 @@
 <?php
 namespace lay\core;
 
+use lay\core\Store;
 use lay\util\Logger;
 
 if(! defined('INIT_LAY')) {
@@ -13,13 +14,25 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li
  */
 abstract class Service extends AbstractService {
-    const EVENT_CREATE = 'service_create';
-    const HOOK_CREATE = 'hook_service_create';
+    /**
+     * 事件常量，服务对象创建时
+     * @var string
+     */
+    const E_CREATE = 'service_create';
+    /**
+     * 钩子常量，服务对象创建时
+     * @var string
+     */
+    const H_CREATE = 'hook_service_create';
     
+    /**
+     * 受保护的静态的服务对象数组
+     * @var array
+     */
     protected static $_Instances = array();
     /**
-     * 获取池中的一个Store实例
-     * @param string $classname
+     * 通过类名，获取一个服务对象实例
+     * @param string $classname 继承Service的类名
      * @return Service
      */
     public static function getInstance($classname) {
@@ -35,8 +48,7 @@ abstract class Service extends AbstractService {
     }
     /**
      * 获取一个新Store实例
-     * @param Model $model
-     * @param string $classname
+     * @param string $classname 继承Service的类名
      * @return Service
      */
     public static function newInstance($classname) {
@@ -55,9 +67,11 @@ abstract class Service extends AbstractService {
      */
     protected $store;
     public function __construct($store) {
-        $this->store = $store;
-        PluginManager::exec(Service::HOOK_CREATE, array($this));
-        EventEmitter::emit(Service::EVENT_CREATE, array($this));
+        if(is_subclass_of($store, 'lay\core\Store')) {
+            $this->store = $store;
+        }
+        PluginManager::exec(Service::H_CREATE, array($this));
+        EventEmitter::emit(Service::E_CREATE, array($this));
     }
     /**
      * 获取某条记录

@@ -49,12 +49,12 @@ class PluginManager {
      * @var array
      */
     private $hooks = array(
-            App::HOOK_INIT,
-            App::HOOK_STOP,
-            Action::HOOK_CREATE,
-            Action::HOOK_STOP,
-            Service::HOOK_CREATE,
-            Store::HOOK_CREATE
+            App::H_INIT,
+            App::H_STOP,
+            Action::H_CREATE,
+            Action::H_STOP,
+            Service::H_CREATE,
+            Store::H_CREATE
     );
     /**
      * 监听器
@@ -157,27 +157,27 @@ class PluginManager {
                     continue;
                 } else {
                     if(isset($plugin['action']) && $plugin['action']) {
-                        $this->_plugins[Action::EVENT_CREATE][] = $plugin;
+                        $this->_plugins[Action::E_CREATE][] = $plugin;
                         //注册action初始化时要加载的插件
-                        EventEmitter::on(Action::EVENT_CREATE, array(
+                        EventEmitter::on(Action::E_CREATE, array(
                             $this,
                             'loadPluginOnAction'
                         ));
                         continue;
                     }
                     if(isset($plugin['service']) && $plugin['service']) {
-                        $this->_plugins[Service::EVENT_CREATE][] = $plugin;
+                        $this->_plugins[Service::E_CREATE][] = $plugin;
                         //注册service初始化时要加载的插件
-                        EventEmitter::on(Service::EVENT_CREATE, array(
+                        EventEmitter::on(Service::E_CREATE, array(
                             $this,
                             'loadPluginOnService'
                         ));
                         continue;
                     }
                     if(isset($plugin['store']) && $plugin['store']) {
-                        $this->_plugins[Store::EVENT_CREATE][] = $plugin;
+                        $this->_plugins[Store::E_CREATE][] = $plugin;
                         //注册store初始化时要加载的插件
-                        EventEmitter::on(Store::EVENT_CREATE, array(
+                        EventEmitter::on(Store::E_CREATE, array(
                             $this,
                             'loadPluginOnStore'
                         ));
@@ -273,7 +273,7 @@ class PluginManager {
      * @param Action $action
      */
     public function loadPluginOnAction($action) {
-        $_plugins = $this->_plugins[Action::EVENT_CREATE];
+        $_plugins = $this->_plugins[Action::E_CREATE];
         foreach ($_plugins as $plugin) {
             //$plugin必是数组
             if(!$this->loadVerify($plugin)) {
@@ -291,7 +291,7 @@ class PluginManager {
      * @param Service $service
      */
     public function loadPluginOnService($service) {
-        $_plugins = $this->_plugins[Service::EVENT_CREATE];
+        $_plugins = $this->_plugins[Service::E_CREATE];
         foreach ($_plugins as $plugin) {
             //$plugin必是数组
             if(!$this->loadVerify($plugin)) {
@@ -309,7 +309,7 @@ class PluginManager {
      * @param Store $store
      */
     public function loadPluginOnStore($store) {
-        $_plugins = $this->_plugins[Store::EVENT_CREATE];
+        $_plugins = $this->_plugins[Store::E_CREATE];
         foreach ($_plugins as $plugin) {
             //$plugin必是数组
             if(!$this->loadVerify($plugin)) {

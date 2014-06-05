@@ -18,14 +18,14 @@ if(!defined('INIT_LAY')) {
  *
  */
 abstract class Action extends AbstractAction {
-    const EVENT_CREATE = 'action_create';
-    const EVENT_REQUEST = 'action_request';
-    const EVENT_GET = 'action_get';
-    const EVENT_POST = 'action_post';
-    const EVENT_STOP = 'action_stop';
-    const EVENT_DESTROY = 'action_destroy';
-    const HOOK_CREATE = 'hook_action_create';
-    const HOOK_STOP = 'hook_action_stop';
+    const E_CREATE = 'action_create';
+    const E_REQUEST = 'action_request';
+    const E_GET = 'action_get';
+    const E_POST = 'action_post';
+    const E_STOP = 'action_stop';
+    const E_DESTROY = 'action_destroy';
+    const H_CREATE = 'hook_action_create';
+    const H_STOP = 'hook_action_stop';
     /**
      *
      * @staticvar action instance
@@ -86,9 +86,9 @@ abstract class Action extends AbstractAction {
         $this->name = $name;
         $this->template = is_a($template, 'lay\core\Template') ? $template : new Template();
         $this->scope = new Scope();
-        EventEmitter::on(self::EVENT_CREATE, array($this, 'onCreate'), 1);
-        PluginManager::exec(self::HOOK_CREATE, array($this));
-        EventEmitter::emit(self::EVENT_CREATE, array($this));
+        EventEmitter::on(self::E_CREATE, array($this, 'onCreate'), 1);
+        PluginManager::exec(self::H_CREATE, array($this));
+        EventEmitter::emit(self::E_CREATE, array($this));
     }
     /**
      * 
@@ -112,7 +112,7 @@ abstract class Action extends AbstractAction {
         return $this->name;
     }
     public function __destruct() {
-        EventEmitter::emit(Action::EVENT_DESTROY, array($this));
+        EventEmitter::emit(Action::E_DESTROY, array($this));
     }
     /**
      * 

@@ -6,9 +6,9 @@ use lay\util\Logger;
 
 class SSO extends AbstractPlugin {
     public function initilize() {
-        $this->addHook(App::HOOK_INIT, array($this, 'sayhello'));
-        $this->addHook(Action::HOOK_CREATE, array($this, 'sayhello2'));
-        $this->addHook(Action::HOOK_STOP, array($this, 'sayhello3'));
+        $this->addHook(App::H_INIT, array($this, 'sayhello'));
+        $this->addHook(Action::H_CREATE, array($this, 'sayhello2'));
+        $this->addHook(Action::H_STOP, array($this, 'sayhello3'));
     }
     public function sayhello() {
         //App::s

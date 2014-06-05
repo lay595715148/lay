@@ -2,17 +2,16 @@
 namespace lay\core;
 
 use \lay\App;
+use stdClass;
 
 if(! defined('INIT_LAY')) {
     exit();
 }
 
 /**
- * <p>基础数据模型</p>
- * <p>核心类，继承至此类的对象将会拥有setter和getter方法和build方法</p>
+ * 基础数据类，继承此类是需要在构造方法中传递属性名对默认属性值的数组给受保护的$properties
  *
  * @abstract
- *
  * @author Lay Li
  */
 abstract class Bean extends AbstractBean {
@@ -39,15 +38,13 @@ abstract class Bean extends AbstractBean {
     const PROPETYPE_S_DATEFORMAT = 'dataformat';
     const PROPETYPE_S_OTHER = 'other';
     /**
-     * class properties and default value.
-     * please don't modify in all methods except for '__construct','__set','__get' and so on.
-     * example: array('id'=>0,'name'=>'')
+     * 属性名对默认属性值的数组，如：array('id'=>0,'name'=>'')；请不要在非__construct，__set，__get方法中修改它
+     * @var array
      */
     protected $properties = array();
     /**
      * 构造方法
-     *
-     * @param array $properties            
+     * @param array $properties 属性名对默认属性值的数组
      */
     public function __construct($properties) {
         if(is_array($properties)) {
@@ -55,28 +52,25 @@ abstract class Bean extends AbstractBean {
         }
     }
     /**
-     * isset property
-     *
-     * @param string $name            
-     * @return bool
+     * 检测属性是否设置
+     * @param string $name 属性名
+     * @return boolean
      */
     public function __isset($name) {
         return isset($this->properties[$name]);
     }
     /**
-     * unset property
-     *
-     * @param string $name            
+     * 将某个属性去除
+     * @param string $name 属性名
      * @return void
      */
     public function __unset($name) {
         unset($this->properties[$name]);
     }
     /**
-     * magic setter,set value to class property
-     *
-     * @param string $name            
-     * @param mixed $value            
+     * @see \lay\core\AbstractObject::__set()
+     * @param string $name 属性名
+     * @param mixed $value 属性值
      * @return void
      */
     public function __set($name, $value) {
@@ -185,10 +179,9 @@ abstract class Bean extends AbstractBean {
         return $value;
     }
     /**
-     * magic setter,get value of class property
-     *
-     * @param string $name            
-     * @return mixed void
+     * @see \lay\core\AbstractObject::__get()
+     * @param string $name 属性名
+     * @return mixed
      */
     public function &__get($name) {
         $properties = &$this->properties;
@@ -259,16 +252,14 @@ abstract class Bean extends AbstractBean {
     }
     
     /**
-     * return array values of class properties
-     *
+     * 返回对象所有属性名的数组
      * @return array
      */
     public function toProperties() {
         return array_keys($this->properties);
     }
     /**
-     * empty this object
-     *
+     * 清空对象所有属性值
      * @return Bean
      */
     public function distinct() {
@@ -357,18 +348,17 @@ abstract class Bean extends AbstractBean {
         }
         return $this;
     }
+    
     /**
-     * return array values of class properties
-     *
-     * @return array
+     * 返回对象属性名对属性值的数组
+     * @return stdClass
      */
     public function toArray() {
         return $this->properties;
     }
     /**
-     * return array values of class properties
-     *
-     * @return array
+     * 返回对象转换为stdClass后的对象
+     * @return stdClass
      */
     public function toObject() {
         $o = new stdClass();
@@ -379,10 +369,8 @@ abstract class Bean extends AbstractBean {
     }
     
     /**
-     * read values from variables(super global varibles or user-defined variables) then auto inject to this.
-     * default read from $_REQUEST
-     *
-     * @param integer|array $scope            
+     * 将数组中的数据注入到对象中
+     * @param array $scope 数组数据
      * @return Bean
      */
     public function build($data) {

@@ -7,6 +7,14 @@ if(! defined('INIT_LAY')) {
     exit();
 }
 
+/**
+ * 结构化响应返回数据对象
+ * @author Lay Li
+ * @property boolean $success
+ * @property string $action
+ * @property string $content
+ * @property int $code
+ */
 class Response extends Entity {
     public function __construct() {
         parent::__construct(array(

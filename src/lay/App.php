@@ -21,12 +21,12 @@ error_reporting(E_ALL & ~ E_NOTICE);
  * @author Lay Li 2014-04-29
  */
 final class App {
-    const EVENT_CREATE = 'lay_create';
-    const EVENT_INIT = 'lay_init';
-    const EVENT_STOP = 'lay_stop';
-    const EVENT_DESTROY = 'lay_destroy';
-    const HOOK_INIT = 'hook_lay_init';
-    const HOOK_STOP = 'hook_lay_stop';
+    const E_CREATE = 'lay_create';
+    const E_INIT = 'lay_init';
+    const E_STOP = 'lay_stop';
+    const E_DESTROY = 'lay_destroy';
+    const H_INIT = 'hook_lay_init';
+    const H_STOP = 'hook_lay_stop';
     private static $_Instance = null;
     public static $_RootPath = '';
     public static function getInstance() {
@@ -121,13 +121,9 @@ final class App {
         Logger::initialize(false);
         // 初始化配置量
         $this->configure($rootpath . "/inc/config/main.env.php");
-        // 注册START事件
-        /*
-         * EventEmitter::on(App::EVENT_START, array( $this, 'run' ));
-         */
         // 注册STOP事件 ,最后始终要执行updateCache来更新类文件路径映射， 注意这里增加了级别
         // 用户可以注册在updateCache前的STOP事件
-        EventEmitter::on(App::EVENT_STOP, array(
+        EventEmitter::on(App::E_STOP, array(
                 $this,
                 'updateCache'
         ), 1);
@@ -139,12 +135,12 @@ final class App {
         foreach($classpaths as $i => $path) {
             $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
-        // 触发lay的HOOK_INIT钩子
-        PluginManager::exec(App::HOOK_INIT, array(
+        // 触发lay的H_INIT钩子
+        PluginManager::exec(App::H_INIT, array(
                 $this
         ));
         // 触发INIT事件
-        EventEmitter::emit(App::EVENT_INIT, array(
+        EventEmitter::emit(App::E_INIT, array(
                 $this
         ));
         
@@ -285,15 +281,6 @@ final class App {
         $classname = $router['classname'];
         $name = $router['name'];
         
-        $ismatch = $uri ? preg_match_all($router['rule'], $uri, $matches, PREG_SET_ORDER) : false;
-        
-        if(! $ismatch) {
-            return false;
-        } else {
-            // 将匹配到的数组放到$_PARAM全局变量中
-            global $_PARAM;
-            $_PARAM = $matches;
-        }
         if(! $classname || ! class_exists($classname)) {
             return false;
         }
@@ -305,6 +292,16 @@ final class App {
         }
         if(isset($router['port']) && ! in_array($_SERVER['SERVER_PORT'], explode('|', $router['port']))) {
             return false;
+        }
+        
+        $ismatch = $uri ? preg_match_all($router['rule'], $uri, $matches, PREG_SET_ORDER) : false;
+        
+        if(! $ismatch) {
+            return false;
+        } else {
+            // 将匹配到的数组放到$_PARAM全局变量中
+            global $_PARAM;
+            $_PARAM = $matches;
         }
         
         return Action::getInstance($name, $classname);
@@ -342,41 +339,41 @@ final class App {
         global $_START, $_END;
         if($this->action) {
             // 注册action的一些事件
-            EventEmitter::on(Action::EVENT_GET, array(
+            EventEmitter::on(Action::E_GET, array(
                     $this->action,
                     'onGet'
             ), 1);
-            EventEmitter::on(Action::EVENT_POST, array(
+            EventEmitter::on(Action::E_POST, array(
                     $this->action,
                     'onPost'
             ), 1);
-            EventEmitter::on(Action::EVENT_REQUEST, array(
+            EventEmitter::on(Action::E_REQUEST, array(
                     $this->action,
                     'onRequest'
             ), 1);
-            EventEmitter::on(Action::EVENT_STOP, array(
+            EventEmitter::on(Action::E_STOP, array(
                     $this->action,
                     'onStop'
             ), 1);
-            EventEmitter::on(Action::EVENT_DESTROY, array(
+            EventEmitter::on(Action::E_DESTROY, array(
                     $this->action,
                     'onDestroy'
             ), 1);
             
             // 触发action的request事件
-            EventEmitter::emit(Action::EVENT_REQUEST, array(
+            EventEmitter::emit(Action::E_REQUEST, array(
                     $this->action
             ));
             switch($_SERVER['REQUEST_METHOD']) {
                 case 'GET':
                     // 触发action的get事件
-                    EventEmitter::emit(Action::EVENT_GET, array(
+                    EventEmitter::emit(Action::E_GET, array(
                             $this->action
                     ));
                     break;
                 case 'POST':
                     // 触发action的post事件
-                    EventEmitter::emit(Action::EVENT_POST, array(
+                    EventEmitter::emit(Action::E_POST, array(
                             $this->action
                     ));
                     break;
@@ -386,24 +383,24 @@ final class App {
         }
         
         $_END = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
-        // 触发action的HOOK_STOP钩子
-        PluginManager::exec(Action::HOOK_STOP, array(
+        // 触发action的H_STOP钩子
+        PluginManager::exec(Action::H_STOP, array(
                 $this->action
         ));
         // 触发action的stop事件
-        EventEmitter::emit(Action::EVENT_STOP, array(
+        EventEmitter::emit(Action::E_STOP, array(
                 $this->action
         ));
         // if is fastcgi
         if(function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         }
-        // 触发lay的HOOK_STOP钩子
-        PluginManager::exec(App::HOOK_STOP, array(
+        // 触发lay的H_STOP钩子
+        PluginManager::exec(App::H_STOP, array(
                 $this
         ));
         // 触发STOP事件
-        EventEmitter::emit(App::EVENT_STOP, array(
+        EventEmitter::emit(App::E_STOP, array(
                 $this
         ));
         
@@ -639,12 +636,12 @@ final class App {
             $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
         
-        EventEmitter::emit(App::EVENT_CREATE, array(
+        EventEmitter::emit(App::E_CREATE, array(
                 $this
         ));
     }
     public function __destruct() {
-        EventEmitter::emit(App::EVENT_DESTROY, array(
+        EventEmitter::emit(App::E_DESTROY, array(
                 $this
         ));
     }

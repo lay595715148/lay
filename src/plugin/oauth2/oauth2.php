@@ -9,9 +9,9 @@ use lay\util\Logger;
 class Oauth2Plugin extends AbstractPlugin {
     private $action;
     public function initilize() {
-        $this->addHook(App::HOOK_INIT, array($this, 'register'));
-        $this->addHook(Action::HOOK_CREATE, array($this, 'sayhello2'));
-        $this->addHook(Action::HOOK_STOP, array($this, 'sayhello3'));
+        $this->addHook(App::H_INIT, array($this, 'register'));
+        $this->addHook(Action::H_CREATE, array($this, 'sayhello2'));
+        $this->addHook(Action::H_STOP, array($this, 'sayhello3'));
     }
     /**
      * 

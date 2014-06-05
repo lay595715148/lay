@@ -15,20 +15,10 @@ return array(
         )
     ),
     'actions' => array(
-        array(
+        '/' => array(
             'host' => 'web.lay.laysoft.cn',//多个用|做分隔
             'ip' => '127.0.0.1',//多个用|做分隔
             'port' => 80,//多个用|做分隔
-            'rule' => '/^\/u\/(?P<id>[0-9]+)$/',
-            'name' => 'user',
-            'classname' => 'web\Index'
-        ),
-        'hosts' => array(
-            'host' => 'web.lay.laysoft.cn',//多个用|做分隔
-            'ip' => '127.0.0.1',//多个用|做分隔
-            'port' => 80//多个用|做分隔
-        ),
-        '/' => array(
             'classname' => 'web\Index'
         ),
         '/test' => array(

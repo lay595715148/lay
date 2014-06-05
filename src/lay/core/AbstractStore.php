@@ -5,6 +5,13 @@ if(!defined('INIT_LAY')) {
     exit();
 }
 
+/**
+ * 核心数据访问控制抽象类
+ *
+ * @api
+ * @author Lay Li
+ * @abstract
+ */
 abstract class AbstractStore extends AbstractObject {
     /**
      * 连接数据库

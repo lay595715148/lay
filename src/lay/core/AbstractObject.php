@@ -7,12 +7,18 @@ if(! defined('INIT_LAY')) {
     exit();
 }
 
+/**
+ * 核心抽象基础类
+ * 
+ * @api 
+ * @author Lay Li
+ * @abstract
+ */
 abstract class AbstractObject {
     /**
-     * magic setter
-     *
-     * @param string $name
-     * @param mixed $value
+     * 设置对象属性值的魔术方法
+     * @param string $name 属性名
+     * @param mixed $value 属性值
      * @return void
      */
     public function __set($name, $value) {
@@ -21,10 +27,9 @@ abstract class AbstractObject {
         }
     }
     /**
-     * magic getter
-     *
-     * @param string $name
-     * @return void
+     * 获取对象属性值的魔术方法
+     * @param string $name 属性名
+     * @return mixed
      */
     public function &__get($name) {
         if(!property_exists($this, $name)) {

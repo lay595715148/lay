@@ -15,7 +15,7 @@ class DemoAction extends JSONAction {
      */
     private $demoService;
     public function onCreate() {
-        EventEmitter::on(Action::EVENT_GET, array(
+        EventEmitter::on(Action::E_GET, array(
             $this,
             'onGet2'
         ), 2);

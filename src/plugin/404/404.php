@@ -4,7 +4,7 @@ use lay\core\Action;
 
 class Http404Action extends AbstractPlugin {
     public function initilize() {
-        $this->addHook(Action::HOOK_STOP, array($this, 'isFound'));
+        $this->addHook(Action::H_STOP, array($this, 'isFound'));
     }
     public function isFound($action) {
         if(!$action) {

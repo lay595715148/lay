@@ -3,6 +3,10 @@ namespace lay\model;
 
 use lay\core\Model;
 
+/**
+ * 针对mongodb的主键自增涨模型
+ * @author Lay Li
+ */
 class MongoSequence extends Model {
     public function __construct() {
         parent::__construct(array(
