@@ -3,10 +3,9 @@ namespace demo\model;
 
 use lay\core\Model;
 use lay\core\Bean;
-use lay\core\I_Increment;
-use lay\model\ModelExpire;
+use lay\model\ExpireIncrementer;
 
-class DemoUser extends ModelExpire implements I_Increment {
+class DemoUser extends ExpireIncrementer {
     public function __construct() {
         parent::__construct(array(
                 'id' => 0,

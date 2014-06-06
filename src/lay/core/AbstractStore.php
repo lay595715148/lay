@@ -15,6 +15,7 @@ if(!defined('INIT_LAY')) {
 abstract class AbstractStore extends AbstractObject {
     /**
      * 连接数据库
+     * @return boolean
      */
     public abstract function connect();
     /**
@@ -22,6 +23,7 @@ abstract class AbstractStore extends AbstractObject {
      *
      * @param string $name
      *            名称
+     * @return boolean
      */
     public abstract function change($name = '');
     /**
@@ -36,38 +38,47 @@ abstract class AbstractStore extends AbstractObject {
      */
     public abstract function query($sql, $encoding = '', $showinfo = false);
     /**
-     * select by id
-     *
+     * 获取某条记录
+     * 
      * @param int|string $id
-     *            the ID
+     *            ID
+     * @return array
      */
     public abstract function get($id);
     /**
-     * delete by id
-     *
+     * 删除某条记录
+     * 
      * @param int|string $id
-     *            the ID
+     *            ID
+     * @return boolean
      */
     public abstract function del($id);
     /**
-     * return id,always replace
-     *
+     * 增加一条记录
+     * 
      * @param array $info
-     *            information array
+     *            数据数组
+     * @return boolean
      */
     public abstract function add(array $info);
+    
     /**
-     *
+     * 更新某条记录
+     * 
      * @param int|string $id
-     *            the ID
+     *            ID
      * @param array $info
-     *            information array
+     *            数据数组
+     * @return boolean
      */
     public abstract function upd($id, array $info);
+    
     /**
-     *
+     * 某些条件下的记录数
+     * 
      * @param array $info
-     *            information array
+     *            数据数组
+     * @return int
      */
     public abstract function count(array $info = array());
     /**

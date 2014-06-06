@@ -13,10 +13,47 @@ if(!defined('INIT_LAY')) {
  * @abstract
  */
 abstract class AbstractService extends AbstractObject {
+    /**
+     * 获取某条记录
+     * 
+     * @param int|string $id
+     *            ID
+     * @return array
+     */
     public abstract function get($id);
+    /**
+     * 增加一条记录
+     * 
+     * @param array $info
+     *            数据数组
+     * @return boolean
+     */
     public abstract function add(array $info);
+    /**
+     * 删除某条记录
+     *
+     * @param int|string $id
+     *            ID
+     * @return boolean
+     */
     public abstract function del($id);
+    /**
+     * 更新某条记录
+     * 
+     * @param int|string $id
+     *            ID
+     * @param array $info
+     *            数据数组
+     * @return boolean
+     */
     public abstract function upd($id, array $info);
+    /**
+     * 某些条件下的记录数
+     * 
+     * @param array $info
+     *            数据数组
+     * @return int
+     */
     public abstract function count(array $info);
 }
 ?>

@@ -31,8 +31,8 @@ abstract class Store extends AbstractStore {
      */
     protected static $_Instances = array();
     /**
-     * 获取池中的一个<Store>实例
-     * @param string $classname
+     * 获取池中的一个数据访问对象实例
+     * @param string $classname 类名
      * @return Store
      */
     public static function getInstance($classname) {
@@ -47,9 +47,9 @@ abstract class Store extends AbstractStore {
         return self::$_Instances[$classname];
     }
     /**
-     * 获取一个新<Store>实例
-     * @param Model $model
-     * @param string $classname
+     * 获取一个新数据访问对象实例
+     * @param Model $model 模型对象
+     * @param string $classname 类名
      * @return Store
      */
     public static function newInstance($classname) {
@@ -108,6 +108,12 @@ abstract class Store extends AbstractStore {
      * @var mixed
      */
     protected $result;
+    /**
+     * 构造方法
+     * @param string $name 名称
+     * @param Model $model 模型对象
+     * @param array $config 配置数组
+     */
     public function __construct($name, $model, $config = array()) {
         $this->name = $name;
         $this->model = is_subclass_of($model, 'lay\core\Model') ? $model : false;
@@ -122,23 +128,24 @@ abstract class Store extends AbstractStore {
     }
     
     /**
-     *
-     * @param Model $model            
+     * 设置模型对象
+     * @param Model $model 模型对象
+     * @return void
      */
     public function setModel($model) {
         if(is_subclass_of($model, 'lay\core\Model'))
             $this->model = $model;
     }
     /**
-     *
-     * @param Model $model            
+     * 获取模型对象
+     * @return Model
      */
     public function getModel() {
         return $this->model;
     }
     /**
-     *
-     * @param Model $model            
+     * 获取名称
+     * @return string
      */
     public function getName() {
         return $this->name;

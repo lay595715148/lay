@@ -17,6 +17,11 @@ if(! defined('INIT_LAY')) {
 }
 
 class MongoStore extends Store {
+    /**
+     * 构造方法
+     * @param Model $model 模型对象
+     * @param string $name 名称
+     */
     public function __construct($model, $name = 'mongo') {
         if(is_string($name)) {
             $config = App::get('stores.'.$name);
@@ -27,22 +32,23 @@ class MongoStore extends Store {
     }
     
     /**
-     * auto increment sequence table name
+     * 标记自增涨字段的数据库表名
      * @var string
      */
     private $sequence;
     /**
-     * 
+     * 数据库连接对象
      * @var MongoClient
      */
     private $connection;
     /**
-     * 
+     * 数据库访问对象
      * @var MongoDB
      */
     protected $link;
     /**
-     * 连接Mongo数据库
+     * 连接MongoDB数据库
+     * @return boolean
      */
     public function connect() {
         try {
@@ -60,6 +66,7 @@ class MongoStore extends Store {
      *
      * @param string $name
      *            名称
+     * @return boolean
      */
     public function change($name = '') {
         if($name) {
@@ -68,8 +75,9 @@ class MongoStore extends Store {
             $this->connection = Connection::mongo($name, $config)->connection;
             $this->sequence = is_string($config['sequence']) ? $config['sequence'] : 'lay_sequence';
             $this->link = $this->connection->$schema;
+            return true;
         } else {
-            $this->connect();
+            return $this->connect();
         }
     }
     /**
@@ -81,6 +89,7 @@ class MongoStore extends Store {
      *            编码
      * @param boolean $showinfo
      *            是否记录查询信息
+     * @return mixed
      */
     public function query($sql, $encoding = '', $showsql = false) {
         $config = &$this->config;
@@ -120,6 +129,7 @@ class MongoStore extends Store {
      *
      * @param int|string $id
      *            the ID
+     * @return array
      */
     public function get($id) {
         $result = &$this->result;
@@ -139,6 +149,7 @@ class MongoStore extends Store {
      *
      * @param int|string $id
      *            the ID
+     * @return boolean
      */
     public function del($id) {
         $result = &$this->result;
@@ -160,6 +171,7 @@ class MongoStore extends Store {
      *
      * @param array $info
      *            information array
+     * @return boolean|int
      */
     public function add(array $info) {
         $result = &$this->result;
@@ -186,11 +198,12 @@ class MongoStore extends Store {
         return $result;
     }
     /**
-     *
+     * 更新某条记录
      * @param int|string $id
      *            the ID
      * @param array $info
      *            information array
+     * @return boolean
      */
     public function upd($id, array $info) {
         $result = &$this->result;
@@ -209,9 +222,10 @@ class MongoStore extends Store {
         return $result;
     }
     /**
-     *
+     * 某些条件下的记录数
      * @param array $info
      *            information array
+     * @return int
      */
     public function count(array $info = array()) {
         $result = &$this->result;

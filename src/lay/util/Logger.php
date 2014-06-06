@@ -1,10 +1,11 @@
-<?php 
+<?php
+
 namespace lay\util;
 
 use \lay\App;
 use Exception;
 
-if(!defined('INIT_LAY')) {
+if(! defined('INIT_LAY')) {
     exit();
 }
 
@@ -14,37 +15,74 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  */
 class Logger {
-    const L_DEBUG = 1;//1
-    const L_INFO = 2;//2
-    const L_WARN = 4;//4
-    const L_ERROR = 8;//8
-    const L_ALL = 32;//64
     /**
-     * the flag of print out
+     * 定义不打印输出或不记录日志的级别
      *
-     * @var boolean int
+     * @var int
+     */
+    const L_NONE = 0;
+    /**
+     * 定义打印输出或记录日志调试信息的级别
+     *
+     * @var int
+     */
+    const L_DEBUG = 1; // 1
+    /**
+     * 定义打印输出或记录日志信息的级别
+     *
+     * @var int
+     */
+    const L_INFO = 2; // 2
+    /**
+     * 定义打印输出或记录日志警告信息的级别
+     *
+     * @var int
+     */
+    const L_WARN = 4; // 4
+    /**
+     * 定义打印输出或记录日志错误信息的级别
+     *
+     * @var int
+     */
+    const L_ERROR = 8; // 8
+    /**
+     * 定义打印输出或记录日志所有级别信息的级别
+     *
+     * @var int
+     */
+    const L_ALL = 127; // 127
+    /**
+     * 打印输出级别
+     *
+     * @var mixed
      */
     private static $_Out = false;
     /**
-     * the flag of syslog
+     * syslog日志级别
      *
-     * @var boolean int
+     * @var mixed
      */
     private static $_Log = false;
     /**
-     * Delay debugger in microseconds
+     * 延迟打印输出毫秒数
      *
-     * @var boolean int
+     * @var mixed
      */
     private static $_Sleep = false;
     /**
      *
-     * @var the instance of current debugger
+     * @var Logger
      */
     private static $_Instance = null;
+    /**
+     * Logger是否打印输出过
+     *
+     * @var boolean
+     */
     private static $_HasOutput = false;
     /**
      * 获取debugger实例
+     *
      * @return Logger
      */
     private static function getInstance() {
@@ -54,26 +92,12 @@ class Logger {
         return self::$_Instance;
     }
     /**
-     * 检测是否符合类名格式
-     *
-     * @param string $classname
-     *            类名
-     * @return boolean
-     */
-    private static function checkClassname($classname) {
-        if(is_string($classname) && $classname && class_exists($classname)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    /**
-     * 当前数值与给出的debug级别是否匹配
+     * 当前级别数值与给出的级别数值是否匹配
      *
      * @param int $set
-     *            the level number
+     *            当前级别数值
      * @param int $lv
-     *            default is 1
+     *            给出的级别数值
      * @return boolean
      */
     private static function regular($set, $lv = 1) {
@@ -81,26 +105,13 @@ class Logger {
         return $ret === $lv ? true : false;
     }
     /**
-     * 注册一个实现了IDebbuger接口的对象实例，并将旧的对象替换掉
+     * log级别，包括打印输出和syslog日志
      *
-     * @param string|I_Logger $instance            
-     */
-    public static function register($instance) {
-        if($instance && is_string($instance)) {
-            self::$_Instance = self::getInstanceByClassname($instance);
-        } else if($instance instanceof I_Logger) {
-            self::$_Instance = $instance;
-        }
-    }
-    /**
-     * initialize Logger, if $instance is valid, it will replaces current debugger or create
-     *
-     * @param boolean|array<boolean|int> $debug
-     *            optional
-     * @param string|Idebugger $instance
+     * @param mixed $debug
+     *            级别，如：true; false; array(true, false); array(Logger::L_NONE, Logger::L_WARN | Logger::L_ERROR)
      * @return void
      */
-    public static function initialize($debug = '', $instance = '') {
+    public static function initialize($debug = false) {
         if(is_bool($debug)) {
             self::$_Out = self::$_Log = $debug;
         } else if(is_array($debug)) {
@@ -109,7 +120,7 @@ class Logger {
             $debug['sleep'] = isset($debug['sleep']) ? $debug['sleep'] : isset($debug[2]) ? $debug[2] : false;
             self::$_Out = ($debug['out'] === true) ? true : intval($debug['out']);
             self::$_Log = ($debug['log'] === true) ? true : intval($debug['log']);
-            self::$_Sleep = $debug['sleep'] ? intval($debug['sleep']) : false;
+            self::$_Sleep = $debug['sleep'] ? intval($debug['sleep']) * 1000: false;
         } else if(is_int($debug)) {
             self::$_Out = self::$_Log = $debug;
         } else if($debug === '') {
@@ -122,18 +133,15 @@ class Logger {
         } else {
             self::$_Out = self::$_Log = false;
         }
-        
-        if($instance) {
-            self::register($instance);
-        }
     }
+    
     /**
-     * print out debug infomation
+     * 记录调试信息
      *
-     * @param string|array|object $msg
-     *            the message
+     * @param string $msg
+     *            字符信息字符串
      * @param string $tag
-     *            the tag
+     *            标签名
      * @return void
      */
     public static function debug($msg, $tag = '', $enforce = false) {
@@ -149,18 +157,18 @@ class Logger {
         }
     }
     /**
-     * print out info infomation
+     * 记录信息
      *
      * @param string $msg
-     *            the message
+     *            字符信息字符串
      * @param string $tag
-     *            the tag
+     *            标签名
      * @return void
      */
     public static function info($msg, $tag = '') {
         if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_INFO))) {
             self::$_HasOutput = true;
-            self::getInstance()->out($msg, self::L_INFO, $tag);
+            self::getInstance()->pre($msg, self::L_INFO, $tag);
             ob_flush();
             flush();
             usleep(self::$_Sleep);
@@ -170,58 +178,52 @@ class Logger {
         }
     }
     /**
-     * print out warning infomation
+     * 记录警告信息
      *
      * @param string $msg
-     *            the message
+     *            字符信息字符串
      * @param string $tag
-     *            the tag
+     *            标签名
      * @return void
      */
     public static function warning($msg, $tag = '') {
         self::warn($msg, $tag);
     }
     /**
-     * print out warning infomation
+     * 记录警告信息
      *
      * @param string $msg
-     *            the message
+     *            字符信息字符串
      * @param string $tag
-     *            the tag
+     *            标签名
      * @return void
      */
     public static function warn($msg, $tag = '') {
-        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR))) {
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_WARN))) {
             self::$_HasOutput = true;
-            self::getInstance()->out($msg, self::L_ERROR, $tag);
+            self::getInstance()->pre($msg, self::L_WARN, $tag);
             ob_flush();
             flush();
             usleep(self::$_Sleep);
         }
-        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_ERROR))) {
-            self::getInstance()->log($msg, self::L_ERROR, $tag);
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_WARN))) {
+            self::getInstance()->log($msg, self::L_WARN, $tag);
         }
-        //if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR_THROW))) {
-        if(is_string($msg)) {
-            throw new Exception($msg);
-        } else if(is_a($msg, 'Exception')) {
-            throw $msg;
-        }
-        //}
     }
     /**
-     * print out error infomation
+     * 记录错误信息
      *
      * @param string $msg
-     *            the message
+     *            字符信息字符串
      * @param string $tag
-     *            the tag
+     *            标签名
      * @return void
+     * @throws Exception
      */
     public static function error($msg, $tag = '') {
         if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR))) {
             self::$_HasOutput = true;
-            self::getInstance()->out($msg, self::L_ERROR, $tag);
+            self::getInstance()->pre($msg, self::L_ERROR, $tag);
             ob_flush();
             flush();
             usleep(self::$_Sleep);
@@ -229,29 +231,32 @@ class Logger {
         if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_ERROR))) {
             self::getInstance()->log($msg, self::L_ERROR, $tag);
         }
-        //if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_ERROR_THROW))) {
         if(is_string($msg)) {
             throw new Exception($msg);
         } else if(is_a($msg, 'Exception')) {
             throw $msg;
         }
-        //}
     }
+    /**
+     * 是否打印输出过
+     * 
+     * @return boolean
+     */
     public static function hasOutput() {
         return self::$_Out && self::$_HasOutput ? true : false;
     }
     
     /**
-     * cut string
-     *
+     * 缩短显示字符
+     * 
      * @param string $string
-     *            the target string
+     *            字符串
      * @param number $front
-     *            the front bumber
+     *            之前保留长度
      * @param number $follow
-     *            the tail bumber
+     *            之前保留长度
      * @param string $dot
-     *            the dots
+     *            省略部分替代字符串
      * @return string
      */
     protected function cutString($string, $front = 10, $follow = 0, $dot = '...') {
@@ -273,10 +278,10 @@ class Logger {
         }
     }
     /**
-     * parse level to CSS
-     *
+     * 通过级别得到不同CSS样式
+     * 
      * @param int|string $lv
-     *            the debug level string or level number code
+     *            级别
      * @return string
      */
     protected function parseColor($lv) {
@@ -300,11 +305,11 @@ class Logger {
         return $lv;
     }
     /**
-     * parse level to string or integer
-     *
+     * 级别与特定标签之间转换
+     * 
      * @param int|string $lv
-     *            the debug level string or level number code
-     * @return string int
+     *            级别
+     * @return mixed
      */
     protected function parseLevel($lv) {
         switch($lv) {
@@ -336,8 +341,8 @@ class Logger {
         return $lv;
     }
     /**
-     * get client ip
-     *
+     * 获取客户端面IP
+     * 
      * @return string
      */
     protected function ip() {
@@ -354,14 +359,14 @@ class Logger {
     }
     
     /**
-     * syslog infomation
-     *
+     * 使用syslog记录日志信息
+     * 
      * @param string $msg
-     *            the message
+     *            日志信息
      * @param int $lv
-     *            the debug level
+     *            级别
      * @param string $tag
-     *            the tag
+     *            标签
      * @return void
      */
     public function log($msg, $lv = 1, $tag = '') {
@@ -407,14 +412,14 @@ class Logger {
         }
     }
     /**
-     * print infomation
-     *
+     * 打印输出信息
+     * 
      * @param string $msg
-     *            the message
+     *            信息
      * @param int $lv
-     *            the debug level
+     *            级别
      * @param string $tag
-     *            the tag
+     *            标签
      * @return void
      */
     public function out($msg, $lv = 1, $tag = '') {
@@ -443,14 +448,14 @@ class Logger {
         echo '</pre>';
     }
     /**
-     * print mixed infomation
-     *
-     * @param mixed $msg
-     *            the message
+     * 打印输出非字符串类型的信息
+     * 
+     * @param string $msg
+     *            信息
      * @param int $lv
-     *            the debug level
+     *            级别
      * @param string $tag
-     *            the tag
+     *            标签
      * @return void
      */
     public function pre($msg, $lv = 1, $tag = '') {

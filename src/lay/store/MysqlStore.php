@@ -43,6 +43,7 @@ class MysqlStore extends Store {
      *
      * @param string $name
      *            名称
+     * @return boolean
      */
     public function change($name = '') {
         if($name) {

@@ -1,4 +1,8 @@
 <?php
+/**
+ * 基础数据类文件
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use \lay\App;
@@ -9,36 +13,124 @@ if(! defined('INIT_LAY')) {
 }
 
 /**
- * 基础数据类，继承此类是需要在构造方法中传递属性名对默认属性值的数组给受保护的$properties
- *
+ * 基础数据类，继承此类时需要在构造方法中传递以属性名对应默认属性值的数组给受保护的$properties
  * @abstract
  * @author Lay Li
  */
 abstract class Bean extends AbstractBean {
+    /**
+     * 定义字符串类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_STRING = 'string';
+    /**
+     * 定义字符串类型的属性值
+     * @var int
+     */
     const PROPETYPE_STRING = 1;
+    /**
+     * 定义数值类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_NUMBER = 'number';
+    /**
+     * 定义数值类型的属性值
+     * @var int
+     */
     const PROPETYPE_NUMBER = 2;
+    /**
+     * 定义整数类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_INTEGER = 'integer';
+    /**
+     * 定义整数类型的属性值
+     * @var int
+     */
     const PROPETYPE_INTEGER = 3;
+    /**
+     * 定义布尔类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_BOOLEAN = 'boolean';
+    /**
+     * 定义布尔类型的属性值
+     * @var int
+     */
     const PROPETYPE_BOOLEAN = 4;
+    /**
+     * 定义日期时间类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_DATETIME = 'datetime';
+    /**
+     * 定义日期时间类型的属性值
+     * @var int
+     */
     const PROPETYPE_DATETIME = 5;
+    /**
+     * 定义日期类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_DATE = 'date';
+    /**
+     * 定义日期类型的属性值
+     * @var int
+     */
     const PROPETYPE_DATE = 6;
+    /**
+     * 定义时间类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_TIME = 'time';
+    /**
+     * 定义时间类型的属性值
+     * @var int
+     */
     const PROPETYPE_TIME = 7;
+    /**
+     * 定义浮点数类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_FLOAT = 'float';
+    /**
+     * 定义浮点数类型的属性值
+     * @var int
+     */
     const PROPETYPE_FLOAT = 8;
+    /**
+     * 定义double类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_DOUBLE = 'double';
+    /**
+     * 定义double类型的属性值
+     * @var int
+     */
     const PROPETYPE_DOUBLE = 9;
+    /**
+     * 定义数组类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_ARRAY = 'array';
+    /**
+     * 定义数组类型的属性值
+     * @var int
+     */
     const PROPETYPE_ARRAY = 10;
-    const PROPETYPE_S_DATEFORMAT = 'dataformat';
+    /**
+     * 定义特定格式类型的属性值
+     * @var string
+     */
+    const PROPETYPE_S_DATEFORMAT = 'dateformat';
+    /**
+     * 定义其他类型的属性值
+     * @var string
+     */
     const PROPETYPE_S_OTHER = 'other';
     /**
-     * 属性名对默认属性值的数组，如：array('id'=>0,'name'=>'')；请不要在非__construct，__set，__get方法中修改它
+     * 属性名对默认属性值的数组，如：array('id'=>0,'name'=>'')；
+     * 请不要在非__construct，__set，__get方法中修改它
      * @var array
      */
     protected $properties = array();
@@ -68,6 +160,7 @@ abstract class Bean extends AbstractBean {
         unset($this->properties[$name]);
     }
     /**
+     * 设置对象属性值的魔术方法
      * @see \lay\core\AbstractObject::__set()
      * @param string $name 属性名
      * @param mixed $value 属性值
@@ -171,14 +264,7 @@ abstract class Bean extends AbstractBean {
         }
     }
     /**
-     * please implement this method in sub class
-     *
-     * @return mixed
-     */
-    protected function otherFormat($value, $propertype) {
-        return $value;
-    }
-    /**
+     * 获取对象属性值的魔术方法
      * @see \lay\core\AbstractObject::__get()
      * @param string $name 属性名
      * @return mixed
@@ -193,11 +279,19 @@ abstract class Bean extends AbstractBean {
         }
     }
     /**
-     * magic call method,auto call setter or getter
-     *
-     * @param string $method            
-     * @param array $arguments            
-     * @return mixed void
+     * 其他类型属性赋值时调用的方法
+     * @param mixed $value 值
+     * @param mixed $propertype 定义为其他类型的规则类型
+     * @return mixed
+     */
+    protected function otherFormat($value, $propertype) {
+        return $value;
+    }
+    /**
+     * 魔术方法，实现属性的set和get方法
+     * @param string $method 方法名
+     * @param array $arguments 参数数组
+     * @return mixed
      */
     public function __call($method, $arguments) {
         if(method_exists($this, $method)) {
@@ -233,17 +327,23 @@ abstract class Bean extends AbstractBean {
             }
         }
     }
+    /**
+     * 返回序列化后的字符串
+     * @return string
+     */
     public function __toString() {
         return serialize($this);
     }
     /**
-     * 字段属性规则，过滤属性，子类需要实现此方法
+     * 属性类型规则，过滤属性值，子类需要重写此方法
      *
-     * class property types.
-     * string[1,'string'],number[2,'number'],integer[3,'integer'],boolean[4,'boolean'],datetime[5,'datetime'],
-     * date[6,'date'],time[7,'time'],float[8,'float'],double[9,'double'],enum[array(1,2,3)],dateformat[array('dateformat'=>'Y-m-d')],other[array('other'=>...)]...
-     * default nothing to do
-     * example: array('id'=>'integer','name'=>0)
+     * 属性类型如下：
+     * 字符串：1或string；数值：2或number；整数：3或integer；布尔：4或boolean；日期时间：5或datetime，（格式为：Y-m-d H:i:s）；
+     * 日期：6或date，（格式为：Y-m-d）；时间：7或time，（格式为：H:i:s）；浮点数值：8或float；双精度数值：9或double；数组：10或array；
+     * 枚举：使用纯数组，如array(1,3,5)；特定日期时间：代有dateformat键名的数组，如array('dateformat'=>'Y-m-d')；
+     * 其他：代有dateformat键名的数组，如array('other'=>'other type')，（如果是其他类型则会在赋值过程中使用otherFormat()方法处理）；
+     * 如果某个属性没有设置规则或非以上规则，则属性赋值时不做任何处理。
+     * 例子: array('id'=>'integer','name'=>0)
      *
      * @return array
      */
@@ -253,6 +353,7 @@ abstract class Bean extends AbstractBean {
     
     /**
      * 返回对象所有属性名的数组
+     * @see \lay\core\AbstractBean::toProperties()
      * @return array
      */
     public function toProperties() {
@@ -260,6 +361,7 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 清空对象所有属性值
+     * @see \lay\core\AbstractBean::distinct()
      * @return Bean
      */
     public function distinct() {
@@ -351,13 +453,15 @@ abstract class Bean extends AbstractBean {
     
     /**
      * 返回对象属性名对属性值的数组
-     * @return stdClass
+     * @see \lay\core\AbstractBean::toArray()
+     * @return array
      */
     public function toArray() {
         return $this->properties;
     }
     /**
      * 返回对象转换为stdClass后的对象
+     * @see \lay\core\AbstractBean::toObject()
      * @return stdClass
      */
     public function toObject() {
@@ -370,7 +474,8 @@ abstract class Bean extends AbstractBean {
     
     /**
      * 将数组中的数据注入到对象中
-     * @param array $scope 数组数据
+     * @see \lay\core\AbstractBean::build()
+     * @param array $data 数组数据
      * @return Bean
      */
     public function build($data) {

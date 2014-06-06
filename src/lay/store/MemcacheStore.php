@@ -8,6 +8,7 @@ use lay\core\I_Expireable;
 use lay\model\ModelExpire;
 use Memcache;
 use Exception;
+use lay\util\Logger;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -18,6 +19,12 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li
  */
 class MemcacheStore extends Store {
+    /**
+     * 构造方法
+     * @param ModelExpire $model 模型对象
+     * @param string $name 名称
+     * @throws Exception
+     */
     public function __construct($model, $name = 'memcache') {
         if(is_string($name)) {
             $config = App::get('stores.'.$name);
@@ -27,27 +34,28 @@ class MemcacheStore extends Store {
         if(is_subclass_of($model, 'lay\core\I_Expireable')) {
             parent::__construct($name, $model, $config);
         } else {
-            throw new Exception('error I_Expireable instance!');
+            Logger::error('error I_Expireable instance!');
         }
     }
 
     /**
-     *
+     * 数据库连接对象
      * @var Connection
      */
     private $connection;
     /**
-     * 
+     * 数据访问对象
      * @var Memcache
      */
     protected $link;
     /**
-     * 
+     * 模型对象
      * @var ModelExpire
      */
     protected $model;
     /**
      * 连接Mongo数据库
+     * @return boolean
      */
     public function connect() {
         try {
@@ -64,14 +72,16 @@ class MemcacheStore extends Store {
      *
      * @param string $name
      *            名称
+     * @return boolean
      */
     public function change($name = '') {
         if($name) {
             $config = App::getStoreConfig($name);
             $this->connection = Connection::memcache($name, $config);
             $this->link = $this->connection->connection;
+            return true;
         } else {
-            $this->connect();
+            return $this->connect();
         }
     }
     /**
@@ -92,6 +102,7 @@ class MemcacheStore extends Store {
      *
      * @param int|string $id
      *            the ID
+     * @return array
      */
     public function get($id) {
         $result = &$this->result;
@@ -112,6 +123,7 @@ class MemcacheStore extends Store {
      *
      * @param int|string $id
      *            the ID
+     * @return boolean
      */
     public function del($id) {
         $result = &$this->result;
@@ -130,6 +142,7 @@ class MemcacheStore extends Store {
      *
      * @param array $info
      *            information array
+     * @return boolean
      */
     public function add(array $info) {
         $result = &$this->result;
@@ -166,6 +179,7 @@ class MemcacheStore extends Store {
      *            the ID
      * @param array $info
      *            information array
+     * @return boolean
      */
     public function upd($id, array $info) {
         $result = &$this->result;
@@ -190,6 +204,7 @@ class MemcacheStore extends Store {
      *
      * @param array $info
      *            information array
+     * @return int
      */
     public function count(array $info = array()) {
         return false;

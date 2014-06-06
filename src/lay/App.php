@@ -14,51 +14,104 @@ if(! defined('INIT_LAY')) {
     define('INIT_LAY', true); // 标记
 }
 error_reporting(E_ALL & ~ E_NOTICE);
+// ob_start();
+ini_set('output_buffering', 'on');
+ini_set('implicit_flush', 'off');
 
 /**
- * 主类，创建生命周期
+ * 应用程序类，创建生命周期
  *
  * @author Lay Li 2014-04-29
  */
 final class App {
+    /**
+     * 事件常量，创建时
+     *
+     * @var string
+     */
     const E_CREATE = 'lay_create';
+    /**
+     * 事件常量，初始化时
+     *
+     * @var string
+     */
     const E_INIT = 'lay_init';
+    /**
+     * 事件常量，结束时
+     *
+     * @var string
+     */
     const E_STOP = 'lay_stop';
+    /**
+     * 事件常量，摧毁时
+     *
+     * @var string
+     */
     const E_DESTROY = 'lay_destroy';
+    /**
+     * 钩子常量，初始化时
+     *
+     * @var string
+     */
     const H_INIT = 'hook_lay_init';
+    /**
+     * 钩子常量，摧毁时
+     *
+     * @var string
+     */
     const H_STOP = 'hook_lay_stop';
+    /**
+     * App实例
+     *
+     * @var App
+     */
     private static $_Instance = null;
+    /**
+     * 框架根目录
+     *
+     * @var string
+     */
     public static $_RootPath = '';
+    /**
+     * 获取App实例
+     *
+     * @return App
+     */
     public static function getInstance() {
         if(self::$_Instance == null) {
             self::$_Instance = new App();
         }
         return self::$_Instance;
     }
+    /**
+     * 开始，入口方法
+     *
+     * @return App
+     */
     public static function start() {
         global $_START;
         $_START = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
-        self::getInstance()->initilize()->run();
+        return self::getInstance()->initilize()->run();
     }
     /**
-     * set configuration
+     * 设置某个配置项
      *
-     * @param string|array<string> $keystr
-     *            the configuring key string explode by '.'
+     * @param string|array $keystr
+     *            键名
      * @param string|boolean|int|array $value
-     *            the configuring value
+     *            键值
      * @return void
      */
     public static function set($keystr, $value) {
         Configuration::set($keystr, $value);
     }
     /**
-     * get configuration by key string
+     * 获取某个配置项
      *
      * @param string $keystr
-     *            the configuring key string explode by '.', example: 'action.index'
+     *            键名，子键名配置项使用.号分割
      * @param mixed $default
-     *            if get nothing by $keystr,the default value will return
+     *            不存在时的默认值，默认null
      * @return mixed
      */
     public static function get($keystr = '', $default = null) {
@@ -68,57 +121,133 @@ final class App {
             return $ret;
         }
     }
+    /**
+     * 获取某个行为控制层（action）的配置项
+     *
+     * @param string $name
+     *            键名，行为控制层配置的子键名
+     * @return mixed
+     */
     public static function getActionConfig($name) {
         if(empty($name))
             return Configuration::get('actions');
         else
             return Configuration::get('actions.' . $name);
     }
+    /**
+     * 获取某个业务逻辑层（service）的配置项
+     *
+     * @param string $name
+     *            键名，业务逻辑层配置的子键名
+     * @return mixed
+     */
     public static function getServiceConfig($name) {
         if(empty($name))
             return Configuration::get('services');
         else
             return Configuration::get('services.' . $name);
     }
+    /**
+     * 获取某个数据访问层（store）的配置项
+     *
+     * @param string $name
+     *            键名，数据访问层配置的子键名
+     * @return mixed
+     */
     public static function getStoreConfig($name) {
         if(empty($name))
             return Configuration::get('stores');
         else
             return Configuration::get('stores.' . $name);
     }
-    public static function getTemplateConfig($name) {
-        if(empty($name))
-            return Configuration::get('templates');
-        else
-            return Configuration::get('templates.' . $name);
-    }
+    /**
+     * 增加一个类目录
+     *
+     * @param string $classpath
+     *            类目录
+     * @return void
+     */
     public static function addClasspath($classpath) {
         self::getInstance()->appendClasspath($classpath);
     }
+    /**
+     * 增加多个类目录
+     *
+     * @param array $classpaths
+     *            类目录数组
+     * @return void
+     */
     public static function addClasspaths($classpaths) {
         self::getInstance()->appendClasspaths($classpaths);
     }
+    /**
+     * 在某个类目录下查找并加载某个类对应的类文件
+     *
+     * @param string $classname
+     *            类名
+     * @param string $classpath
+     *            类目录
+     * @return void
+     */
     public static function loadClass($classname, $classpath) {
         self::getInstance()->loadClazz($classname, $classpath);
     }
+    /**
+     * 某个类或接口是否存在
+     *
+     * @param string $classname
+     *            类名或接口名
+     * @param boolean $autoload
+     *            是否自动加载
+     * @return boolean
+     */
     public static function classExists($classname, $autoload = true) {
         return class_exists($classname, $autoload) || interface_exists($classname, $autoload);
     }
-    // private function
+    /**
+     * 是否有新的类路径，控制是否更新缓存的依据
+     *
+     * @var boolean
+     */
     private $cached = false;
+    /**
+     * 类路径缓存
+     *
+     * @var array
+     */
     private $caches = array();
+    /**
+     * 自动加载时优先查找的类与类路径的数组
+     *
+     * @var array
+     */
     private $classes = array();
+    /**
+     * 自动加载类时使用的类目录数组
+     *
+     * @var array
+     */
     private $classpath = array(
             'src'
     );
+    /**
+     * 当前行为控制类对象实例
+     *
+     * @var Action
+     */
     private $action;
+    /**
+     * 初始化App
+     *
+     * @return App
+     */
     public function initilize() {
         // $sep = DIRECTORY_SEPARATOR;
         $rootpath = App::$_RootPath;
         // 加载类文件路径缓存
         $this->loadCache();
         // 初始化logger
-        Logger::initialize(false);
+        Logger::initialize();
         // 初始化配置量
         $this->configure($rootpath . "/inc/config/main.env.php");
         // 注册STOP事件 ,最后始终要执行updateCache来更新类文件路径映射， 注意这里增加了级别
@@ -147,13 +276,12 @@ final class App {
         return $this;
     }
     /**
-     * lay autorun configuration,all config file is load in $_ROOTPATH
-     * include actions,services,stores,beans,files...other
+     * 加载并设置配置
      *
      * @param string|array $configuration
-     *            a file or file array or config array
+     *            配置文件或配置数组
      * @param boolean $isFile
-     *            sign file,default is true
+     *            标记是否是配置文件
      * @return void
      */
     public function configure($configuration, $isFile = true) {
@@ -229,6 +357,13 @@ final class App {
             Logger::warn('unkown configuration type', 'CONFIGURE');
         }
     }
+    /**
+     * 增加一个类目录
+     *
+     * @param string $classpath
+     *            类目录字符串
+     * @return void
+     */
     public function appendClasspath($classpath) {
         $rootpath = App::$_RootPath;
         if(is_dir($rootpath . DIRECTORY_SEPARATOR . $classpath)) {
@@ -240,6 +375,13 @@ final class App {
         }
         return true;
     }
+    /**
+     * 增加多个类目录
+     *
+     * @param array $classpaths
+     *            类目录数组
+     * @return void
+     */
     public function appendClasspaths($classpaths) {
         $rootpath = App::$_RootPath;
         foreach($classpaths as $path) {
@@ -251,6 +393,15 @@ final class App {
         }
         return true;
     }
+    /**
+     * 通过名称和配置项创建行为控制对象实例
+     *
+     * @param string $name
+     *            名称
+     * @param array $config
+     *            配置数组
+     * @return Action
+     */
     private function createActionByConfig($name, $config) {
         if(empty($name) || empty($config)) {
             return false;
@@ -273,6 +424,15 @@ final class App {
         
         return Action::getInstance($name, $classname);
     }
+    /**
+     * 通过URI和路由规则配置项创建行为控制对象实例
+     *
+     * @param string $uri
+     *            URI，去除了domain和query部分，例如：/uri
+     * @param array $router
+     *            路由规则配置数组
+     * @return boolean Ambigous unknown, NULL>
+     */
     private function createActionByRouter($uri, $router) {
         if(empty($uri) || empty($router)) {
             return false;
@@ -306,6 +466,13 @@ final class App {
         
         return Action::getInstance($name, $classname);
     }
+    /**
+     * 创建行为控制对象实例
+     *
+     * @param string $name
+     *            名称
+     * @return Action
+     */
     private function createAction($name) {
         $routers = App::get('routers');
         // 非给出
@@ -335,8 +502,12 @@ final class App {
         }
         $this->action = $action;
     }
+    /**
+     * 创建行为控制对象实例的生命同期
+     *
+     * @return void
+     */
     private function createLifecycle() {
-        global $_START, $_END;
         if($this->action) {
             // 注册action的一些事件
             EventEmitter::on(Action::E_GET, array(
@@ -382,7 +553,6 @@ final class App {
             }
         }
         
-        $_END = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
         // 触发action的H_STOP钩子
         PluginManager::exec(Action::H_STOP, array(
                 $this->action
@@ -391,6 +561,27 @@ final class App {
         EventEmitter::emit(Action::E_STOP, array(
                 $this->action
         ));
+    }
+    /**
+     * 运行，创建Action生命周期，触发一系列事件和钩子
+     *
+     * @param string $name
+     *            动作名
+     * @return App
+     */
+    public function run($name = '') {
+        global $_START, $_END;
+        // 创建
+        try {
+            $this->createAction($name);
+        } catch (Exception $e) {
+            // catch
+            // 404 不处理
+        }
+        
+        // 创建生命周期
+        $this->createLifecycle();
+        
         // if is fastcgi
         if(function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
@@ -405,24 +596,10 @@ final class App {
         ));
         
         $_END = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
-        // Logger::initialize(array(0x01 | 0x02 | 0x10 | 0x20 | 0x21, false));
-        Logger::info(json_encode(array(
+        Logger::info(array(
                 $_START,
                 $_END
-        )));
-        // Logger::initialize(false);
-    }
-    /**
-     * 创建Action生命周期
-     */
-    public function run($name = '') {
-        try {
-            $this->createAction($name);
-        } catch (Exception $e) {
-            // catch
-        }
-
-        $this->createLifecycle();
+        ));
         return $this;
     }
     /**
@@ -431,6 +608,7 @@ final class App {
      * @param string $classname
      *            类全名
      * @return void
+     * @throws Exception
      */
     public function autoload($classname) {
         if(empty($this->classpath)) {
@@ -452,6 +630,7 @@ final class App {
     /**
      * 判断是否还有其他自动加载函数，如没有则抛出异常
      *
+     * @return void
      * @throws Exception
      */
     private function checkAutoloadFunctions() {
@@ -464,11 +643,14 @@ final class App {
             }
         }
     }
+    
     /**
-     * class load by classpath
+     * 在某个类目录下查找并加载某个类对应的类文件
      *
-     * @param string $classname            
-     * @param string $classpath            
+     * @param string $classname
+     *            类名
+     * @param string $classpath
+     *            类目录
      * @return void
      */
     public function loadClazz($classname, $classpath) {
@@ -559,7 +741,11 @@ final class App {
             }
         }
     }
+    
     /**
+     * 加载类路径缓存
+     *
+     * @return void
      */
     private function loadCache() {
         $cachename = realpath(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lay-classes.php');
@@ -573,9 +759,9 @@ final class App {
         }
     }
     /**
-     * 更新缓存的类文件映射
+     * 更新类路径缓存
      *
-     * @return number
+     * @return boolean
      */
     public function updateCache() {
         Logger::info('$this->cached:' . $this->cached);
@@ -599,10 +785,12 @@ final class App {
         }
     }
     /**
-     * 将类文件映射缓存起来
+     * 设置新的类路径缓存
      *
-     * @param string $classname            
-     * @param string $filepath            
+     * @param string $classname
+     *            类名
+     * @param string $filepath
+     *            类文件路径
      * @return void
      */
     private function setCache($classname, $filepath) {
@@ -610,9 +798,11 @@ final class App {
         $this->caches[$classname] = realpath($filepath);
     }
     /**
-     * 获取缓存起来的类文件映射
-     *
-     * @return array string
+     * 获取某个类路径缓存或所有
+     * 
+     * @param string $classname
+     *            类名
+     * @return mixed
      */
     public function getCache($classname = '') {
         if(is_string($classname) && $classname && isset($this->caches[$classname])) {
@@ -621,6 +811,9 @@ final class App {
             return $this->caches;
         }
     }
+    /**
+     * 构造方法
+     */
     private function __construct() {
         // 构造时把autoload、rootpath和基本的classpath定义好
         $sep = DIRECTORY_SEPARATOR;
@@ -640,7 +833,11 @@ final class App {
                 $this
         ));
     }
+    /**
+     * 析造方法
+     */
     public function __destruct() {
+        // 触发App的摧毁事件
         EventEmitter::emit(App::E_DESTROY, array(
                 $this
         ));

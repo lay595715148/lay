@@ -5,10 +5,10 @@ use lay\core\Model;
 use lay\core\I_Expireable;
 
 /**
- * 可设置过期的模型对象
+ * 可设置过期时间的模型对象
  * @author Lay Li
  */
-abstract class ModelExpire extends Model implements I_Expireable {
+abstract class Expire extends Model implements I_Expireable {
     
 }
 ?>

@@ -10,32 +10,70 @@ if(!defined('INIT_LAY')) {
 }
 
 /**
- * <p>基础控制器</p>
- * <p>核心类，继承至此类的对象将会在运行时自动执行初始化onCreate方法</p>
+ * 基础控制器；
+ * 核心类，继承至此类的对象将会在运行时触发一系列事件方法（onCreate,onRequest,onGet,onPost,onStop,onDestory等）
  *
  * @abstract
- *
- *
+ * @author Lay Li
  */
 abstract class Action extends AbstractAction {
+    /**
+     * 事件常量，创建时
+     *
+     * @var string
+     */
     const E_CREATE = 'action_create';
+    /**
+     * 事件常量，RTEQUEST
+     *
+     * @var string
+     */
     const E_REQUEST = 'action_request';
+    /**
+     * 事件常量，GET时
+     *
+     * @var string
+     */
     const E_GET = 'action_get';
+    /**
+     * 事件常量，POST时
+     *
+     * @var string
+     */
     const E_POST = 'action_post';
+    /**
+     * 事件常量，结束时
+     *
+     * @var string
+     */
     const E_STOP = 'action_stop';
+    /**
+     * 事件常量，摧毁时
+     *
+     * @var string
+     */
     const E_DESTROY = 'action_destroy';
+    /**
+     * 钩子常量，创建时
+     *
+     * @var string
+     */
     const H_CREATE = 'hook_action_create';
+    /**
+     * 钩子常量，结束时
+     *
+     * @var string
+     */
     const H_STOP = 'hook_action_stop';
     /**
-     *
-     * @staticvar action instance
+     * Action实例
+     * @var Action
      */
     private static $instance = null;
     /**
-     * get action instance
-     *
-     * @param string|array $name
-     *            name or config of Action
+     * 获取一个Action实例
+     * @param string $name 名称
+     * @param string $classname 类名
      * @return Action
      */
     public static function getInstance($name, $classname = '') {
@@ -62,25 +100,30 @@ abstract class Action extends AbstractAction {
     }
 
     /**
-     *
-     * @var array 配置信息数组
+     * Action名称
+     * @var string
      */
     protected $name = '';
     /**
-     *
-     * @var array 存放配置的Service对象
+     * 存放业务逻辑对象的数组
+     * @var array
     */
     protected $services = array();
     /**
-     *
-     * @var Template 模板引擎对象
+     * 模板引擎对象
+     * @var Template
     */
     protected $template;
+    /**
+     * Scope实例
+     * @var Scope
+     */
     protected $scope;
     /**
      * 构造方法
      *
-     * @param array $config
+     * @param string $name 名称
+     * @param Template $template 模板引擎对象
      */
     public function __construct($name, $template = null) {
         $this->name = $name;
@@ -91,52 +134,80 @@ abstract class Action extends AbstractAction {
         EventEmitter::emit(self::E_CREATE, array($this));
     }
     /**
-     * 
+     * 返回模板引擎对象
      * @return Template
      */
     public function getTemplate() {
         return $this->template;
     }
     /**
-     * 
+     * 返回Scope对象
      * @return Scope
      */
     public function getScope() {
         return $this->scope;
     }
     /**
-     * 
+     * 返回名称
      * @return string
      */
     public function getName() {
         return $this->name;
     }
+    /**
+     * 析构方法
+     */
     public function __destruct() {
+        //触发Action的摧毁事件
         EventEmitter::emit(Action::E_DESTROY, array($this));
     }
     /**
-     * 
+     * 获取Service对象
      * @param string $classname
      * @return Service
      */
     public function service($classname) {
         return Service::getInstance($classname);
     }
+    /**
+     * 创建事件触发方法
+     * @see \lay\core\AbstractAction::onCreate()
+     */
     public function onCreate() {
         
     }
+    /**
+     * REQUEST事件触发方法
+     * @see \lay\core\AbstractAction::onRequest()
+     */
     public function onRequest() {
         
     }
+    /**
+     * GET事件触发方法
+     * @see \lay\core\AbstractAction::onGet()
+     */
     public function onGet() {
         
     }
+    /**
+     * POST事件触发方法
+     * @see \lay\core\AbstractAction::onPost()
+     */
     public function onPost() {
         
     }
+    /**
+     * 结束事件触发方法
+     * @see \lay\core\AbstractAction::onStop()
+     */
     public function onStop() {
         
     }
+    /**
+     * 摧毁事件触发方法
+     * @see \lay\core\AbstractAction::onDestroy()
+     */
     public function onDestroy() {
         
     }

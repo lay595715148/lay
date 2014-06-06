@@ -1,6 +1,8 @@
 <?php
+use lay\util\Logger;
+
 return array(
-    'logger' => array(0, false),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
+    'logger' => array(Logger::L_ALL, false, 100),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
     'code' => array(
         '404' => '/404.html'
     ),
