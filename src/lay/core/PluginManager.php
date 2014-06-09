@@ -1,18 +1,18 @@
 <?php
+
 namespace lay\core;
 
 use lay\App;
 use lay\core\AbstractPlugin;
 use lay\util\Logger;
 
-if(!defined('INIT_LAY')) {
+if(! defined('INIT_LAY')) {
     exit();
 }
-
 class PluginManager {
     private static $_Instance = null;
     /**
-     * 
+     *
      * @return PluginManager
      */
     public static function getInstance() {
@@ -23,14 +23,27 @@ class PluginManager {
     }
     /**
      * 初始化插件
-     * @param array $plugins plugin array
+     *
+     * @param array $plugins
+     *            plugin array
      */
     public static function initilize($plugins = array()) {
-        $instance = self::getInstance();
-        $plugins = empty($plugins) ? App::get('plugins') : $plugins;
+        if(empty($plugins)) {
+            $sep = DIRECTORY_SEPARATOR;
+            $dir = App::$_RootPath . $sep . 'src' . $sep . 'plugin';
+            $dirs = scandir($dir);
+            foreach($dirs as $d) {
+                if(is_dir($dir . $sep . $d) && $d != '.' && $d != '..' && empty(App::get('plugins.' . $d))) {
+                    App::set('plugins.' . $d, array(
+                            'name' => $d
+                    ));
+                }
+            }
+            $plugins = App::get('plugins');
+        }
         if(is_array($plugins)) {
             // 实例化所有前期基础插件，并注册事件中的插件配置
-            $instance->loadPlugins($plugins);
+            self::getInstance()->loadPlugins($plugins);
         }
     }
     public static function exec($hookname, $params = array()) {
@@ -41,7 +54,7 @@ class PluginManager {
     }
     private function __construct() {
     }
-    private $_plugins = array();//注册在事件中的插件配置，待事件触发时初始化
+    private $_plugins = array(); // 注册在事件中的插件配置，待事件触发时初始化
     private $plugins = array();
     /**
      * 可用的钩子
@@ -101,12 +114,14 @@ class PluginManager {
     /**
      * Allow a plugin object to unregister a callback.
      *
-     * @param string $hook Hook name
-     * @param mixed  $callback String with global function name or array($obj, 'methodname')
+     * @param string $hook
+     *            Hook name
+     * @param mixed $callback
+     *            String with global function name or array($obj, 'methodname')
      */
     public function unregister($hookname, $callback) {
         $callbackid = array_search($callback, $this->listeners[$hookname]);
-        if ($callbackid !== false) {
+        if($callbackid !== false) {
             unset($this->listeners[$hookname][$callbackid]);
         }
     }
@@ -120,20 +135,22 @@ class PluginManager {
         $this->activeHook = $hookname;
         $this->activedHooks[] = $hookname;
         
-        if (!is_array($params) && !empty($params)) {
-            $params = array($params);
+        if(! is_array($params) && ! empty($params)) {
+            $params = array(
+                    $params
+            );
         }
         
         // 查看要实现的钩子，是否在监听数组之中
         // 循环调用开始
-        foreach((array)$this->listeners[$hookname] as $callback) {
+        foreach(( array )$this->listeners[$hookname] as $callback) {
             // 动态调用插件的方法
             $ret = call_user_func_array($callback, $params);
-            if ($ret && is_array($ret)) {
+            if($ret && is_array($ret)) {
                 $args = $ret + $args;
             }
             
-            if ($args['break']) {
+            if($args['break']) {
                 break;
             }
         }
@@ -153,37 +170,37 @@ class PluginManager {
     public function loadPlugins($plugins, $requires = array()) {
         foreach($plugins as $plugin) {
             if(is_array($plugin)) {
-                if(isset($plugin['open']) && !$plugin['open']) {
+                if(isset($plugin['open']) && ! $plugin['open']) {
                     continue;
                 } else {
                     if(isset($plugin['action']) && $plugin['action']) {
                         $this->_plugins[Action::E_CREATE][] = $plugin;
-                        //注册action初始化时要加载的插件
+                        // 注册action初始化时要加载的插件
                         EventEmitter::on(Action::E_CREATE, array(
-                            $this,
-                            'loadPluginOnAction'
+                                $this,
+                                'loadPluginOnAction'
                         ));
                         continue;
                     }
                     if(isset($plugin['service']) && $plugin['service']) {
                         $this->_plugins[Service::E_CREATE][] = $plugin;
-                        //注册service初始化时要加载的插件
+                        // 注册service初始化时要加载的插件
                         EventEmitter::on(Service::E_CREATE, array(
-                            $this,
-                            'loadPluginOnService'
+                                $this,
+                                'loadPluginOnService'
                         ));
                         continue;
                     }
                     if(isset($plugin['store']) && $plugin['store']) {
                         $this->_plugins[Store::E_CREATE][] = $plugin;
-                        //注册store初始化时要加载的插件
+                        // 注册store初始化时要加载的插件
                         EventEmitter::on(Store::E_CREATE, array(
-                            $this,
-                            'loadPluginOnStore'
+                                $this,
+                                'loadPluginOnStore'
                         ));
                         continue;
                     }
-                    if(!$this->loadVerify($plugin)) {
+                    if(! $this->loadVerify($plugin)) {
                         continue;
                     }
                 }
@@ -256,10 +273,10 @@ class PluginManager {
                 if(is_subclass_of($plugin, 'lay\core\AbstractPlugin')) {
                     $plugin->initilize();
                     $this->plugins[$name] = $plugin;
-                    Logger::info("using plugin:$classname", 'PLUGIN');
+                    Logger::info("Avaliable plugin:$classname", 'PLUGIN');
                     return true;
                 } else {
-                    Logger::warn("invalid plugin class name:$classname", 'PLUGIN');
+                    Logger::warn("Invalid plugin:$classname", 'PLUGIN');
                 }
             } else {
             }
@@ -269,54 +286,54 @@ class PluginManager {
         return false;
     }
     /**
-     * 
-     * @param Action $action
+     *
+     * @param Action $action            
      */
     public function loadPluginOnAction($action) {
         $_plugins = $this->_plugins[Action::E_CREATE];
-        foreach ($_plugins as $plugin) {
-            //$plugin必是数组
-            if(!$this->loadVerify($plugin)) {
+        foreach($_plugins as $plugin) {
+            // $plugin必是数组
+            if(! $this->loadVerify($plugin)) {
                 continue;
             }
-            //$plugin['action']必存在
-            if($plugin['action'] != $action->getName() && !(App::classExists($plugin['action'], false) && is_a($action, $plugin['action']))) {
+            // $plugin['action']必存在
+            if($plugin['action'] != $action->getName() && ! (App::classExists($plugin['action'], false) && is_a($action, $plugin['action']))) {
                 continue;
             }
             $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
         }
     }
     /**
-     * 
-     * @param Service $service
+     *
+     * @param Service $service            
      */
     public function loadPluginOnService($service) {
         $_plugins = $this->_plugins[Service::E_CREATE];
-        foreach ($_plugins as $plugin) {
-            //$plugin必是数组
-            if(!$this->loadVerify($plugin)) {
+        foreach($_plugins as $plugin) {
+            // $plugin必是数组
+            if(! $this->loadVerify($plugin)) {
                 continue;
             }
-            //$plugin['service']必存在
-            if(!App::classExists($plugin['service'], false) || !is_a($service, $plugin['service'])) {
+            // $plugin['service']必存在
+            if(! App::classExists($plugin['service'], false) || ! is_a($service, $plugin['service'])) {
                 continue;
             }
             $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
         }
     }
     /**
-     * 
-     * @param Store $store
+     *
+     * @param Store $store            
      */
     public function loadPluginOnStore($store) {
         $_plugins = $this->_plugins[Store::E_CREATE];
-        foreach ($_plugins as $plugin) {
-            //$plugin必是数组
-            if(!$this->loadVerify($plugin)) {
+        foreach($_plugins as $plugin) {
+            // $plugin必是数组
+            if(! $this->loadVerify($plugin)) {
                 continue;
             }
-            //$plugin['store']必存在
-            if($plugin['store'] != $store->getName() && !(App::classExists($plugin['store'], false) && is_a($store, $plugin['store']))) {
+            // $plugin['store']必存在
+            if($plugin['store'] != $store->getName() && ! (App::classExists($plugin['store'], false) && is_a($store, $plugin['store']))) {
                 continue;
             }
             $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
@@ -332,13 +349,13 @@ class PluginManager {
         if(isset($plugin['end']) && $end && $time > $end) {
             return false;
         }
-        if(isset($plugin['host']) && !in_array($_SERVER['HTTP_HOST'], explode('|', $plugin['host']))) {
+        if(isset($plugin['host']) && ! in_array($_SERVER['HTTP_HOST'], explode('|', $plugin['host']))) {
             return false;
         }
-        if(isset($plugin['ip']) && !in_array($_SERVER['SERVER_ADDR'], explode('|', $plugin['ip']))) {
+        if(isset($plugin['ip']) && ! in_array($_SERVER['SERVER_ADDR'], explode('|', $plugin['ip']))) {
             return false;
         }
-        if(isset($plugin['port']) && !in_array($_SERVER['SERVER_PORT'], explode('|', $plugin['port']))) {
+        if(isset($plugin['port']) && ! in_array($_SERVER['SERVER_PORT'], explode('|', $plugin['port']))) {
             return false;
         }
         return true;

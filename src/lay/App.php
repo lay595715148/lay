@@ -394,6 +394,22 @@ final class App {
         return true;
     }
     /**
+     * 设置action属性
+     * @param Action $action
+     */
+    public function setAction($action) {
+        if(is_subclass_of($action, 'lay\core\Action')) {
+            $this->action = $action;
+        }
+    }
+    /**
+     * 获取action属性
+     * @param Action $action
+     */
+    public function getAction() {
+        return $this->action;
+    }
+    /**
      * 通过名称和配置项创建行为控制对象实例
      *
      * @param string $name
@@ -475,6 +491,9 @@ final class App {
      */
     private function createAction($name) {
         $routers = App::get('routers');
+        if($this->action) {
+            return;
+        }
         // 非给出
         if($name) {
             Logger::info('action name:' . $name);
@@ -799,7 +818,7 @@ final class App {
     }
     /**
      * 获取某个类路径缓存或所有
-     * 
+     *
      * @param string $classname
      *            类名
      * @return mixed
@@ -828,10 +847,6 @@ final class App {
         foreach($this->classpath as $i => $path) {
             $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
         }
-        
-        EventEmitter::emit(App::E_CREATE, array(
-                $this
-        ));
     }
     /**
      * 析造方法

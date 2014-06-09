@@ -2,7 +2,7 @@
 use lay\util\Logger;
 
 return array(
-    'logger' => array(Logger::L_ALL, false, 100),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
+    'logger' => array(Logger::L_ALL, false, 0),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
     'code' => array(
         '404' => '/404.html'
     ),
@@ -37,9 +37,13 @@ return array(
         )
     ),
     'plugins' => array(
+        'json' => array(
+            'host' => 'lay.laysoft.cn',//多个用|做分隔
+            'name' => 'json'
+        ),
         '404' => array(
             'name' => '404',
-            'classname' => 'Http404Action'
+            'classname' => 'Http404Plugin'
         ),
         'oauth2' => array(
             'name' => 'oauth2',
