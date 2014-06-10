@@ -25,12 +25,6 @@ ini_set('implicit_flush', 'off');
  */
 final class App {
     /**
-     * 事件常量，创建时
-     *
-     * @var string
-     */
-    const E_CREATE = 'lay_create';
-    /**
      * 事件常量，初始化时
      *
      * @var string
@@ -237,6 +231,22 @@ final class App {
      */
     private $action;
     /**
+     * 设置action属性
+     * @param Action $action
+     */
+    public function setAction($action) {
+        if(is_subclass_of($action, 'lay\core\Action')) {
+            $this->action = $action;
+        }
+    }
+    /**
+     * 获取action属性
+     * @param Action $action
+     */
+    public function getAction() {
+        return $this->action;
+    }
+    /**
      * 初始化App
      *
      * @return App
@@ -392,22 +402,6 @@ final class App {
             }
         }
         return true;
-    }
-    /**
-     * 设置action属性
-     * @param Action $action
-     */
-    public function setAction($action) {
-        if(is_subclass_of($action, 'lay\core\Action')) {
-            $this->action = $action;
-        }
-    }
-    /**
-     * 获取action属性
-     * @param Action $action
-     */
-    public function getAction() {
-        return $this->action;
     }
     /**
      * 通过名称和配置项创建行为控制对象实例

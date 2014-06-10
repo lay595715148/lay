@@ -143,7 +143,7 @@ class PluginManager {
         
         // 查看要实现的钩子，是否在监听数组之中
         // 循环调用开始
-        foreach(( array )$this->listeners[$hookname] as $callback) {
+        foreach((array)$this->listeners[$hookname] as $callback) {
             // 动态调用插件的方法
             $ret = call_user_func_array($callback, $params);
             if($ret && is_array($ret)) {

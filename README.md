@@ -15,7 +15,7 @@ Php simple framework,upgrade from laywork
 依赖关系
 ===
 
-php >= 5.2
+php >= 5.3
 
 文件目录结构
 ===
