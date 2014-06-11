@@ -43,10 +43,10 @@ class Template extends AbstractTemplate {
         return self::$instance;
     }
     /**
-     * Preface对象
-     * @var Preface $preface
+     * Action对象
+     * @var Action $action
      */
-    public $preface;
+    public $action;
     /**
      * 输出变量内容数组
      * @var array $vars
@@ -124,6 +124,8 @@ class Template extends AbstractTemplate {
             foreach ($name as $n => $val) {
                 $this->push($n, $val);
             }
+        } else {
+            $this->vars[] = $name;
         }
     }
     /**
@@ -216,6 +218,16 @@ class Template extends AbstractTemplate {
         } else {
             $csses[] = $css;
         }
+    }
+    /**
+     * get template headers,
+     * return the point of template headers
+     * @return array
+     */
+    public function headers() {
+        Logger::info('headers', 'TEMPLATE');
+        $headers = &$this->headers;
+        return $headers;
     }
     /**
      * get template variables,

@@ -31,7 +31,7 @@ abstract class AbstractBean extends AbstractObject {
      * 返回对象转换为stdClass后的对象
      * @return stdClass
      */
-    public abstract function toObject();
+    public abstract function toStdClass();
     /**
      * 清空对象所有属性值
      * @return Bean

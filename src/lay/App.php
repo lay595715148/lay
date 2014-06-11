@@ -278,7 +278,7 @@ final class App {
         PluginManager::exec(App::H_INIT, array(
                 $this
         ));
-        // 触发INIT事件
+        // 触发E_INIT事件
         EventEmitter::emit(App::E_INIT, array(
                 $this
         ));
@@ -723,7 +723,10 @@ final class App {
                     foreach($matches[1] as $index => $item) {
                         $path .= DIRECTORY_SEPARATOR . $item;
                         $lowerpath .= DIRECTORY_SEPARATOR . strtolower($item);
-                        Logger::info('$lowerpath:' . $lowerpath);
+                        Logger::info('$lowerpath:' . $lowerpath.':$classname:'.$classname);
+                        if($classname == 'demo1151') {
+                            throw new Exception();
+                        }
                         if(($isdir = is_dir($path)) || is_dir($lowerpath)) { // 顺序文件夹查找
                             $tmppath = ($isdir ? $path : $lowerpath) . DIRECTORY_SEPARATOR . $classname;
                             foreach($suffixes as $i => $suffix) {

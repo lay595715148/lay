@@ -128,6 +128,7 @@ abstract class Action extends AbstractAction {
     public function __construct($name, $template = null) {
         $this->name = $name;
         $this->template = is_a($template, 'lay\core\Template') ? $template : new Template();
+        $this->template->action = $this;
         $this->scope = new Scope();
         EventEmitter::on(self::E_CREATE, array($this, 'onCreate'), 1);
         PluginManager::exec(self::H_CREATE, array($this));

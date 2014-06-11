@@ -7,6 +7,7 @@ namespace lay\core;
 
 use \lay\App;
 use stdClass;
+use lay\util\Util;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -119,6 +120,16 @@ abstract class Bean extends AbstractBean {
      */
     const PROPETYPE_ARRAY = 10;
     /**
+     * 定义数组类型的属性值
+     * @var int
+     */
+    const PROPETYPE_S_PURE_ARRAY = 'pure_array';
+    /**
+     * 定义数组类型的属性值
+     * @var int
+     */
+    const PROPETYPE_PURE_ARRAY = 11;
+    /**
      * 定义特定格式类型的属性值
      * @var string
      */
@@ -229,6 +240,14 @@ abstract class Bean extends AbstractBean {
                             Logger::error('invalid value,property:' . $name . '\'s value must be an array in class:' . get_class($this), 'MODEL');
                         }
                         break;
+                    case Model::PROPETYPE_PURE_ARRAY:
+                    case Model::PROPETYPE_S_PURE_ARRAY:
+                        if(is_array($value)) {
+                            $properties[$name] = Util::toPureArray($value);
+                        } else {
+                            Logger::error('invalid value,property:' . $name . '\'s value must be an pure array in class:' . get_class($this), 'MODEL');
+                        }
+                        break;
                     default:
                         if(is_array($propetypes[$name])) {
                             if(array_key_exists(Model::PROPETYPE_S_DATEFORMAT, $propetypes[$name])) {
@@ -241,7 +260,7 @@ abstract class Bean extends AbstractBean {
                                 }
                             } else if(array_key_exists(Model::PROPETYPE_S_OTHER, $propetypes[$name])) {
                                 // other
-                                $properties[$name] = $this->otherFormat($value, $propetypes[$name]);
+                                $properties[$name] = $this->otherFormat($value, $propetypes[$name][Model::PROPETYPE_S_OTHER]);
                             } else {
                                 // enum
                                 $key = array_search($value, $propetypes[$name]);
@@ -408,6 +427,8 @@ abstract class Bean extends AbstractBean {
                         break;
                     case Model::PROPETYPE_ARRAY:
                     case Model::PROPETYPE_S_ARRAY:
+                    case Model::PROPETYPE_PURE_ARRAY:
+                    case Model::PROPETYPE_S_PURE_ARRAY:
                         $properties[$name] = array();
                         break;
                     default:
@@ -464,12 +485,35 @@ abstract class Bean extends AbstractBean {
      * @see \lay\core\AbstractBean::toObject()
      * @return stdClass
      */
-    public function toObject() {
+    public function toStdClass() {
         $o = new stdClass();
-        foreach($this->properties as $k => $v) {
-            $o->{$k} = $v;
+        foreach($this->properties as $key => $val) {
+            if(is_object($val) && is_subclass_of($val, 'lay\core\Bean')) {
+                $o->{$key} = $val->toStdClass();
+            } else if(is_array($val)) {
+                $o->{$key} = $this->_toStdClass($val);
+            } else {
+                $o->{$key} = $val;
+            }
         }
         return $o;
+    }
+    /**
+     * 将数据中包含Bean的子对象转换成stdClass
+     * @param mixed $var
+     * @return mixed
+     */
+    protected function _toStdClass($var) {
+        if(is_array($var)) {
+            foreach ($var as $k => $v) {
+                $var[$k] = $this->_toStdClass($v);
+            }
+            return $var;
+        } else if(is_object($var) && is_subclass_of($var, 'lay\core\Bean')) {
+            return $var->toStdClass();
+        } else {
+            return $var;
+        }
     }
     
     /**
@@ -487,6 +531,9 @@ abstract class Bean extends AbstractBean {
             }
         }
         return $this;
+    }
+    public function jsonSerialize() {
+        return $this->toStdClass();
     }
 }
 ?>

@@ -1,7 +1,8 @@
 <?php
 namespace lay\entity;
 
-use \lay\core\Entity;
+use lay\core\Entity;
+use lay\core\Bean;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -21,6 +22,21 @@ if(! defined('INIT_LAY')) {
  * @method boolean getHasNext() 获取hasNext属性值
  */
 class Lister extends Entity {
+    const PROPETYPE_LISTER = 'lister';
+    /**
+     * 创建自身的一个新实例
+     * @param array $list
+     * @param string $total
+     * @param string $hasNext
+     * @return Lister
+     */
+    public static function newInstance($list, $total = false, $hasNext = false) {
+        $instance = new Lister();
+        $instance->list = $list;
+        $instance->total = intval($total);
+        $instance->hasNext = $hasNext ? true : false;
+        return $instance;
+    }
     public function __construct() {
         parent::__construct(array(
             'list' => array(),
@@ -30,7 +46,7 @@ class Lister extends Entity {
     }
     protected function rules() {
         return  array(
-            'list' => Bean::PROPETYPE_ARRAY,
+            'list' => Bean::PROPETYPE_PURE_ARRAY,
             'total' => Bean::PROPETYPE_INTEGER,
             'hasNext' => Bean::PROPETYPE_BOOLEAN
         );

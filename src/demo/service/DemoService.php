@@ -33,6 +33,9 @@ class DemoService extends Service {
         $this->memcache();
     }
     public function demo() {
+        $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
+        $ret = $this->demoUserMongo->select(array(), array('_id', 'name'), array(), array(5, 5));
+        return empty($ret) ? array() : $ret;
     }
     /**
      * 测试mongo

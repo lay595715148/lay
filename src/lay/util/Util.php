@@ -11,15 +11,65 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li
  */
 class Util {
-    private static $_IsWindows;
+    /**
+     * 服务器系统是不是Windows
+     * @var boolean
+     */
+    private static $_IsWindows = false;
+    /**
+     * 判断服务器系统是不是Windows
+     * @return boolean
+     */
     public static function isWindows() {
         if(! is_bool(self::$_IsWindows)) {
             self::$_IsWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
         }
         return self::$_IsWindows;
     }
+    /**
+     * 判断是不是绝对路径
+     * @param string $path
+     * @return boolean
+     */
     public static function isAbsolutePath($path) {
         return false;
+    }
+    /**
+     * 转变为纯粹的数组
+     * @param array $arr
+     * @return array
+     */
+    public static function toPureArray($arr) {
+        if(is_array($arr) || is_object($arr)) {
+            $tmp = array();
+            foreach ($arr as $i => $a) {
+                $tmp[] = $a;
+            }
+            return $tmp;
+        } else if(!is_resource($arr)){
+            return (array) $arr;
+        } else {
+            return $arr;
+        }
+    }
+    /**
+     * 判断是不是纯粹的数组
+     * @param array $arr
+     * @return boolean
+     */
+    public static function isPureArray($arr) {
+        $bool = true;
+        if(is_array($arr)) {
+            foreach ($arr as $i => $a) {
+                if(is_string($i) || !is_int($i)) {
+                    $bool = false;
+                    break;
+                }
+            }
+        } else {
+            $bool = false;
+        }
+        return $bool;
     }
     /**
      * php array to php content
@@ -48,6 +98,7 @@ class Util {
      *
      * @param array $Array
      *            convert array
+     * @return string
      */
     public static function array2String($Array) {
         $Return = '';
@@ -66,6 +117,7 @@ class Util {
      *
      * @param string $String
      *            convert string
+     * @return array
      */
     public static function string2Array($String) {
         $Return = array();
