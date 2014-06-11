@@ -1,4 +1,5 @@
 <?php
+
 namespace lay\store;
 
 use lay\App;
@@ -51,7 +52,7 @@ class MysqlStore extends Store {
             $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
             $this->connection = Connection::mysql($name, $config);
             $this->link = $this->connection->connection;
-            //return mysql_select_db($schema, $this->link);
+            // return mysql_select_db($schema, $this->link);
             return mysqli_select_db($this->link, $schema);
         } else {
             return $this->connect();
@@ -87,7 +88,7 @@ class MysqlStore extends Store {
                 Logger::info('SET NAMES ' . $encoding, 'MYSQL');
             }
             $connection->encoding = $encoding;
-            //mysql_query('SET NAMES ' . $encoding, $link);
+            // mysql_query('SET NAMES ' . $encoding, $link);
             mysqli_query($link, 'SET NAMES ' . $encoding);
         }
         if($showsql) {
@@ -95,7 +96,7 @@ class MysqlStore extends Store {
         }
         if($sql) {
             $result = mysqli_query($link, $sql);
-            //$result = mysql_query($sql, $link);
+            // $result = mysql_query($sql, $link);
         }
         
         return $result;
@@ -246,7 +247,7 @@ class MysqlStore extends Store {
     
     /**
      * 获取结果集中的行数或执行影响的行数
-     * 
+     *
      * @param mixed $result            
      * @param bool $isselect            
      * @return mixed
@@ -260,8 +261,9 @@ class MysqlStore extends Store {
     }
     /**
      * return id
-     * 
+     *
      * @return
+     *
      *
      */
     public function toLastid() {
@@ -269,8 +271,9 @@ class MysqlStore extends Store {
     }
     /**
      * return SCALAR
-     * 
+     *
      * @return
+     *
      *
      */
     public function toScalar() {
@@ -279,7 +282,7 @@ class MysqlStore extends Store {
     }
     /**
      * 将结果集转换为指定数量的数组
-     * 
+     *
      * @param int $count            
      * @param mixed $result            
      * @return array
@@ -295,7 +298,7 @@ class MysqlStore extends Store {
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
-                    $obj->build(( array )$row);
+                    $obj->build((array)$row);
                     $rows[$i] = $obj->toArray();
                     $i++;
                 }
@@ -305,7 +308,7 @@ class MysqlStore extends Store {
             if(mysqli_num_rows($result)) {
                 while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
-                    $obj->build(( array )$row);
+                    $obj->build((array)$row);
                     $rows[$i] = $obj->toArray();
                     $i++;
                 }
@@ -316,7 +319,7 @@ class MysqlStore extends Store {
     }
     /**
      * 将结果集转换为指定数量的Model对象数组
-     * 
+     *
      * @param int $count            
      * @param mixed $result            
      * @return array
@@ -332,7 +335,7 @@ class MysqlStore extends Store {
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
-                    $obj->build(( array )$row);
+                    $obj->build((array)$row);
                     $rows[$i] = $obj;
                     $i++;
                 }
@@ -342,7 +345,7 @@ class MysqlStore extends Store {
             if(mysqli_num_rows($result)) {
                 while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
-                    $obj->build(( array )$row);
+                    $obj->build((array)$row);
                     $rows[$i] = $obj;
                     $i++;
                 }
@@ -353,7 +356,7 @@ class MysqlStore extends Store {
     }
     /**
      * 将结果集转换为指定数量的基本对象数组
-     * 
+     *
      * @param int $count            
      * @param mixed $result            
      * @return array
@@ -369,7 +372,7 @@ class MysqlStore extends Store {
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
-                    $obj->build(( array )$row);
+                    $obj->build((array)$row);
                     $rows[$i] = $obj->toObject();
                     $i++;
                 }
@@ -379,7 +382,7 @@ class MysqlStore extends Store {
             if(mysqli_num_rows($result)) {
                 while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
-                    $obj->build(( array )$row);
+                    $obj->build((array)$row);
                     $rows[$i] = $obj->toObject();
                     $i++;
                 }

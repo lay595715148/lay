@@ -7,6 +7,8 @@ use lay\core\Coder;
 use lay\core\EventEmitter;
 use lay\util\Logger;
 use demo\service\DemoService;
+use lay\entity\Response;
+use lay\entity\Lister;
 
 class DemoAction extends JSONAction {
     /**
@@ -36,8 +38,15 @@ class DemoAction extends JSONAction {
         Logger::debug($ret);
     }
     public function onGet() {
-        $ret = $this->demoService->test();
+        //$ret = $this->demoService->test();
         //$this->test();
+        $this->testMysql();
+    }
+    public function testMysql() {
+        $ret = $this->demoService->select(array('type' => array(0, '>')), array(0, 5));
+        $list = Lister::newInstance($ret, 20, true);
+        $this->template->push($list->toArray());
+        Logger::debug($ret);
     }
     public function test() {
         $ret = $this->demoService->del(50);

@@ -141,7 +141,9 @@ class MongoStore extends Store {
             $this->connect();
         }
 
-        $result = $link->selectCollection($table)->findOne(array($pk => $id));
+        $coder = new Coder($model, $link);
+        $coder->setQuery(array($pk => $id));
+        $result = $coder->makeSelectOne();
         return $result;
     }
     /**

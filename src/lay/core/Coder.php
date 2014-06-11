@@ -354,6 +354,16 @@ class Coder {
         // $this->makeIterator();
         return $this->cursor;
     }
+    public function makeSelectOne() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeFindOneFun();
+        //$this->makeSort();
+        //$this->makeSkip();
+        //$this->makeLimit();
+        // $this->makeIterator();
+        return $this->result;
+    }
     public function makeFindModify() {
         $this->makeDb();
         $this->makeCollection();
@@ -418,6 +428,15 @@ class Coder {
         $fields = empty($this->fields) ? ($this->model ? $this->model->toFields() : array()) : $this->fields;
         if($this->collection) {
             $this->cursor = $this->collection->find($query, $fields);
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    private function makeFindOneFun() {
+        $query = empty($this->query) ? array() : $this->query;
+        $fields = empty($this->fields) ? ($this->model ? $this->model->toFields() : array()) : $this->fields;
+        if($this->collection) {
+            $this->result = $this->collection->findOne($query, $fields);
         } else {
             Logger::error('null given mongo collection!');
         }

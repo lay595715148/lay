@@ -27,7 +27,7 @@ class Response extends Entity {
      * @param number $code
      * @return Response
      */
-    public static function newInstance($content, $success = true, $action = '', $code = 0) {
+    public static function newInstance($content, $action = '', $success = true, $code = 0) {
         $instance = new Response();
         $instance->content = $content;
         $instance->success = $success;

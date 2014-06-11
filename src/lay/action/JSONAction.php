@@ -22,7 +22,7 @@ abstract class JSONAction extends Action {
         $headers = $this->template->headers();
         $vars = $this->template->vars();
         
-        $res = Response::newInstance($vars, true, $this->name);
+        $res = Response::newInstance($vars, $this->name, true);
 
         foreach($headers as $header) {
             @header($header);

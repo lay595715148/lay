@@ -1,12 +1,16 @@
 <?php
+
 namespace lay\core;
+
+use lay\util\Util;
+use lay\util\Logger;
 
 if(! defined('INIT_LAY')) {
     exit();
 }
 /**
  * SQL处理器
- * 
+ *
  * @author Lay Li
  */
 class Criteria {
@@ -63,17 +67,27 @@ class Criteria {
             // $fields = $this->trimModifier($fields);
             $columns = $this->model->columns();
             foreach($fields as $field) {
-                if(array_search($field, $columns)) {
-                    $tmp[] = $field;
+                if($key = array_search($field, $columns)) {
+                    // $tmp[] = $field;
+                    if($this->modifier) {
+                        $tmp[] = '`' . $field . '` AS `' . $key . '`';
+                    } else {
+                        $tmp[] = $field . ' AS ' . $key;
+                    }
                 } else if(array_key_exists($field, $columns)) {
-                    $tmp[] = $columns[$field];
+                    // $tmp[] = $columns[$field];
+                    if($this->modifier) {
+                        $tmp[] = '`' . $field . '` AS `' . $key . '`';
+                    } else {
+                        $tmp[] = $field . ' AS ' . $key;
+                    }
                 } else {
                     Logger::warn('invalid field:' . $field);
                 }
             }
-            if($this->modifier) {
-                $tmp = $this->untrimModifier($tmp);
-            }
+            /*
+             * if($this->modifier) { $tmp = $this->untrimModifier($tmp); }
+             */
             $this->fields = implode(", ", $tmp);
         } else if(is_array($fields)) {
             // 去除可能存在于两边的着重号
@@ -247,10 +261,15 @@ class Criteria {
             // Logger::error('empty info conditions array');
         } else if(is_array($mix)) {
             foreach($mix as $field => $value) {
-                if(! is_numeric($field)) {
-                    $this->addCondition($field, $value);
-                } else if(is_array($value)) {
+                if(is_numeric($field) && is_array($value)) {
                     $this->setCondition($value);
+                } else if($field && is_string($field) && is_array($value)) {
+                    if($value[0] !== $field) {
+                        array_unshift($value, $field);
+                    }
+                    $this->setCondition($value);
+                } else if($field && is_string($field) && is_string($value)) {
+                    $this->addCondition($field, $value);
                 } else {
                     $this->setCondition($mix);
                     break;
@@ -313,15 +332,19 @@ class Criteria {
             case '<>':
             case '!=':
             case '=':
-                $value = addslashes($value);
-                $condition = $fieldstr . ' ' . $symbol . ' \'' . $value . '\'';
+                if(is_string($value) || is_numeric($value)) {
+                    $value = addslashes(strval($value));
+                    $condition = $fieldstr . ' ' . $symbol . ' \'' . $value . '\'';
+                } else {
+                    Logger::error('"in" condition value is not string');
+                }
                 break;
             case 'in':
             case '!in':
             case 'unin':
                 $tmp = $symbol == 'in' ? 'IN' : 'NOT IN';
-                if(is_string($value)) {
-                    $value = explode(',', $value);
+                if(is_string($value) || is_numeric($value)) {
+                    $value = explode(',', strval($value));
                     // 去除可能存在于两边的单引号
                     // $value = $this->trimQuote($value);
                     $value = array_map('addslashes', $value);
@@ -354,15 +377,19 @@ class Criteria {
                     $valuestr = $this->untrimQuote($valuestr);
                     $condition = $fieldstr . ' ' . $tmp . ' ' . $valuestr;
                 } else {
-                    Logger::error('"like" condition value is not a string');
+                    Logger::error('"like" condition value is not string');
                 }
                 break;
             default:
                 // 去除可能存在于两边的单引号
                 // $value = $this->trimQuote($value);
-                $value = addslashes($value);
-                $valuestr = $this->untrimQuote($value);
-                $condition = $fieldstr . ' = ' . $valuestr;
+                if(is_string($value) || is_numeric($value)) {
+                    $value = addslashes($value);
+                    $valuestr = $this->untrimQuote($value);
+                    $condition = $fieldstr . ' = ' . $valuestr;
+                } else {
+                    Logger::error('"in" condition value is not string');
+                }
                 break;
         }
         return $condition;

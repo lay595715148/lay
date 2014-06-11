@@ -724,9 +724,6 @@ final class App {
                         $path .= DIRECTORY_SEPARATOR . $item;
                         $lowerpath .= DIRECTORY_SEPARATOR . strtolower($item);
                         Logger::info('$lowerpath:' . $lowerpath.':$classname:'.$classname);
-                        if($classname == 'demo1151') {
-                            throw new Exception();
-                        }
                         if(($isdir = is_dir($path)) || is_dir($lowerpath)) { // 顺序文件夹查找
                             $tmppath = ($isdir ? $path : $lowerpath) . DIRECTORY_SEPARATOR . $classname;
                             foreach($suffixes as $i => $suffix) {

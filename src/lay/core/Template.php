@@ -1,8 +1,10 @@
 <?php
 namespace lay\core;
 
-use \lay\App;
+use lay\App;
 use lay\util\Logger;
+use lay\entity\Response;
+use lay\entity\Lister;
 
 if(! defined('INIT_LAY'))
     exit();
@@ -117,15 +119,15 @@ class Template extends AbstractTemplate {
      * @param string $name name of variable
      * @param mixed $value value of variable
      */
-    public function push($name, $value = '') {
+    public function push($name, $value = null) {
         if(is_string($name) || is_numeric($name)) {
-            $this->vars[$name] = $value;
+            $this->vars[$name] = is_null($value) ? '' : $value;
         } else if(is_array($name)) {
             foreach ($name as $n => $val) {
                 $this->push($n, $val);
             }
         } else {
-            $this->vars[] = $name;
+            $this->vars[] = is_null($value) ? '' : $value;;
         }
     }
     /**

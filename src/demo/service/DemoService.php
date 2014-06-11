@@ -30,7 +30,7 @@ class DemoService extends Service {
     public function test() {
         $a = new web\v2\Web();
         $b = new web\Web();
-        $this->memcache();
+        $this->mongo();
     }
     public function demo() {
         $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
@@ -43,7 +43,8 @@ class DemoService extends Service {
     public function mongo() {
         $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
         //$this->demoUserMongo->connect();
-        //$ret = $this->demoUserMongo->get(2014);
+        $ret = $this->demoUserMongo->get(2009);
+        Logger::debug($ret);
         $ret = $this->demoUserMongo->upd(2009, array('name' => 'demo'.rand(1, 100000)));
         Logger::debug($ret);
         $ret = $this->demoUserMongo->del(2008);
