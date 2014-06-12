@@ -13,14 +13,14 @@ class SSO extends AbstractPlugin {
     public function sayhello() {
         //App::s
         //Web::test();echo '<br>';
-        Logger::debug('SSO say hello!');
+        Logger::info('SSO say hello!');
     }
     public function sayhello2($action) {
-        Logger::debug('SSO say hello2!');
+        Logger::info('SSO say hello2!');
     }
     public function sayhello3() {
         //Web::test();echo '<br>';
-        Logger::debug('SSO say hello3!');
+        Logger::info('SSO say hello3!');
     }
 }
 ?>

@@ -71,6 +71,15 @@ class Util {
         }
         return $bool;
     }
+    public static function hasNext($total, $offset = -1, $num = -1) {
+        if($offset == -1 || $num == -1) {
+            return false;
+        } else if($total > $offset + $num) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     /**
      * php array to php content
      *

@@ -6,6 +6,7 @@ use \MongoDB;
 use \MongoClient;
 use \MongoCollection;
 use \MongoCursor;
+use lay\util\Logger;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -348,10 +349,10 @@ class Coder {
         $this->makeDb();
         $this->makeCollection();
         $this->makeFindFun();
+        $this->makeGroup();
         $this->makeSort();
         $this->makeSkip();
         $this->makeLimit();
-        // $this->makeIterator();
         return $this->cursor;
     }
     public function makeSelectOne() {
@@ -399,11 +400,24 @@ class Coder {
         return $this->result;
     }
     public function makeIterator() {
-        $this->result = false;
+        $this->result = array();
         if(empty($this->cursor)) {
             // don't do
-        } else {
+        } else if(is_subclass_of($this->cursor, 'Iterator')) {
             $this->result = iterator_to_array($this->cursor);
+        } else {
+            $this->result = $this->cursor['result'];
+        }
+        return $this->result;
+    }
+    public function makeOne() {
+        if(empty($this->result)) {
+            // don't do
+            $this->result = false;
+        } else {
+            //$classname = get_class($this->model);
+            //$bean = new $classname();
+            //$this->result = $bean->build($this->result)->toArray();
         }
         return $this->result;
     }
@@ -424,10 +438,44 @@ class Coder {
         }
     }
     private function makeFindFun() {
-        $query = empty($this->query) ? array() : $this->query;
-        $fields = empty($this->fields) ? ($this->model ? $this->model->toFields() : array()) : $this->fields;
         if($this->collection) {
-            $this->cursor = $this->collection->find($query, $fields);
+            if(empty($this->fields) && $this->model) {
+                $this->setFields($this->model->toFields());
+            }
+            $fields = empty($this->fields) ? array() : $this->fields;
+            $query = empty($this->query) ? array() : $this->query;
+            if(method_exists($this->collection, 'aggregate')) {
+                $command = array();
+                if(!empty($query)) {
+                    $command[]['$match'] = $query;
+                }
+                if(!empty($this->group)) {
+                    $command[]['$group'] = $this->group;
+                }
+                if(!empty($this->order)) {
+                    $command[]['$sort'] = $this->order;
+                }
+                if(!empty($fields)) {
+                    $columns = $this->model->columns();
+                    foreach ($fields as $field => $v) {
+                        $k = array_search($field, $columns);
+                        if($k && $field !== $k && $v!= 0) {
+                            $fields[$field] = 0;
+                            $fields[$k] = '$'.$field;
+                        }
+                    }
+                    $command[]['$project'] = $fields;
+                }
+                if($this->offset > 0) {
+                    $command[]['$skip'] = $this->offset;
+                }
+                if($this->num > 0) {
+                    $command[]['$limit'] = $this->num;
+                }
+                $this->cursor = $this->collection->aggregate($command);
+            } else {
+                $this->cursor = $this->collection->find($query, $fields);
+            }
         } else {
             Logger::error('null given mongo collection!');
         }
@@ -502,22 +550,29 @@ class Coder {
             Logger::error('null given mongo collection!');
         }
     }
+    private function makeGroup() {
+        if(empty($this->group)) {
+            // don't do
+        } else if(is_a($this->cursor, 'MongoCursor')) {
+            //$this->cursor->($this->order);
+        }
+    }
     private function makeSort() {
         if(empty($this->order)) {
             // don't do
-        } else {
+        } else if(is_a($this->cursor, 'MongoCursor')) {
             $this->cursor->sort($this->order);
         }
     }
     private function makeSkip() {
-        if($this->offset > 0) {
+        if($this->offset > 0 && is_a($this->cursor, 'MongoCursor')) {
             $this->cursor->skip($this->offset);
         } else {
             // don't do
         }
     }
     private function makeLimit() {
-        if($this->num > 0) {
+        if($this->num > 0 && is_a($this->cursor, 'MongoCursor')) {
             $this->cursor->limit($this->num);
         } else {
             // don't do

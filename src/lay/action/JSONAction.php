@@ -27,7 +27,7 @@ abstract class JSONAction extends Action {
         foreach($headers as $header) {
             @header($header);
         }
-        echo json_encode($res->toStdClass());
+        echo json_encode($res->toStdClass(), JSON_PRETTY_PRINT);
         //$this->template->json();
     }
 }

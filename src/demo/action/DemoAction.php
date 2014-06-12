@@ -44,7 +44,8 @@ class DemoAction extends JSONAction {
     }
     public function testMysql() {
         $ret = $this->demoService->select(array('type' => array(0, '>')), array(0, 5));
-        $list = Lister::newInstance($ret, 20, true);
+        $total = $this->demoService->count(array('type' => array(0, '>')));
+        $list = Lister::newInstance($ret, $total, true);
         $this->template->push($list->toArray());
         Logger::debug($ret);
     }

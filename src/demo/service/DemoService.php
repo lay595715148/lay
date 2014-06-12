@@ -9,6 +9,8 @@ use demo\model\DemoUser;
 use demo\store\DemoUserMongo;
 use demo\store\DemoStore;
 use web;
+use lay\entity\Lister;
+use lay\util\Util;
 
 class DemoService extends Service {
     /**
@@ -32,10 +34,18 @@ class DemoService extends Service {
         $b = new web\Web();
         $this->mongo();
     }
+    /**
+     * 
+     * @return array
+     */
     public function demo() {
+        $offset = 3;
+        $num = 5;
         $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
-        $ret = $this->demoUserMongo->select(array(), array('_id', 'name'), array(), array(5, 5));
-        return empty($ret) ? array() : $ret;
+        $ret = $this->demoUserMongo->select(array('_id' => array('$gt' => 2009)), array(), array(), array($offset, $num));
+        $total = $this->demoUserMongo->count(array('_id' => array('$gt' => 2009)));
+        $hasNext = Util::hasNext($total, $offset, $num);
+        return Lister::newInstance($ret, $total, $hasNext)->toArray();
     }
     /**
      * 测试mongo

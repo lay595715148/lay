@@ -2,7 +2,7 @@
 use lay\util\Logger;
 
 return array(
-    'logger' => array(Logger::L_ALL, false, 0),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
+    'logger' => array(Logger::L_DEBUG, false, 0),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
     'code' => array(
         '404' => '/404.html'
     ),

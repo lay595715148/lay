@@ -1,13 +1,15 @@
 <?php
+
 /**
  * 基础数据类文件
  * @author Lay Li
  */
 namespace lay\core;
 
-use \lay\App;
+use lay\App;
 use stdClass;
 use lay\util\Util;
+use Iterator;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -15,139 +17,168 @@ if(! defined('INIT_LAY')) {
 
 /**
  * 基础数据类，继承此类时需要在构造方法中传递以属性名对应默认属性值的数组给受保护的$properties
+ * 
  * @abstract
+ *
  * @author Lay Li
  */
-abstract class Bean extends AbstractBean {
+abstract class Bean extends AbstractBean implements Iterator {
     /**
      * 定义字符串类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_STRING = 'string';
     /**
      * 定义字符串类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_STRING = 1;
     /**
      * 定义数值类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_NUMBER = 'number';
     /**
      * 定义数值类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_NUMBER = 2;
     /**
      * 定义整数类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_INTEGER = 'integer';
     /**
      * 定义整数类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_INTEGER = 3;
     /**
      * 定义布尔类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_BOOLEAN = 'boolean';
     /**
      * 定义布尔类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_BOOLEAN = 4;
     /**
      * 定义日期时间类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_DATETIME = 'datetime';
     /**
      * 定义日期时间类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_DATETIME = 5;
     /**
      * 定义日期类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_DATE = 'date';
     /**
      * 定义日期类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_DATE = 6;
     /**
      * 定义时间类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_TIME = 'time';
     /**
      * 定义时间类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_TIME = 7;
     /**
      * 定义浮点数类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_FLOAT = 'float';
     /**
      * 定义浮点数类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_FLOAT = 8;
     /**
      * 定义double类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_DOUBLE = 'double';
     /**
      * 定义double类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_DOUBLE = 9;
     /**
      * 定义数组类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_ARRAY = 'array';
     /**
      * 定义数组类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_ARRAY = 10;
     /**
      * 定义数组类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_S_PURE_ARRAY = 'pure_array';
     /**
      * 定义数组类型的属性值
+     * 
      * @var int
      */
     const PROPETYPE_PURE_ARRAY = 11;
     /**
      * 定义特定格式类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_DATEFORMAT = 'dateformat';
     /**
      * 定义其他类型的属性值
+     * 
      * @var string
      */
     const PROPETYPE_S_OTHER = 'other';
     /**
      * 属性名对默认属性值的数组，如：array('id'=>0,'name'=>'')；
      * 请不要在非__construct，__set，__get方法中修改它
+     * 
      * @var array
      */
     protected $properties = array();
     /**
      * 构造方法
-     * @param array $properties 属性名对默认属性值的数组
+     * 
+     * @param array $properties
+     *            属性名对默认属性值的数组
      */
     public function __construct($properties) {
         if(is_array($properties)) {
@@ -156,7 +187,9 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 检测属性是否设置
-     * @param string $name 属性名
+     * 
+     * @param string $name
+     *            属性名
      * @return boolean
      */
     public function __isset($name) {
@@ -164,7 +197,9 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 将某个属性去除
-     * @param string $name 属性名
+     * 
+     * @param string $name
+     *            属性名
      * @return void
      */
     public function __unset($name) {
@@ -172,9 +207,12 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 设置对象属性值的魔术方法
+     * 
      * @see \lay\core\AbstractObject::__set()
-     * @param string $name 属性名
-     * @param mixed $value 属性值
+     * @param string $name
+     *            属性名
+     * @param mixed $value
+     *            属性值
      * @return void
      */
     public function __set($name, $value) {
@@ -284,8 +322,10 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 获取对象属性值的魔术方法
+     * 
      * @see \lay\core\AbstractObject::__get()
-     * @param string $name 属性名
+     * @param string $name
+     *            属性名
      * @return mixed
      */
     public function &__get($name) {
@@ -299,8 +339,11 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 其他类型属性赋值时调用的方法
-     * @param mixed $value 值
-     * @param mixed $propertype 定义为其他类型的规则类型
+     * 
+     * @param mixed $value
+     *            值
+     * @param mixed $propertype
+     *            定义为其他类型的规则类型
      * @return mixed
      */
     protected function otherFormat($value, $propertype) {
@@ -308,8 +351,11 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 魔术方法，实现属性的set和get方法
-     * @param string $method 方法名
-     * @param array $arguments 参数数组
+     * 
+     * @param string $method
+     *            方法名
+     * @param array $arguments
+     *            参数数组
      * @return mixed
      */
     public function __call($method, $arguments) {
@@ -348,6 +394,7 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 返回序列化后的字符串
+     * 
      * @return string
      */
     public function __toString() {
@@ -372,6 +419,7 @@ abstract class Bean extends AbstractBean {
     
     /**
      * 返回对象所有属性名的数组
+     * 
      * @see \lay\core\AbstractBean::toProperties()
      * @return array
      */
@@ -380,6 +428,7 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 清空对象所有属性值
+     * 
      * @see \lay\core\AbstractBean::distinct()
      * @return Bean
      */
@@ -474,7 +523,7 @@ abstract class Bean extends AbstractBean {
     
     /**
      * 返回对象属性名对属性值的数组
-     * @see \lay\core\AbstractBean::toArray()
+     * 
      * @return array
      */
     public function toArray() {
@@ -482,6 +531,7 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 返回对象转换为stdClass后的对象
+     * 
      * @see \lay\core\AbstractBean::toObject()
      * @return stdClass
      */
@@ -500,12 +550,13 @@ abstract class Bean extends AbstractBean {
     }
     /**
      * 将数据中包含Bean的子对象转换成stdClass
-     * @param mixed $var
+     * 
+     * @param mixed $var            
      * @return mixed
      */
     protected function _toStdClass($var) {
         if(is_array($var)) {
-            foreach ($var as $k => $v) {
+            foreach($var as $k => $v) {
                 $var[$k] = $this->_toStdClass($v);
             }
             return $var;
@@ -518,8 +569,10 @@ abstract class Bean extends AbstractBean {
     
     /**
      * 将数组中的数据注入到对象中
+     * 
      * @see \lay\core\AbstractBean::build()
-     * @param array $data 数组数据
+     * @param array $data
+     *            数组数据
      * @return Bean
      */
     public function build($data) {
@@ -531,6 +584,21 @@ abstract class Bean extends AbstractBean {
             }
         }
         return $this;
+    }
+    public function current() {
+        return current($this->properties);
+    }
+    public function next() {
+        return next($this->properties);
+    }
+    public function key() {
+        return key($this->properties);
+    }
+    public function valid() {
+        return key($this->properties) !== null;
+    }
+    public function rewind() {
+        return reset($this->properties);
     }
     public function jsonSerialize() {
         return $this->toStdClass();

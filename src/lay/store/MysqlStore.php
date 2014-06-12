@@ -242,7 +242,7 @@ class MysqlStore extends Store {
         $sql = $criteria->makeSelectSQL();
         
         $result = $this->query($sql, 'UTF8', true);
-        return $this->toModel();
+        return $this->toArray();
     }
     
     /**
@@ -297,9 +297,7 @@ class MysqlStore extends Store {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                    $obj = new $classname();
-                    $obj->build((array)$row);
-                    $rows[$i] = $obj->toArray();
+                    $rows[$i] = (array)$row;
                     $i++;
                 }
             }
@@ -307,9 +305,7 @@ class MysqlStore extends Store {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                    $obj = new $classname();
-                    $obj->build((array)$row);
-                    $rows[$i] = $obj->toArray();
+                    $rows[$i] = (array)$row;
                     $i++;
                 }
             }
@@ -324,7 +320,7 @@ class MysqlStore extends Store {
      * @param mixed $result            
      * @return array
      */
-    public function toModel($count = 0) {
+    public function toModelArray($count = 0) {
         $rows = array();
         $result = $this->result;
         $classname = get_class($this->model);
@@ -361,7 +357,7 @@ class MysqlStore extends Store {
      * @param mixed $result            
      * @return array
      */
-    public function toObject($count = 0) {
+    public function toObjectArray($count = 0) {
         $rows = array();
         $result = $this->result;
         $classname = get_class($this->model);
@@ -373,7 +369,7 @@ class MysqlStore extends Store {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build((array)$row);
-                    $rows[$i] = $obj->toObject();
+                    $rows[$i] = $obj->toStdClass();
                     $i++;
                 }
             }
@@ -383,7 +379,7 @@ class MysqlStore extends Store {
                 while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     $obj = new $classname();
                     $obj->build((array)$row);
-                    $rows[$i] = $obj->toObject();
+                    $rows[$i] = $obj->toStdClass();
                     $i++;
                 }
             }
