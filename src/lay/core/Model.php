@@ -66,8 +66,9 @@ abstract class Model extends Bean {
         return array_values($this->columns());
     }
     /**
-     * 通过属性名得到表字段名
-     * @return mixed 如果存在返回字段名，如果参数是字段名直接返回，否则false
+     * 通过属性名得到表字段名，如果存在返回字段名，如果参数是字段名直接返回，否则false
+     * @param string $pro 属性名
+     * @return mixed
      */
     public function toField($pro) {
         $columns = $this->columns();
@@ -79,8 +80,9 @@ abstract class Model extends Bean {
         return false;
     }
     /**
-     * 通过表字段名得到属性名
-     * @return mixed 如果存在返回属性名，如果参数是属性名直接返回，否则false
+     * 通过表字段名得到属性名，如果存在返回属性名，如果参数是属性名直接返回，否则false
+     * @param string $field 字段名
+     * @return mixed 
      */
     public function toProperty($field) {
         $columns = $this->columns();
@@ -92,7 +94,7 @@ abstract class Model extends Bean {
     }
     /**
      * 重写数据注入方法，兼容字段名
-     * @param array $scope 数组数据
+     * @param array $data 数组数据
      * @return Bean
      */
     public function build($data) {

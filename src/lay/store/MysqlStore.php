@@ -12,12 +12,26 @@ use Exception;
 if(! defined('INIT_LAY')) {
     exit();
 }
+
+/**
+ * 操作mysql数据库类
+ * 
+ * @author Lay Li
+ *        
+ */
 class MysqlStore extends Store {
     /**
-     *
+     * mysql数据库连接句柄
+     * 
      * @var Connection
      */
     private $connection;
+    /**
+     * 构造方法
+     * 
+     * @param Model $model            
+     * @param string $name            
+     */
     public function __construct($model, $name = 'default') {
         if(is_string($name)) {
             $config = App::get('stores.' . $name);
@@ -27,7 +41,7 @@ class MysqlStore extends Store {
         parent::__construct($name, $model, $config);
     }
     /**
-     * 连接Mysql数据库
+     * 执行连接mysql数据库
      */
     public function connect() {
         try {
@@ -40,7 +54,7 @@ class MysqlStore extends Store {
         return mysqli_select_db($this->link, $this->schema);
     }
     /**
-     * 切换Mysql数据库
+     * 切换mysql数据库
      *
      * @param string $name
      *            名称
@@ -61,7 +75,7 @@ class MysqlStore extends Store {
     /**
      * do database querying
      *
-     * @param fixed $sql
+     * @param mixed $sql
      *            SQL或其他查询结构
      * @param string $encoding
      *            编码
@@ -102,12 +116,14 @@ class MysqlStore extends Store {
         return $result;
     }
     /**
-     * select by id
+     * select by primary id
      *
      * @param int|string $id
      *            the ID
+     * @return array
      */
     public function get($id) {
+        // TODO relations
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
@@ -125,10 +141,11 @@ class MysqlStore extends Store {
         return $this->toArray(1);
     }
     /**
-     * delete by id
+     * delete by primary id
      *
      * @param int|string $id
      *            the ID
+     * @return boolean
      */
     public function del($id) {
         $result = &$this->result;
@@ -154,6 +171,7 @@ class MysqlStore extends Store {
      *
      * @param array $info
      *            information array
+     * @return int
      */
     public function add(array $info) {
         $result = &$this->result;
@@ -177,11 +195,13 @@ class MysqlStore extends Store {
         return $result ? $this->toLastid() : false;
     }
     /**
-     *
+     * update by primary id
+     * 
      * @param int|string $id
      *            the ID
      * @param array $info
      *            information array
+     * @return boolean
      */
     public function upd($id, array $info) {
         $result = &$this->result;
@@ -206,6 +226,13 @@ class MysqlStore extends Store {
         
         return $this->query($sql, 'UTF8', true);
     }
+    /**
+     * 条件下记录数
+     * 
+     * @param array $info
+     *            query information array
+     * @return int
+     */
     public function count(array $info = array()) {
         $result = &$this->result;
         $link = &$this->link;
@@ -223,7 +250,25 @@ class MysqlStore extends Store {
         $result = $this->query($sql, 'UTF8', true);
         return $this->toScalar();
     }
+    /**
+     * 搜索查询数据
+     * 
+     * @param array $fields
+     *            字段数组
+     * @param array $condition
+     *            条件数组
+     * @param array $order
+     *            排序数组
+     * @param array $limit
+     *            limit数组
+     * @param array $group
+     *            group数组
+     * @param array $having
+     *            having数组
+     * @return array
+     */
     public function select($fields = array(), $condition = array(), $order = array(), $limit = array(), $group = array(), $having = array()) {
+        // TODO relations
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
@@ -248,8 +293,8 @@ class MysqlStore extends Store {
     /**
      * 获取结果集中的行数或执行影响的行数
      *
-     * @param mixed $result            
-     * @param bool $isselect            
+     * @param bool $isselect
+     *            是不是SELECT语句的记录数，否则是上一条SQL语句的影响记录数
      * @return mixed
      */
     public function toCount($isselect = true) {
@@ -260,9 +305,10 @@ class MysqlStore extends Store {
         }
     }
     /**
-     * return id
+     * return mysql last insert id
      *
      * @return
+     *
      *
      *
      */
@@ -270,11 +316,9 @@ class MysqlStore extends Store {
         return mysqli_insert_id($this->link);
     }
     /**
-     * return SCALAR
+     * 返回单一数据
      *
-     * @return
-     *
-     *
+     * @return mixed
      */
     public function toScalar() {
         $row = mysqli_fetch_row($this->result);
@@ -283,8 +327,8 @@ class MysqlStore extends Store {
     /**
      * 将结果集转换为指定数量的数组
      *
-     * @param int $count            
-     * @param mixed $result            
+     * @param int $count
+     *            指定数量
      * @return array
      */
     public function toArray($count = 0) {
@@ -292,7 +336,7 @@ class MysqlStore extends Store {
         $result = $this->result;
         $classname = get_class($this->model);
         if(! $result) {
-            // TODO result is empty or null
+            // result is empty or null
         } else if($count != 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
@@ -316,8 +360,8 @@ class MysqlStore extends Store {
     /**
      * 将结果集转换为指定数量的Model对象数组
      *
-     * @param int $count            
-     * @param mixed $result            
+     * @param int $count
+     *            指定数量
      * @return array
      */
     public function toModelArray($count = 0) {
@@ -325,7 +369,7 @@ class MysqlStore extends Store {
         $result = $this->result;
         $classname = get_class($this->model);
         if(! $result) {
-            // TODO result is empty or null
+            // result is empty or null
         } else if($count != 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
@@ -351,10 +395,10 @@ class MysqlStore extends Store {
         return $rows;
     }
     /**
-     * 将结果集转换为指定数量的基本对象数组
+     * 将结果集转换为指定数量的stdClass对象数组
      *
-     * @param int $count            
-     * @param mixed $result            
+     * @param int $count
+     *            指定数量
      * @return array
      */
     public function toObjectArray($count = 0) {
@@ -362,7 +406,7 @@ class MysqlStore extends Store {
         $result = $this->result;
         $classname = get_class($this->model);
         if(! $result) {
-            // TODO result is empty or null
+            // result is empty or null
         } else if($count != 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {

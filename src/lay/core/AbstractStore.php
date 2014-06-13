@@ -29,7 +29,7 @@ abstract class AbstractStore extends AbstractObject {
     /**
      * do database querying
      *
-     * @param fixed $sql
+     * @param mixed $sql
      *            SQL或其他查询结构
      * @param string $encoding
      *            编码

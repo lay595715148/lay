@@ -12,6 +12,10 @@ if(!defined('INIT_LAY')) {
  * @abstract
  */
 abstract class HTMLAction extends Action {
+    /**
+     * (non-PHPdoc)
+     * @see \lay\core\Action::onStop()
+     */
     public function onStop() {
         $this->template->display();
     }

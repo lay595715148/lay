@@ -180,7 +180,7 @@ abstract class Bean extends AbstractBean implements Iterator {
      * @param array $properties
      *            属性名对默认属性值的数组
      */
-    public function __construct($properties) {
+    public function __construct(array $properties = array()) {
         if(is_array($properties)) {
             $this->properties = $properties;
         }
@@ -585,21 +585,45 @@ abstract class Bean extends AbstractBean implements Iterator {
         }
         return $this;
     }
+    /**
+     * (non-PHPdoc)
+     * @see Iterator::current()
+     */
     public function current() {
         return current($this->properties);
     }
+    /**
+     * (non-PHPdoc)
+     * @see Iterator::next()
+     */
     public function next() {
         return next($this->properties);
     }
+    /**
+     * (non-PHPdoc)
+     * @see Iterator::key()
+     */
     public function key() {
         return key($this->properties);
     }
+    /**
+     * (non-PHPdoc)
+     * @see Iterator::valid()
+     */
     public function valid() {
         return key($this->properties) !== null;
     }
+    /**
+     * (non-PHPdoc)
+     * @see Iterator::rewind()
+     */
     public function rewind() {
         return reset($this->properties);
     }
+    /**
+     * json serialize function
+     * @return stdClass
+     */
     public function jsonSerialize() {
         return $this->toStdClass();
     }

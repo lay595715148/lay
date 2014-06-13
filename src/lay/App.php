@@ -84,7 +84,8 @@ final class App {
      */
     public static function start() {
         global $_START;
-        $_START = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
+        //起始时间
+        $_START = time() + substr(( string )microtime(), 1, 8);
         return self::getInstance()->initilize()->run();
     }
     /**
@@ -252,8 +253,19 @@ final class App {
      * @return App
      */
     public function initilize() {
-        // $sep = DIRECTORY_SEPARATOR;
-        $rootpath = App::$_RootPath;
+        // 先把autoload、rootpath和基本的classpath定义好
+        $sep = DIRECTORY_SEPARATOR;
+        // 使用自定义的autoload方法
+        spl_autoload_register(array(
+                $this,
+                'autoload'
+        ));
+        // 设置根目录路径
+        App::$_RootPath = $rootpath = dirname(dirname(__DIR__));
+        // 设置核心类加载路径
+        foreach($this->classpath as $i => $path) {
+            $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
+        }
         // 加载类文件路径缓存
         $this->loadCache();
         // 初始化logger
@@ -422,6 +434,7 @@ final class App {
         if(! $classname || ! class_exists($classname)) {
             return false;
         }
+        //过滤一些配置条件
         if(isset($config['host']) && ! in_array($_SERVER['HTTP_HOST'], explode('|', $config['host']))) {
             return false;
         }
@@ -438,7 +451,7 @@ final class App {
      * 通过URI和路由规则配置项创建行为控制对象实例
      *
      * @param string $uri
-     *            URI，去除了domain和query部分，例如：/uri
+     *            URI，去除了domain和query的部分，例如：/uri
      * @param array $router
      *            路由规则配置数组
      * @return boolean Ambigous unknown, NULL>
@@ -454,6 +467,7 @@ final class App {
         if(! $classname || ! class_exists($classname)) {
             return false;
         }
+        //过滤一些配置条件
         if(isset($router['host']) && ! in_array($_SERVER['HTTP_HOST'], explode('|', $router['host']))) {
             return false;
         }
@@ -828,19 +842,6 @@ final class App {
      * 构造方法
      */
     private function __construct() {
-        // 构造时把autoload、rootpath和基本的classpath定义好
-        $sep = DIRECTORY_SEPARATOR;
-        // 使用自定义的autoload方法
-        spl_autoload_register(array(
-                $this,
-                'autoload'
-        ));
-        // 设置根目录路径
-        App::$_RootPath = $rootpath = dirname(dirname(__DIR__));
-        // 设置核心类加载路径
-        foreach($this->classpath as $i => $path) {
-            $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
-        }
     }
     /**
      * 析造方法

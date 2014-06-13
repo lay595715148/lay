@@ -13,9 +13,21 @@ if(!defined('INIT_LAY')) {
  * @abstract
  */
 abstract class AbstractTemplate extends AbstractObject {
+    /**
+     * output as template
+     */
     public abstract function out();
+    /**
+     * output as json string
+     */
     public abstract function json();
+    /**
+     * output as xml string
+     */
     public abstract function xml();
+    /**
+     * output as template
+     */
     public abstract function display();
 }
 ?>

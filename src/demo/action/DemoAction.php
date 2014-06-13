@@ -9,6 +9,8 @@ use lay\util\Logger;
 use demo\service\DemoService;
 use lay\entity\Response;
 use lay\entity\Lister;
+use lay\util\Util;
+use lay\util\Collector;
 
 class DemoAction extends JSONAction {
     /**
@@ -31,11 +33,11 @@ class DemoAction extends JSONAction {
         //Logger::debug($ret);
         //$ret = $this->demoService->select(array('type' => '0'), array(0, 2));
         //Logger::debug($ret);
-        $a = array('$f','$d', '_id' => array('$gt' => 2010));
-        $ret = Coder::array2Code($a);
-        Logger::debug($ret);
-        $ret = json_encode($a);
-        Logger::debug($ret);
+        //$a = array('$f','$d', '_id' => array('$gt' => 2010));
+        //$ret = Coder::array2Code($a);
+        //Logger::debug($ret);
+        //$ret = json_encode($a);
+        //Logger::debug($ret);
     }
     public function onGet() {
         //$ret = $this->demoService->test();
@@ -43,11 +45,14 @@ class DemoAction extends JSONAction {
         $this->testMysql();
     }
     public function testMysql() {
-        $ret = $this->demoService->select(array('type' => array(0, '>')), array(0, 5));
+        $offset = 3;
+        $num = 5;
+        $ret = $this->demoService->select(array('type' => array(0, '>')), array($offset, $num));
         $total = $this->demoService->count(array('type' => array(0, '>')));
-        $list = Lister::newInstance($ret, $total, true);
+        $list = Collector::lister($ret, $total, $offset, $num);
+        //$list = Lister::newInstance($ret, $total, Util::hasNext($total, $offset, $num));
         $this->template->push($list->toArray());
-        Logger::debug($ret);
+        //Logger::debug($ret);
     }
     public function test() {
         $ret = $this->demoService->del(50);

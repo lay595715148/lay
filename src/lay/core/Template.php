@@ -17,7 +17,8 @@ if(! defined('INIT_LAY'))
 class Template extends AbstractTemplate {
     const TEMPLATE_PROVIDER_CONFIG_TAG = 'template-provider';
     /**
-     * @staticvar Template instance
+     * Template instance
+     * @staticvar Template
      */
     private static $instance = null;
     /**

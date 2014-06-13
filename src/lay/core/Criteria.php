@@ -15,36 +15,96 @@ if(! defined('INIT_LAY')) {
  */
 class Criteria {
     /**
-     *
+     * Model
      * @var Model
      */
     private $model = false;
+    /**
+     * modifier
+     * @var string
+     */
     private $modifier = true;
+    /**
+     * current operation flag
+     * @var string
+     */
     private $operation = 'SELECT';
+    /**
+     * query fields string
+     * @var array
+     */
     private $fields = '';
+    /**
+     * values info string
+     * @var string
+     */
     private $values = '';
+    /**
+     * sets info string
+     * @var string
+     */
     private $setter = '';
+    /**
+     * schema name string
+     * @var string
+     */
     private $schema = '';
+    /**
+     * table name string
+     * @var string
+     */
     private $table = '';
+    /**
+     * query condition string
+     * @var string
+     */
     private $condition = '';
+    /**
+     * group condition string
+     * @var string
+     */
     private $group = '';
+    /**
+     * having condition string
+     * @var string
+     */
     private $having = '';
+    /**
+     * sorting condition string
+     * @var string
+     */
     private $order = '';
+    /**
+     * limit first number
+     * @var int
+     */
     private $offset = - 1; // for paging
+    /**
+     * limit second number
+     * @var int
+     */
     private $num = - 1; // for paging
     private $sql = '';
     
     /**
      * please always set model
      *
-     * @param Model $model            
+     * @param Model $model Model
      */
     public function __construct($model = false) {
         $this->setModel($model);
     }
+    /**
+     * 设置是否使用着重号
+     * @param string $modifier if using modifier
+     */
     public function setModifier($modifier = true) {
         $this->modifier = $modifier ? true : false;
     }
+    /**
+     * 设置model属性
+     * @param Model $model Model
+     */
     public function setModel($model) {
         if(is_subclass_of($model, 'lay\core\Model')) {
             $this->model = $model;
@@ -55,7 +115,7 @@ class Criteria {
     /**
      * 设置SQL FIELDS部分
      *
-     * @param array $fields            
+     * @param array $fields field array
      */
     public function setFields(array $fields) {
         $m = $this->modifier;
@@ -109,7 +169,7 @@ class Criteria {
      * 设置INTO中的VALUES部分，同时也将INTO中FIELDS部分设置了
      * 注：传入参数不支持string类型
      *
-     * @param array $values            
+     * @param array $values value array
      */
     public function setValues(array $values) {
         $m = $this->modifier;
@@ -153,7 +213,7 @@ class Criteria {
     /**
      * 设置SQL SET部分
      *
-     * @param array $info            
+     * @param array $info set info array
      */
     public function setSetter(array $info) {
         $m = $this->modifier;
@@ -197,6 +257,10 @@ class Criteria {
             Logger::error('invalid set info string or array!');
         }
     }
+    /**
+     * 设置SQL TABLE部分
+     * @param string $table table name
+     */
     public function setTable($table) {
         $m = $this->modifier;
         if(empty($table)) {
@@ -209,6 +273,10 @@ class Criteria {
             Logger::error('invlid table,table name must be string');
         }
     }
+    /**
+     * 设置SQL SCHEMA部分
+     * @param string $schema schema name
+     */
     public function setSchema($schema) {
         if(empty($schema)) {
             // Logger::error('empty schema');
@@ -220,6 +288,10 @@ class Criteria {
             Logger::error('invlid schema,schema name must be string');
         }
     }
+    /**
+     * 添加一个SQL条件语句单元
+     * @param array $condition condition array 
+     */
     public function setCondition($condition) {
         if(empty($condition)) {
             // Logger::error('empty condition');
@@ -234,6 +306,10 @@ class Criteria {
             Logger::error('invlid condition');
         }
     }
+    /**
+     * 添加多个SQL条件语句单元
+     * @param array $conditions conditions array 
+     */
     public function addConditions($conditions) {
         if(empty($conditions)) {
             // Logger::error('empty conditions array');
@@ -245,6 +321,10 @@ class Criteria {
             Logger::error('invlid condition array');
         }
     }
+    /**
+     * 添加简单的SQL条件语句
+     * @param array $info
+     */
     public function addInfoCondition($info) {
         if(empty($info)) {
             // Logger::error('empty info conditions array');
@@ -256,6 +336,10 @@ class Criteria {
             Logger::error('invlid info condition array');
         }
     }
+    /**
+     * 添加多样的SQL条件语句
+     * @param array $mix
+     */
     public function addMultiCondition($mix) {
         if(empty($mix)) {
             // Logger::error('empty info conditions array');
@@ -279,6 +363,15 @@ class Criteria {
             Logger::error('invlid multi condition array');
         }
     }
+    /**
+     * 添加一个SQL条件语句单元
+     * 
+     * @param string $field 字段名
+     * @param mixed $value 值
+     * @param string $symbol 符号
+     * @param string $combine 连接符号，AND、OR等
+     * @param array $options 可选项
+     */
     public function addCondition($field, $value, $symbol = '=', $combine = 'AND', $options = array()) {
         $m = $this->modifier;
         if(empty($field)) {
@@ -321,6 +414,14 @@ class Criteria {
             Logger::error('invlid condition field');
         }
     }
+    /**
+     * 组合一个条件语句
+     * @param string $symbol
+     * @param string $fieldstr
+     * @param mixed $value
+     * @param array $options
+     * @return string
+     */
     protected function switchSymbolCondition($symbol, $fieldstr, $value, $options = array()) {
         $condition = '';
         $symbol = strtolower($symbol); // 变成小写
@@ -394,6 +495,11 @@ class Criteria {
         }
         return $condition;
     }
+    /**
+     * 设置SQL ORDER部分
+     * 
+     * @param array $order sorting array
+     */
     public function setOrder($order) {
         $m = $this->modifier;
         if(empty($order)) {
@@ -429,6 +535,11 @@ class Criteria {
             Logger::error('invlid info conditions array');
         }
     }
+    /**
+     * 设置SQL LIMT部分
+     * 
+     * @param array $limit limit array
+     */
     public function setLimit($limit) {
         if(empty($limit)) {
             $this->setOffset(0);
@@ -446,15 +557,35 @@ class Criteria {
             Logger::error('invlid limit array');
         }
     }
+    /**
+     * 设置offset属性
+     * 
+     * @param int $offset limit first number
+     */
     public function setOffset($offset) {
         $this->offset = intval($offset);
     }
+    /**
+     * 设置num属性
+     * 
+     * @param int $num limit second number
+     */
     public function setNum($num) {
         $this->num = intval($num);
     }
-    public function setGroup() {
+    /**
+     * 设置SQL GROUP部分
+     * 
+     * @param array $group group condition array
+     */
+    public function setGroup($group = array()) {
     }
-    public function setHaving() {
+    /**
+     * 设置SQL HAVING部分
+     * 
+     * @param array $group having condition array
+     */
+    public function setHaving($having = array()) {
     }
     /**
      * make select sql
@@ -519,6 +650,11 @@ class Criteria {
         $this->makeStrictConditionSQL();
         return $this->sql;
     }
+    /**
+     * make count sql
+     *
+     * @return string
+     */
     public function makeCountSQL() {
         $this->sql = $this->operation = 'SELECT';
         $this->makeCountFieldSQL();
@@ -528,6 +664,11 @@ class Criteria {
         $this->makeHavingSQL();
         return $this->sql;
     }
+    /**
+     * trim modifier string
+     *
+     * @return string
+     */
     public function trimModifier($var) {
         if(is_array($var) && ! empty($var)) {
             return array_map(array(
@@ -539,6 +680,11 @@ class Criteria {
         }
         return $var;
     }
+    /**
+     * untrim modifier string
+     *
+     * @return string
+     */
     public function untrimModifier($var) {
         if(is_array($var) && ! empty($var)) {
             return array_map(array(
@@ -550,6 +696,11 @@ class Criteria {
         }
         return $var;
     }
+    /**
+     * trim quote string
+     *
+     * @return string
+     */
     public function trimQuote($var) {
         if(is_array($var) && ! empty($var)) {
             return array_map(array(
@@ -561,6 +712,11 @@ class Criteria {
         }
         return $var;
     }
+    /**
+     * untrim quote string
+     *
+     * @return string
+     */
     public function untrimQuote($var) {
         if(is_array($var) && ! empty($var)) {
             return array_map(array(
@@ -572,6 +728,11 @@ class Criteria {
         }
         return $var;
     }
+    /**
+     * trim quotes string
+     *
+     * @return string
+     */
     public function trimQuotes($var) {
         if(is_array($var) && ! empty($var)) {
             return array_map(array(
@@ -583,6 +744,11 @@ class Criteria {
         }
         return $var;
     }
+    /**
+     * untrim quotes string
+     *
+     * @return string
+     */
     public function untrimQuotes($var) {
         if(is_array($var) && ! empty($var)) {
             return array_map(array(

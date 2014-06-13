@@ -1,25 +1,31 @@
 <?php
+
 namespace lay\core;
 
 use \lay\App;
+use lay\util\Logger;
 
 if(! defined('INIT_LAY'))
     exit();
 
 /**
- * 默认节点数据实现类
+ * 配置数据访问类
  *
  * @author Lay Li
- *
  */
 class Configuration {
+    /**
+     * 配置数据访问类实例数组
+     * @var array
+     */
     private static $_Instances = array();
     /**
-     *
+     * 获取某个App的配置数据访问类实例
+     * 
      * @param string $appname
      *            app名称
      * @return Configuration
-    */
+     */
     public static function getInstance($appname = 'lay') {
         if(! self::checkAppname($appname)) {
             return null;
@@ -73,21 +79,24 @@ class Configuration {
             return false;
         }
     }
-
+    
     /**
      * 数据根节点
      *
      * @var array
      */
     private $configuration = array();
+    /**
+     * 私有的构造方法
+     */
     private function __construct() {
     }
     /**
      * 获取节点的值
      *
-     * @param array|string|int $keystr
+     * @param string $keystr
      *            要获取的节点键名
-     * @return array string number boolean
+     * @return mixed
      */
     public function getter($keystr) {
         if($this->checkKey($keystr)) {
@@ -131,7 +140,7 @@ class Configuration {
                 Logger::warn('given value isnot supported;string,number,boolean is ok.', 'CONFIGURATION');
             } else {
                 if(! $this->checkKeyValue($keystr, $value)) {
-                    Debugger::warn('given key and value isnot match;if key is array,value must be array.', 'CONFIGURATION');
+                    Logger::warn('given key and value isnot match;if key is array,value must be array.', 'CONFIGURATION');
                 } else {
                     $node = &$this->configuration;
                     if(is_array($keystr) && $keystr) {
@@ -143,7 +152,7 @@ class Configuration {
                         $count = count($keys);
                         foreach($keys as $index => $key) {
                             if(isset($node[$key]) && $index === $count - 1) {
-                                // TODO warning has been configured by this name
+                                // warning has been configured by this name
                                 Logger::warn('$configuration["' . implode('"]["', $keys) . '"] has been configured.', 'CONFIGURATION');
                                 $node[$key] = $value;
                             } else if(isset($node[$key])) {
@@ -203,9 +212,13 @@ class Configuration {
         }
     }
     /**
-     *
+     * 检测节点键名与节点值是否是对应类型
+     * 
      * @param array $key
-     * @param array $values
+     *            节点键名
+     * @param array $value
+     *            节点值
+     * @return boolean
      */
     private function checkKeyValue($key, $value) {
         if(is_array($key)) {

@@ -4,14 +4,29 @@ namespace lay\core;
 
 use lay\App;
 use lay\core\AbstractPlugin;
+use lay\core\Action;
+use lay\core\Service;
+use lay\core\Store;
 use lay\util\Logger;
 
 if(! defined('INIT_LAY')) {
     exit();
 }
+
+/**
+ * 插件管理类
+ *
+ * @author Lay Li
+ */
 class PluginManager {
+    /**
+     * PluginManager实例
+     *
+     * @var PluginManager
+     */
     private static $_Instance = null;
     /**
+     * 获取PluginManager实例
      *
      * @return PluginManager
      */
@@ -27,13 +42,14 @@ class PluginManager {
      * @param array $plugins
      *            plugin array
      */
-    public static function initilize($plugins = array()) {
+    public static function initilize(array $plugins = array()) {
         if(empty($plugins)) {
             $sep = DIRECTORY_SEPARATOR;
             $dir = App::$_RootPath . $sep . 'src' . $sep . 'plugin';
             $dirs = scandir($dir);
             foreach($dirs as $d) {
-                if(is_dir($dir . $sep . $d) && $d != '.' && $d != '..' && empty(App::get('plugins.' . $d))) {
+                $c = App::get('plugins.' . $d);
+                if(is_dir($dir . $sep . $d) && $d != '.' && $d != '..' && empty($c)) {
                     App::set('plugins.' . $d, array(
                             'name' => $d
                     ));
@@ -46,15 +62,41 @@ class PluginManager {
             self::getInstance()->loadPlugins($plugins);
         }
     }
-    public static function exec($hookname, $params = array()) {
+    /**
+     * 触发插件钩子
+     *
+     * @param string $hookname
+     *            钩子名
+     * @param array $params
+     *            参数数组
+     */
+    public static function exec($hookname, array $params = array()) {
         self::getInstance()->trigger($hookname, $params);
     }
+    /**
+     * 获取已经触发过的钩子名数组
+     *
+     * @return array
+     */
     public static function activedHooks() {
         return self::getInstance()->getActivedHooks();
     }
+    /**
+     * 私有的构造方法
+     */
     private function __construct() {
     }
+    /**
+     * 注册在事件中的插件配置，待事件触发时初始化
+     *
+     * @var array
+     */
     private $_plugins = array(); // 注册在事件中的插件配置，待事件触发时初始化
+    /**
+     * 存放已经初始化的插件对象
+     *
+     * @var array
+     */
     private $plugins = array();
     /**
      * 可用的钩子
@@ -75,8 +117,25 @@ class PluginManager {
      * @var array
      */
     private $listeners = array();
+    /**
+     * 当前钩子名
+     *
+     * @var string
+     */
     private $activeHook = false;
+    /**
+     * 已经触发过的钩子名数组
+     *
+     * @var array
+     */
     private $activedHooks = array();
+    /**
+     * 增加某个钩子名
+     *
+     * @param string $hookname
+     *            hook name
+     * @return boolean
+     */
     public function addHookName($hookname) {
         if(array_search($hookname, $this->hooks)) {
             Logger::warn("hook $hookname has been declared!", 'PLUGIN');
@@ -85,9 +144,21 @@ class PluginManager {
         }
         return true;
     }
+    /**
+     * 获取已经触发过的钩子名数组
+     *
+     * @return array
+     */
     public function getActivedHooks() {
         return $this->activedHooks;
     }
+    /**
+     * 移除某个钩子名
+     *
+     * @param string $hookname
+     *            hook name
+     * @return boolean
+     */
     public function removeHookName($hookname) {
         if($offset = array_search($hookname, $this->hooks)) {
             array_splice($this->hooks, $offset, 1);
@@ -99,10 +170,12 @@ class PluginManager {
     /**
      * 注册需要监听的插件方法（钩子）
      *
-     * @param string $hook            
-     * @param callable $callback            
+     * @param string $hookname
+     *            hook name
+     * @param callable $callback
+     *            可执行函数或方法
      */
-    public function register($hookname, $callback) {
+    public function register($hookname, callable $callback) {
         if(is_callable($callback) && in_array($hookname, $this->hooks)) {
             // 将插件的引用连同方法push进监听数组中
             $this->listeners[$hookname][] = $callback;
@@ -114,7 +187,7 @@ class PluginManager {
     /**
      * Allow a plugin object to unregister a callback.
      *
-     * @param string $hook
+     * @param string $hookname
      *            Hook name
      * @param mixed $callback
      *            String with global function name or array($obj, 'methodname')
@@ -128,8 +201,10 @@ class PluginManager {
     /**
      * 触发某个钩子
      *
-     * @param string $hookname            
-     * @param array $params            
+     * @param string $hookname
+     *            hook name
+     * @param array $params
+     *            parameters
      */
     public function trigger($hookname, $params) {
         $this->activeHook = $hookname;
@@ -156,8 +231,6 @@ class PluginManager {
         }
         $this->activeHook = false;
         return $args;
-        
-        // 处做些日志记录方面的东西
     }
     /**
      * Load and init all enabled plugins
@@ -237,14 +310,17 @@ class PluginManager {
         }
     }
     /**
-     * Load the specified plugin
+     * Load the specified plugin,
+     * True on success, false if not loaded or failure
      *
-     * @param
-     *            string Plugin name
-     * @param
-     *            boolean Force loading of the plugin even if it doesn't match the filter
+     * @param string $name
+     *            Plugin name
+     * @param boolean $classname
+     *            Plugin class name
+     * @param array $options
+     *            Plugin options
      *            
-     * @return boolean True on success, false if not loaded or failure
+     * @return boolean
      */
     public function loadPlugin($name, $classname = '', $options = array()) {
         // plugin already loaded
@@ -273,21 +349,26 @@ class PluginManager {
                 if(is_subclass_of($plugin, 'lay\core\AbstractPlugin')) {
                     $plugin->initilize();
                     $this->plugins[$name] = $plugin;
-                    Logger::info("Avaliable plugin:$classname", 'PLUGIN');
+                    Logger::info("Avaliable plugin classname:$classname", 'PLUGIN');
                     return true;
                 } else {
-                    Logger::warn("Invalid plugin:$classname", 'PLUGIN');
+                    Logger::warn("Invalid plugin classname:$classname", 'PLUGIN');
                 }
             } else {
+                Logger::warn("Invalid plugin:$name", 'PLUGIN');
             }
         } else {
+            Logger::warn("Invalid plugin:$name", 'PLUGIN');
         }
         
         return false;
     }
     /**
+     * 通过存在的Action条件加载插件
      *
-     * @param Action $action            
+     * @param Action $action
+     *            Action子类对象
+     * @return void
      */
     public function loadPluginOnAction($action) {
         $_plugins = $this->_plugins[Action::E_CREATE];
@@ -304,8 +385,11 @@ class PluginManager {
         }
     }
     /**
+     * 通过存在的Service条件加载插件
      *
-     * @param Service $service            
+     * @param Service $service
+     *            Service子类对象
+     * @return void
      */
     public function loadPluginOnService($service) {
         $_plugins = $this->_plugins[Service::E_CREATE];
@@ -322,8 +406,11 @@ class PluginManager {
         }
     }
     /**
+     * 通过存在的Store条件加载插件
      *
-     * @param Store $store            
+     * @param Store $store
+     *            Store子类对象
+     * @return void
      */
     public function loadPluginOnStore($store) {
         $_plugins = $this->_plugins[Store::E_CREATE];
@@ -339,10 +426,18 @@ class PluginManager {
             $this->loadPlugin($plugin['name'], $plugin['classname'], $plugin);
         }
     }
-    private function loadVerify($plugin) {
+    /**
+     * 验证配置项，是否加载此插件
+     *
+     * @param array $plugin
+     *            插件配置数组
+     * @return boolean
+     */
+    private function loadVerify(array $plugin) {
         $time = time();
         $start = strtotime($plugin['start']);
         $end = strtotime($plugin['end']);
+        // 过滤一些配置条件
         if(isset($plugin['start']) && $start && $time < $start) {
             return false;
         }

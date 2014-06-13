@@ -11,6 +11,7 @@ use demo\store\DemoStore;
 use web;
 use lay\entity\Lister;
 use lay\util\Util;
+use lay\util\Collector;
 
 class DemoService extends Service {
     /**
@@ -44,8 +45,8 @@ class DemoService extends Service {
         $this->demoUserMongo = Store::getInstance('demo\store\DemoUserMongo');
         $ret = $this->demoUserMongo->select(array('_id' => array('$gt' => 2009)), array(), array(), array($offset, $num));
         $total = $this->demoUserMongo->count(array('_id' => array('$gt' => 2009)));
-        $hasNext = Util::hasNext($total, $offset, $num);
-        return Lister::newInstance($ret, $total, $hasNext)->toArray();
+        //$hasNext = Util::hasNext($total, $offset, $num);
+        return Collector::lister($ret, $total, $offset, $num)->toArray();
     }
     /**
      * 测试mongo

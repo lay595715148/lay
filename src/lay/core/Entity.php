@@ -6,16 +6,20 @@ if(! defined('INIT_LAY')) {
 }
 
 /**
- * <p>基础数据模型</p>
+ * 基础数据结构体
  *
  * @abstract
  */
 abstract class Entity extends Bean {
     /**
-     * return summary of this object
+     * return its summary properties
      * @return array
      */
     public abstract function summary();
+    /**
+     * return its summary array
+     * @return array
+     */
     public abstract function toSummary();
 }
 ?>

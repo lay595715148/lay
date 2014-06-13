@@ -16,6 +16,7 @@ interface I_Expireable {
     public function getLifetime();
     /**
      * set lifetime,it could be timestamp or expire seconds
+     * @param int $lifetime 生命期
      */
     public function setLifetime($lifetime);
 }

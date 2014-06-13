@@ -70,7 +70,7 @@ class Logger {
      */
     private static $_Sleep = false;
     /**
-     *
+     * Logger实例
      * @var Logger
      */
     private static $_Instance = null;
@@ -142,6 +142,8 @@ class Logger {
      *            字符信息字符串
      * @param string $tag
      *            标签名
+     * @param string $enforce
+     *            是否强制打印输出，默认非
      * @return void
      */
     public static function debug($msg, $tag = '', $enforce = false) {

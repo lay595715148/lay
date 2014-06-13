@@ -3,6 +3,7 @@ namespace lay\entity;
 
 use lay\core\Entity;
 use lay\core\Bean;
+use lay\util\Collector;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -24,19 +25,18 @@ if(! defined('INIT_LAY')) {
 class Lister extends Entity {
     const PROPETYPE_LISTER = 'lister';
     /**
-     * 创建自身的一个新实例
+     * 创建Lister新实例
      * @param array $list
      * @param string $total
      * @param string $hasNext
      * @return Lister
      */
     public static function newInstance($list, $total = false, $hasNext = false) {
-        $instance = new Lister();
-        $instance->list = $list;
-        $instance->total = intval($total);
-        $instance->hasNext = $hasNext ? true : false;
-        return $instance;
+        return Collector::lister($list, $total, $hasNext ? true : false);
     }
+    /**
+     * 构造方法
+     */
     public function __construct() {
         parent::__construct(array(
             'list' => array(),
@@ -44,6 +44,10 @@ class Lister extends Entity {
             'hasNext' => false
         ));
     }
+    /**
+     * (non-PHPdoc)
+     * @see \lay\core\Bean::rules()
+     */
     protected function rules() {
         return  array(
             'list' => Bean::PROPETYPE_PURE_ARRAY,
@@ -51,6 +55,10 @@ class Lister extends Entity {
             'hasNext' => Bean::PROPETYPE_BOOLEAN
         );
     }
+    /**
+     * (non-PHPdoc)
+     * @see \lay\core\Entity::summary()
+     */
     public function summary() {
         return array(
             'list' => 'list',
@@ -58,6 +66,10 @@ class Lister extends Entity {
             'hasNext' => 'hasNext'
         );
     }
+    /**
+     * (non-PHPdoc)
+     * @see \lay\core\Entity::toSummary()
+     */
     public function toSummary() {
         return $this->toArray();
     }

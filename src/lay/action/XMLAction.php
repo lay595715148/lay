@@ -12,6 +12,10 @@ if(!defined('INIT_LAY')) {
  * @abstract
  */
 abstract class XMLAction extends Action {
+    /**
+     * (non-PHPdoc)
+     * @see \lay\core\Action::onStop()
+     */
     public function onStop() {
         $this->template->header('Content-Type: text/xml');
         $this->template->xml();

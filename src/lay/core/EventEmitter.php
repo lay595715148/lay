@@ -1,41 +1,101 @@
 <?php
+
 namespace lay\core;
+
+use Exception;
 
 if(! defined('INIT_LAY'))
     exit();
 
+/**
+ * 事件触发管理类
+ *
+ * @author Lay Li
+ */
 class EventEmitter {
+    /**
+     * 事件集合
+     *
+     * @var array
+     */
     protected static $_EventStack = array();
+    /**
+     * EventEmitter实例
+     *
+     * @var EventEmitter
+     */
     private static $_Instance;
+    /**
+     * 获取EventEmitter实例
+     *
+     * @return EventEmitter
+     */
     public static function getInstance() {
-        if(!self::$_Instance) {
+        if(! self::$_Instance) {
             self::$_Instance = new EventEmitter();
         }
         return self::$_Instance;
     }
     
     /**
+     * 触发事件
      *
-     * @param int|string $eventid            
+     * @param string $eventid
+     *            事件名
+     * @param array $params
+     *            参数数组
      */
     public static function emit($eventid, array $params = array()) {
         self::getInstance()->trigger($eventid, $params);
     }
+    /**
+     * 注册事件
+     *
+     * @param string $eventid
+     *            事件名
+     * @param callable $func
+     *            可执行函数或方法
+     * @param number $level
+     *            层级
+     */
     public static function on($eventid, $func, $level = 0) {
         self::getInstance()->register($eventid, $func, $level);
     }
+    /**
+     * 返回已经触发的事件名数组
+     *
+     * @return array
+     */
     public static function emittedEvents() {
         return self::getInstance()->getEmittedEvents();
     }
+    /**
+     * 已经触发的事件名数组
+     *
+     * @var array
+     */
     private $emittedEvents = array();
+    /**
+     * 构造方法
+     */
     private function __construct() {
     }
+    /**
+     * 返回已经触发的事件名数组
+     *
+     * @return array
+     */
     public function getEmittedEvents() {
         return $this->emittedEvents;
     }
     /**
-     * 实现事件触发
-     * @see I_EventEmitter::trigger()
+     * 触发事件，实现事件触发过程
+     *
+     * @param string $eventid
+     *            事件名
+     * @param array $params
+     *            参数数组
+     * @throws Exception
      */
     public function trigger($eventid, array $params = array()) {
         $this->emittedEvents[] = $eventid;
@@ -54,7 +114,14 @@ class EventEmitter {
     }
     /**
      * 注册事件
-     * @see I_EventEmitter::register()
+     *
+     * @param string $eventid
+     *            事件名
+     * @param callable $func
+     *            可执行函数或方法
+     * @param number $level
+     *            层级
+     * @return boolean
      */
     public function register($eventid, $func, $level = 0) {
         // initialize

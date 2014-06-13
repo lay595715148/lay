@@ -87,7 +87,7 @@ class MemcacheStore extends Store {
     /**
      * do database querying
      *
-     * @param fixed $sql
+     * @param mixed $sql
      *            SQL或其他查询结构
      * @param string $encoding
      *            编码
@@ -105,6 +105,7 @@ class MemcacheStore extends Store {
      * @return array
      */
     public function get($id) {
+        // TODO relations
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
@@ -174,6 +175,7 @@ class MemcacheStore extends Store {
         }
     }
     /**
+     * update by primary id
      *
      * @param int|string $id
      *            the ID
@@ -201,6 +203,7 @@ class MemcacheStore extends Store {
         return $result;
     }
     /**
+     * 条件下记录数
      *
      * @param array $info
      *            information array

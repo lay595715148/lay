@@ -1,4 +1,5 @@
 <?php
+
 namespace lay\util;
 
 if(! defined('INIT_LAY')) {
@@ -7,21 +8,67 @@ if(! defined('INIT_LAY')) {
 
 /**
  * 变量域工具类
+ * 
+ * @author Lay Li
  */
 class Scope {
+    /**
+     * request scope
+     * 
+     * @var int
+     */
     const SCOPE_REQUEST = 0;
+    /**
+     * get scope
+     * 
+     * @var int
+     */
     const SCOPE_GET = 1;
+    /**
+     * post scope
+     * 
+     * @var int
+     */
     const SCOPE_POST = 2;
+    /**
+     * cookie scope
+     * 
+     * @var int
+     */
     const SCOPE_COOKIE = 3;
+    /**
+     * session scope
+     * 
+     * @var int
+     */
     const SCOPE_SESSION = 4;
+    /**
+     * regexp ruglar uri parameter scope
+     * 
+     * @var int
+     */
     const SCOPE_PARAM = 5;
+    /**
+     * header scope
+     * 
+     * @var int
+     */
     const SCOPE_HEADER = 6;
+    /**
+     * every scope chunks
+     * 
+     * @var array
+     */
     private $chunks = array();
+    /**
+     * 构造方法
+     */
     public function __construct() {
         $this->resolve();
     }
     /**
      * 获取GET变量
+     * 
      * @return array
      */
     public function get() {
@@ -30,6 +77,7 @@ class Scope {
     }
     /**
      * 获取POST变量
+     * 
      * @return array
      */
     public function post() {
@@ -38,6 +86,7 @@ class Scope {
     }
     /**
      * 获取REQUEST变量
+     * 
      * @return array
      */
     public function request() {
@@ -46,6 +95,7 @@ class Scope {
     }
     /**
      * 获取COOKIE变量
+     * 
      * @return array
      */
     public function cookie() {
@@ -54,6 +104,7 @@ class Scope {
     }
     /**
      * 获取SESSION变量
+     * 
      * @return array
      */
     public function session() {
@@ -62,6 +113,7 @@ class Scope {
     }
     /**
      * 获取URL正则匹配后的param变量
+     * 
      * @return array
      */
     public function param() {
@@ -70,6 +122,7 @@ class Scope {
     }
     /**
      * 获取header变量
+     * 
      * @return array
      */
     public function header() {
@@ -77,7 +130,10 @@ class Scope {
         return $chunk[self::SCOPE_HEADER];
     }
     /**
+     * 计算各个域变量
      * 
+     * @param boolean $reset
+     *            是否强制重新计算
      * @return array
      */
     public function resolve($reset = false) {
@@ -88,10 +144,18 @@ class Scope {
             $request = $_REQUEST;
             $cookie = $_COOKIE;
             $session = $_SESSION;
-            $param = is_array($_PARAM)?$_PARAM:array();
+            $param = is_array($_PARAM) ? $_PARAM : array();
             $header = array();
-            //$header = $h
-            $this->chunks = array($get, $post, $request, $cookie, $session, $param, $header);
+            // $header = $h
+            $this->chunks = array(
+                    $get,
+                    $post,
+                    $request,
+                    $cookie,
+                    $session,
+                    $param,
+                    $header
+            );
         }
         return $this->chunks;
     }
