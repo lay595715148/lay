@@ -11,8 +11,9 @@ use lay\entity\Response;
 use lay\entity\Lister;
 use lay\util\Util;
 use lay\util\Collector;
+use lay\action\HTMLAction;
 
-class DemoAction extends JSONAction {
+class DemoAction extends HTMLAction {
     /**
      * 
      * @var DemoService
@@ -43,16 +44,21 @@ class DemoAction extends JSONAction {
         //$ret = $this->demoService->test();
         //$this->test();
         $this->testMysql();
+        if(is_a($this, 'lay\action\HTMLAction')) {
+            $this->template->file('demo.php');
+        }
     }
     public function testMysql() {
         $offset = 3;
         $num = 5;
         $ret = $this->demoService->select(array('type' => array(0, '>')), array($offset, $num));
         $total = $this->demoService->count(array('type' => array(0, '>')));
-        $list = Collector::lister($ret, $total, $offset, $num);
-        //$list = Lister::newInstance($ret, $total, Util::hasNext($total, $offset, $num));
-        $this->template->push($list->toArray());
-        //Logger::debug($ret);
+        if(is_a($this, 'lay\action\HTMLAction')) {
+            $this->template->push($ret);
+        } else {
+            $list = Collector::lister($ret, $total, $offset, $num);
+            $this->template->push($list->toArray());
+        }
     }
     public function test() {
         $ret = $this->demoService->del(50);

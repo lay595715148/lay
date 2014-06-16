@@ -1,4 +1,10 @@
 <?php
+/**
+ * 基础数据结构体
+ *
+ * @abstract
+ * @author Lay Li
+ */
 namespace lay\core;
 
 if(! defined('INIT_LAY')) {
@@ -9,6 +15,7 @@ if(! defined('INIT_LAY')) {
  * 基础数据结构体
  *
  * @abstract
+ * @author Lay Li
  */
 abstract class Entity extends Bean {
     /**

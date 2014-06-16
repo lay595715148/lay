@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * 操作mysql数据库类
+ * 
+ * @author Lay Li
+ */
 namespace lay\store;
 
 use lay\App;
@@ -17,7 +21,6 @@ if(! defined('INIT_LAY')) {
  * 操作mysql数据库类
  * 
  * @author Lay Li
- *        
  */
 class MysqlStore extends Store {
     /**

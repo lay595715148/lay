@@ -1,4 +1,8 @@
 <?php
+/**
+ * 数据创建和收集器
+ * @author Lay Li
+ */
 namespace lay\util;
 
 use lay\entity\Lister;
@@ -10,7 +14,7 @@ if(! defined('INIT_LAY')) {
 
 /**
  * 数据创建和收集器
- * @author gypsii
+ * @author Lay Li
  */
 class Collector {
     /**

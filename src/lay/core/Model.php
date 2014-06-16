@@ -1,4 +1,9 @@
 <?php
+/**
+ * 基础表数据模型
+ * @abstract
+ * @author Lay Li
+ */
 namespace lay\core;
 
 if(! defined('INIT_LAY')) {

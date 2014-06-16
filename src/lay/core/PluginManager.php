@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * 插件管理类
+ *
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use lay\App;

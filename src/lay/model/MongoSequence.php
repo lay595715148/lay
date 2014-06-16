@@ -1,4 +1,8 @@
 <?php
+/**
+ * 针对mongodb的主键自增涨模型
+ * @author Lay Li
+ */
 namespace lay\model;
 
 use lay\core\Model;

@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * 变量域工具类
+ * 
+ * @author Lay Li
+ */
 namespace lay\util;
 
 if(! defined('INIT_LAY')) {

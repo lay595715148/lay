@@ -1,7 +1,8 @@
 <?php
-
 /**
- * 基础数据类文件
+ * 基础数据类，继承此类时需要在构造方法中传递以属性名对应默认属性值的数组给受保护的$properties
+ *
+ * @abstract
  * @author Lay Li
  */
 namespace lay\core;
@@ -19,7 +20,6 @@ if(! defined('INIT_LAY')) {
  * 基础数据类，继承此类时需要在构造方法中传递以属性名对应默认属性值的数组给受保护的$properties
  * 
  * @abstract
- *
  * @author Lay Li
  */
 abstract class Bean extends AbstractBean implements Iterator {

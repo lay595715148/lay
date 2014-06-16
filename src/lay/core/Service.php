@@ -1,4 +1,10 @@
 <?php
+/**
+ * 业务逻辑处理类
+ * 
+ * @abstract
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use lay\core\Store;
@@ -11,6 +17,7 @@ if(! defined('INIT_LAY')) {
 /**
  * 业务逻辑处理类
  * 
+ * @abstract
  * @author Lay Li
  */
 abstract class Service extends AbstractService {

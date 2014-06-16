@@ -1,12 +1,17 @@
 <?php
-
+/**
+ * 配置数据访问类
+ *
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use \lay\App;
 use lay\util\Logger;
 
-if(! defined('INIT_LAY'))
+if(! defined('INIT_LAY')) {
     exit();
+}
 
 /**
  * 配置数据访问类

@@ -1,11 +1,16 @@
 <?php
-
+/**
+ * 事件触发管理类
+ *
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use Exception;
 
-if(! defined('INIT_LAY'))
+if(! defined('INIT_LAY')) {
     exit();
+}
 
 /**
  * 事件触发管理类

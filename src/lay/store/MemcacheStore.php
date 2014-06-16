@@ -1,4 +1,8 @@
 <?php
+/**
+ * Memcache Store
+ * @author Lay Li
+ */
 namespace lay\store;
 
 use lay\App;

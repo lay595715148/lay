@@ -1,4 +1,9 @@
 <?php
+/**
+ * 输出JSON格式
+ * @abstract
+ * @author Lay Li
+ */
 namespace lay\action;
 
 use lay\core\Action;

@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * SQL处理器
+ *
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use lay\util\Util;
@@ -8,6 +12,7 @@ use lay\util\Logger;
 if(! defined('INIT_LAY')) {
     exit();
 }
+
 /**
  * SQL处理器
  *
@@ -84,6 +89,10 @@ class Criteria {
      * @var int
      */
     private $num = - 1; // for paging
+    /**
+     * SQL string
+     * @var string
+     */
     private $sql = '';
     
     /**
@@ -583,7 +592,7 @@ class Criteria {
     /**
      * 设置SQL HAVING部分
      * 
-     * @param array $group having condition array
+     * @param array $having having condition array
      */
     public function setHaving($having = array()) {
     }
@@ -667,6 +676,7 @@ class Criteria {
     /**
      * trim modifier string
      *
+     * @param string $var string
      * @return string
      */
     public function trimModifier($var) {
@@ -683,6 +693,7 @@ class Criteria {
     /**
      * untrim modifier string
      *
+     * @param string $var string
      * @return string
      */
     public function untrimModifier($var) {
@@ -699,6 +710,7 @@ class Criteria {
     /**
      * trim quote string
      *
+     * @param string $var string
      * @return string
      */
     public function trimQuote($var) {
@@ -715,6 +727,7 @@ class Criteria {
     /**
      * untrim quote string
      *
+     * @param string $var string
      * @return string
      */
     public function untrimQuote($var) {
@@ -731,6 +744,7 @@ class Criteria {
     /**
      * trim quotes string
      *
+     * @param string $var string
      * @return string
      */
     public function trimQuotes($var) {
@@ -747,6 +761,7 @@ class Criteria {
     /**
      * untrim quotes string
      *
+     * @param string $var string
      * @return string
      */
     public function untrimQuotes($var) {
@@ -760,6 +775,12 @@ class Criteria {
         }
         return $var;
     }
+    /**
+     * explode string,then convert to SET SQL string
+     * 
+     * @param array $str
+     * @return array
+     */
     private function explodeSetter($str) {
         if(is_array($str)) {
             $setter = array();
@@ -783,10 +804,16 @@ class Criteria {
             return false;
         }
     }
+    /**
+     * make COUNT SQL field clause
+     */
     private function makeCountFieldSQL() {
         $this->fields = 'COUNT(*)';
         $this->sql .= ' ' . $this->fields;
     }
+    /**
+     * make SQL INSERT INTO fields clause
+     */
     private function makeIntoFieldsSQL() {
         if($this->fields) {
             $this->sql .= ' (' . $this->fields . ')';
@@ -794,6 +821,9 @@ class Criteria {
             Logger::error('empty into fields!');
         }
     }
+    /**
+     * make fields SQL clause
+     */
     private function makeFieldsSQL() {
         if($this->fields) {
             $this->sql .= ' ' . $this->fields;
@@ -804,6 +834,9 @@ class Criteria {
             $this->sql .= ' *';
         }
     }
+    /**
+     * make FROM TABLE SQL clause
+     */
     private function makeFromTableSQL() {
         if($this->table && $this->schema) {
             $this->sql .= ' FROM ' . $this->schema . '.' . $this->table;
@@ -817,6 +850,9 @@ class Criteria {
             Logger::error('no given table name!');
         }
     }
+    /**
+     * make INTO TABLE SQL clause
+     */
     private function makeIntoTableSQL() {
         if($this->table && $this->schema) {
             $this->sql .= ' INTO ' . $this->schema . '.' . $this->table;
@@ -830,6 +866,9 @@ class Criteria {
             Logger::error('no given table name!');
         }
     }
+    /**
+     * make normal TABLE SQL clause
+     */
     private function makeTableSQL() {
         if($this->table && $this->schema) {
             $this->sql .= ' ' . $this->schema . '.' . $this->table;
@@ -843,6 +882,9 @@ class Criteria {
             Logger::error('no given table name!');
         }
     }
+    /**
+     * make VALUES SQL clause
+     */
     private function makeValuesSQL() {
         if($this->values) {
             $this->sql .= ' VALUES (' . $this->values . ')';
@@ -850,6 +892,9 @@ class Criteria {
             Logger::error('values empty!');
         }
     }
+    /**
+     * make SET SQL clause
+     */
     private function makeSetterSQL() {
         if($this->setter) {
             $this->sql .= ' SET ' . $this->setter;
@@ -857,11 +902,17 @@ class Criteria {
             Logger::error('setter empty!');
         }
     }
+    /**
+     * make WHERE SQL clause
+     */
     private function makeConditionSQL() {
         if($this->condition) {
             $this->sql .= ' WHERE ' . $this->condition;
         }
     }
+    /**
+     * make strict WHERE SQL clause
+     */
     private function makeStrictConditionSQL() {
         if($this->condition) {
             $this->sql .= ' WHERE ' . $this->condition;
@@ -869,21 +920,33 @@ class Criteria {
             $this->sql .= ' WHERE 1 = 0';
         }
     }
+    /**
+     * make GROUP BY SQL clause
+     */
     private function makeGroupSQL() {
         if($this->group) {
             $this->sql .= ' GROUP BY ' . $this->group;
         }
     }
+    /**
+     * make HAVING SQL clause
+     */
     private function makeHavingSQL() {
         if($this->group && $this->having) {
             $this->sql .= ' HAVING ' . $this->having;
         }
     }
+    /**
+     * make ORDER BY SQL clause
+     */
     private function makeOrderSQL() {
         if($this->order) {
             $this->sql .= ' ORDER BY ' . $this->order;
         }
     }
+    /**
+     * make LIMT SQL clause
+     */
     private function makeLimitSQL() {
         if($this->offset > 0) {
             $this->sql .= ' LIMIT ' . $this->offset . ',' . $this->num;

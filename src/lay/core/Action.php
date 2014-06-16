@@ -1,4 +1,11 @@
 <?php
+/**
+ * 基础控制器；
+ * 核心类，继承至此类的对象将会在运行时触发一系列事件方法（onCreate,onRequest,onGet,onPost,onStop,onDestory等）
+ *
+ * @abstract
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use lay\App;

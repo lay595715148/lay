@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * 数据库连接管理类
+ * 
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use MongoClient;

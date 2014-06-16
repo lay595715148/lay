@@ -1,4 +1,8 @@
 <?php
+/**
+ * 结构化列表数据对象
+ * @author Lay Li
+ */
 namespace lay\entity;
 
 use lay\core\Entity;

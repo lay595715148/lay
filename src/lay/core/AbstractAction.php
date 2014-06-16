@@ -1,4 +1,10 @@
 <?php
+/**
+ * 核心动作抽象类
+ *
+ * @author Lay Li
+ * @abstract
+ */
 namespace lay\core;
 
 if(!defined('INIT_LAY')) {

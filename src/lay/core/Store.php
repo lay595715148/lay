@@ -1,4 +1,10 @@
 <?php
+/**
+ * 数据库访问类
+ * 
+ * @author Lay Li
+ * @abstract
+ */
 namespace lay\core;
 
 use lay\util\Logger;

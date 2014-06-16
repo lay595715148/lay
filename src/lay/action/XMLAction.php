@@ -1,4 +1,8 @@
 <?php
+/**
+ * 输出XML格式
+ * @author Lay Li
+ */
 namespace lay\action;
 
 use \lay\core\Action;
@@ -8,7 +12,7 @@ if(!defined('INIT_LAY')) {
 }
 
 /**
- * 输出JSON格式
+ * 输出XML格式
  * @abstract
  */
 abstract class XMLAction extends Action {

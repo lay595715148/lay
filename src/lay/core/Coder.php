@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * Mongo Code处理器
+ *
+ * @author Lay Li
+ */
 namespace lay\core;
 
 use Mongo;
@@ -12,6 +16,7 @@ use lay\util\Logger;
 if(! defined('INIT_LAY')) {
     exit();
 }
+
 /**
  * Mongo Code处理器
  *

@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * 应用程序类，创建生命周期
+ *
+ * @author Lay Li 2014-04-29
+ */
 namespace lay;
 
 use lay\util\Logger;
@@ -8,6 +12,7 @@ use lay\core\EventEmitter;
 use lay\core\Configuration;
 use lay\core\PluginManager;
 use lay\core\Action;
+use lay\config\C;
 use Exception;
 
 if(! defined('INIT_LAY')) {

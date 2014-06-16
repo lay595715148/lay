@@ -6,6 +6,16 @@ return array(
     'code' => array(
         '404' => '/404.html'
     ),
+    'language' => 'en-us',
+    'languages' => array(
+        'zh-cn', 'en-us'
+    ),
+    'theme' => 'code',
+    'themes' => array(
+        'code' => array(
+            'dir' => '/web/template/code'
+        )
+    ),
     'routers' => array(
         array(
             'host' => 'web.lay.laysoft.cn',//多个用|做分隔

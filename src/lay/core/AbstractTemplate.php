@@ -1,4 +1,11 @@
 <?php
+/**
+ * 核心模板抽象类
+ *
+ * @api
+ * @author Lay Li
+ * @abstract
+ */
 namespace lay\core;
 
 if(!defined('INIT_LAY')) {

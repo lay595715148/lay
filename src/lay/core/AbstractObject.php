@@ -1,4 +1,11 @@
 <?php
+/**
+ * 核心抽象基础类
+ * 
+ * @api 
+ * @author Lay Li
+ * @abstract
+ */
 namespace lay\core;
 
 use lay\util\Logger;

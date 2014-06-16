@@ -1,4 +1,8 @@
 <?php
+/**
+ * 可设置失效时间的接口
+ * @author Lay Li
+ */
 namespace lay\core;
 
 if(! defined('INIT_LAY')) {

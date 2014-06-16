@@ -1,4 +1,8 @@
 <?php
+/**
+ * 输出HTML
+ * @author Lay Li
+ */
 namespace lay\action;
 
 use \lay\core\Action;
@@ -8,7 +12,7 @@ if(!defined('INIT_LAY')) {
 }
 
 /**
- * 输出JSON格式
+ * 输出HTML
  * @abstract
  */
 abstract class HTMLAction extends Action {

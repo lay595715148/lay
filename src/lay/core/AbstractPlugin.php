@@ -1,4 +1,11 @@
 <?php
+/**
+ * 核心插件抽象类，增加新插件，需继承此类
+ *
+ * @api
+ * @author Lay Li
+ * @abstract
+ */
 namespace lay\core;
 
 if(!defined('INIT_LAY')) {

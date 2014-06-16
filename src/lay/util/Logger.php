@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * log工具类
+ *
+ * @author Lay Li
+ */
 namespace lay\util;
 
 use \lay\App;
