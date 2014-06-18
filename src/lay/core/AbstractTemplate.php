@@ -19,7 +19,7 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  * @abstract
  */
-abstract class AbstractTemplate extends AbstractObject {
+abstract class AbstractTemplate {
     /**
      * output as template
      */

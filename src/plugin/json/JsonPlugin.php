@@ -1,4 +1,6 @@
 <?php
+namespace plugin\json;
+
 use lay\core\AbstractPlugin;
 use lay\core\Action;
 use lay\App;

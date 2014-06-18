@@ -48,7 +48,7 @@ class PluginManager {
      */
     public static function initilize(array $plugins = array()) {
         if(empty($plugins)) {
-            $sep = DIRECTORY_SEPARATOR;
+            /* $sep = DIRECTORY_SEPARATOR;
             $dir = App::$_RootPath . $sep . 'src' . $sep . 'plugin';
             $dirs = scandir($dir);
             foreach($dirs as $d) {
@@ -58,7 +58,7 @@ class PluginManager {
                             'name' => $d
                     ));
                 }
-            }
+            } */
             $plugins = App::get('plugins');
         }
         if(is_array($plugins)) {
@@ -332,38 +332,38 @@ class PluginManager {
             return true;
         }
         
-        $sep = DIRECTORY_SEPARATOR;
+        /* $sep = DIRECTORY_SEPARATOR;
         if($options['dir']) {
             $file = App::$_RootPath . $sep . $options['dir'] . $sep . $name . $sep . $name . '.php';
         } else {
             $file = App::$_RootPath . $sep . 'src/plugin' . $sep . $name . $sep . $name . '.php';
         }
         
-        if(file_exists($file)) {
-            if(! class_exists($classname, false)) {
-                include_once $file;
-            }
-            if(! class_exists($classname, false)) {
-                $classname = ucfirst($name) . 'Plugin';
-            }
-            // instantiate class if exists
-            if(class_exists($classname, false)) {
-                $plugin = new $classname($name, $this);
-                // check inheritance...
-                if(is_subclass_of($plugin, 'lay\core\AbstractPlugin')) {
-                    $plugin->initilize();
-                    $this->plugins[$name] = $plugin;
-                    Logger::info("Avaliable plugin classname:$classname", 'PLUGIN');
-                    return true;
-                } else {
-                    Logger::warn("Invalid plugin classname:$classname", 'PLUGIN');
-                }
+        //if(file_exists($file)) {
+        if($classname && file_exists($file) && ! class_exists($classname, false)) {
+            include_once $file;
+        } */
+        if(! $classname || ! class_exists($classname)) {
+            $classname = 'plugin\\'.$name.'\\'. ucfirst($name) . 'Plugin';
+        }
+        // instantiate class if exists
+        if(class_exists($classname)) {//, false
+            $plugin = new $classname($name, $this);
+            // check inheritance...
+            if(is_subclass_of($plugin, 'lay\core\AbstractPlugin')) {
+                $plugin->initilize();
+                $this->plugins[$name] = $plugin;
+                Logger::info("Avaliable plugin classname:$classname", 'PLUGIN');
+                return true;
             } else {
-                Logger::warn("Invalid plugin:$name", 'PLUGIN');
+                Logger::warn("Invalid plugin classname:$classname", 'PLUGIN');
             }
         } else {
             Logger::warn("Invalid plugin:$name", 'PLUGIN');
         }
+        //} else {
+        //    Logger::warn("Invalid plugin:$name", 'PLUGIN');
+        //}
         
         return false;
     }

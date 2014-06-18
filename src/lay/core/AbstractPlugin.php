@@ -19,7 +19,7 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  * @abstract
  */
-abstract class AbstractPlugin extends AbstractObject {
+abstract class AbstractPlugin {
     /**
      * 插件名称
      * @var string

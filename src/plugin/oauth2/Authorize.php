@@ -1,4 +1,6 @@
 <?php
+namespace plugin\oauth2;
+
 use lay\action\JSONAction;
 
 class Authorize extends JSONAction {

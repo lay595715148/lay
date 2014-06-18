@@ -19,7 +19,7 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  * @abstract
  */
-abstract class AbstractStore extends AbstractObject {
+abstract class AbstractStore {
     /**
      * 连接数据库
      * @return boolean

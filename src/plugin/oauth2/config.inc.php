@@ -2,7 +2,7 @@
 return array(
     'actions' => array(
         '/authorize' => array(
-            'classname' => 'Authorize'
+            'classname' => 'plugin\oauth2\Authorize'
         )
     )
 );

@@ -1,10 +1,12 @@
 <?php
+namespace plugin\sso;
+
 use lay\App;
 use lay\core\Action;
 use lay\core\AbstractPlugin;
 use lay\util\Logger;
 
-class SSO extends AbstractPlugin {
+class SSOPlugin extends AbstractPlugin {
     public function initilize() {
         $this->addHook(App::H_INIT, array($this, 'sayhello'));
         $this->addHook(Action::H_CREATE, array($this, 'sayhello2'));

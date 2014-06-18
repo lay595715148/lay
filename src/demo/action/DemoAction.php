@@ -13,7 +13,7 @@ use lay\util\Util;
 use lay\util\Collector;
 use lay\action\HTMLAction;
 
-class DemoAction extends HTMLAction {
+class DemoAction extends JSONAction {
     /**
      * 
      * @var DemoService
@@ -54,7 +54,9 @@ class DemoAction extends HTMLAction {
         $ret = $this->demoService->select(array('type' => array(0, '>')), array($offset, $num));
         $total = $this->demoService->count(array('type' => array(0, '>')));
         if(is_a($this, 'lay\action\HTMLAction')) {
-            $this->template->push($ret);
+            //$list = Collector::lister($ret, $total, $offset, $num);
+            //$this->template->push($list->toArray());
+            $this->template->push('list', $ret);
         } else {
             $list = Collector::lister($ret, $total, $offset, $num);
             $this->template->push($list->toArray());

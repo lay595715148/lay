@@ -1,4 +1,6 @@
 <?php
+namespace plugin\oauth2;
+
 use lay\App;
 use lay\core\Action;
 use lay\core\EventEmitter;
@@ -18,7 +20,7 @@ class Oauth2Plugin extends AbstractPlugin {
      * @param App $app
      */
     public function register($app) {
-        $app->addClasspath(realpath(__DIR__.'/classes'));
+        //$app->addClasspath(realpath(__DIR__.'/classes'));
         $app->configure(realpath(__DIR__.'/config.inc.php'));
     }
     /**

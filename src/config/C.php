@@ -1,22 +1,20 @@
 <?php
-use lay\util\Logger;
+/**
+ * 
+ */
+namespace lay\config;
 
-return array(
-    'logger' => array(Logger::L_DEBUG, false, 0),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
-    'code' => array(
-        '404' => '/404.html'
-    ),
-    'language' => 'en-us',
-    'languages' => array(
-        'zh-cn', 'en-us'
-    ),
-    'theme' => 'code',
-    'themes' => array(
-        'code' => array(
-            'dir' => '/web/template/code'
-        )
-    ),
-    'routers' => array(
+if(! defined('INIT_LAY')) {
+    exit();
+}
+
+/**
+ * configuration
+ * @author Lay Li
+ */
+class C {
+    public static $env = 'test';
+    public static $routers = array(
         array(
             'host' => 'web.lay.laysoft.cn',//多个用|做分隔
             'ip' => '127.0.0.1',//多个用|做分隔
@@ -25,8 +23,8 @@ return array(
             'name' => 'user',
             'classname' => 'web\Index'
         )
-    ),
-    'actions' => array(
+    );
+    public static $actions = array(
         '/' => array(
             'host' => 'web.lay.laysoft.cn',//多个用|做分隔
             'ip' => '127.0.0.1',//多个用|做分隔
@@ -45,15 +43,34 @@ return array(
         '/bootstrap.php' => array(
             'classname' => 'cms\CMS'
         )
-    ),
-    'plugins' => array(
-        'http' => array(
-            'name' => 'http',
-            'classname' => 'plugin\http\HttpPlugin'
+    );
+    public static $services = array(
+        
+    );
+    public static $stores = array(
+        'default' => array(
+            'host' => '127.0.0.1',
+            'port' => 3306,
+            'username' => 'root',
+            'password' => 'yuiopas',
+            'schema' => 'laysoft'
         ),
+        'mongo' => array(
+            'host' => '127.0.0.1',
+            'port' => 27017,
+            'username' => 'lay',
+            'password' => '123456',
+            'schema' => 'laysoft'
+        )
+    );
+    public static $plugins = array(
         'json' => array(
             'host' => 'lay.laysoft.cn',//多个用|做分隔
             'name' => 'json'
+        ),
+        '404' => array(
+            'name' => '404',
+            'classname' => 'Http404Plugin'
         ),
         'oauth2' => array(
             'name' => 'oauth2',
@@ -76,24 +93,8 @@ return array(
             //store name or store classname.if undefined this always be loaded.if empty this always be not loaded
             'store' => 'demo\store\DemoStore',
             //if plugin's class name is not the combination of plugin's name and "Plugin",please config this anyway
-            'classname' => 'plugin\sso\SSOPlugin'
+            'classname' => 'SSO'
         )
-    ),
-    'stores' => array(
-        'default' => array(
-            'host' => '127.0.0.1',
-            'port' => 3306,
-            'username' => 'root',
-            'password' => 'yuiopas',
-            'schema' => 'laysoft'
-        ),
-        'mongo' => array(
-            'host' => '127.0.0.1',
-            'port' => 27017,
-            'username' => 'lay',
-            'password' => '123456',
-            'schema' => 'laysoft'
-        )
-    )
-);
+    );
+}
 ?>

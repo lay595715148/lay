@@ -17,7 +17,7 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  * @abstract
  */
-abstract class AbstractAction extends AbstractObject {
+abstract class AbstractAction {
     /**
      * 创建事件触发方法
      */

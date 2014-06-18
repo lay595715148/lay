@@ -16,7 +16,7 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  * @abstract
  */
-abstract class AbstractBean extends AbstractObject {
+abstract class AbstractBean {
     /**
      * 返回对象所有属性名的数组
      * @return array
