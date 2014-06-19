@@ -157,6 +157,14 @@ class PluginManager {
         return $this->activedHooks;
     }
     /**
+     * 获取已经加载的插件名称
+     *
+     * @return array
+     */
+    public function getLoadedPlugins() {
+        return array_keys($this->plugins);
+    }
+    /**
      * 移除某个钩子名
      *
      * @param string $hookname
@@ -179,7 +187,7 @@ class PluginManager {
      * @param callable $callback
      *            可执行函数或方法
      */
-    public function register($hookname, callable $callback) {
+    public function register($hookname, $callback) {
         if(is_callable($callback) && in_array($hookname, $this->hooks)) {
             // 将插件的引用连同方法push进监听数组中
             $this->listeners[$hookname][] = $callback;

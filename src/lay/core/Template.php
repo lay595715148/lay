@@ -10,6 +10,7 @@ use lay\App;
 use lay\util\Logger;
 use lay\entity\Response;
 use lay\entity\Lister;
+use lay\util\Util;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -17,125 +18,116 @@ if(! defined('INIT_LAY')) {
 
 /**
  * 模板引擎基础类
- * 
+ *
  * @author Lay Li
  */
 class Template extends AbstractTemplate {
-    const TEMPLATE_PROVIDER_CONFIG_TAG = 'template-provider';
-    /**
-     * Template instance
-     * 
-     * @staticvar Template
-     */
-    private static $instance = null;
-    /**
-     * get Template instance
-     * 
-     * @param $name name
-     *            of Template
-     * @param $config default
-     *            is empty
-     * @return Template
-     */
-    public static function getInstance($name = '') {
-        if(self::$instance == null) {
-            // 使用默认的配置项进行实现
-            if(! (self::$instance instanceof Template)) {
-                $config = App::getTemplateConfig($name);
-                $config = is_array($name) ? $name : App::getTemplateConfig($name);
-                $classname = isset($config['classname']) ? $config['classname'] : 'DemoTemplate';
-                if(isset($config['classname'])) {
-                    self::$instance = new $classname($config);
-                }
-                if(! (self::$instance instanceof Template)) {
-                    Logger::warn('template has been instantiated by default DemoTemplate', 'TEMPLATE');
-                    self::$instance = new DemoTemplate($config);
-                }
-            }
-        }
-        return self::$instance;
-    }
     /**
      * Action对象
-     * 
+     *
      * @var Action $action
      */
     public $action;
     /**
+     * HttpRequest对象
+     *
+     * @var HttpRequest $request
+     */
+    protected $request;
+    /**
+     * HttpReponse对象
+     *
+     * @var HttpReponse $response
+     */
+    protected $response;
+    /**
+     * name
+     *
+     * @var string $name
+     */
+    protected $name;
+    /**
      * the language
-     * 
+     *
      * @var string $lan
      */
     protected $lan = '';
     /**
      * the theme
-     * 
+     *
      * @var string $theme
      */
     protected $theme = '';
     /**
      * 输出变量内容数组
-     * 
+     *
      * @var array $vars
      */
     protected $vars = array();
     /**
      * resources
-     * 
+     *
      * @var array $res
      */
     protected $res = array();
     /**
      * HTTP headers
-     * 
+     *
      * @var array $headers
      */
     protected $headers = array();
     /**
      * HTML metas
-     * 
+     *
      * @var array $metas
      */
     protected $metas = array();
     /**
      * HTML scripts
-     * 
+     *
      * @var array $jses
      */
     protected $jses = array();
     /**
      * HTML scripts in the end
-     * 
+     *
      * @var array $javascript
      */
     protected $javascript = array();
     /**
      * HTML css links
-     * 
+     *
      * @var array $csses
      */
     protected $csses = array();
     /**
      * file path
-     * 
+     *
      * @var string $file
      */
     protected $file;
     /**
      * 构造方法
-     * 
-     * @param array $config
+     *
+     * @param Action $action
      *            配置信息数组
      */
-    public function __construct() {
+    public function __construct($request, $response, $name) {
+        //$this->action = $action;
+        $this->request = $request;
+        $this->response = $response;
+        $this->name = $name;
         $lans = App::get('languages');
         $lan = App::get('language');
         $this->lan = in_array($lan, (array)$lans) ? $lan : 'zh-cn';
         $this->theme(App::get('theme'));
     }
+    public function getName() {
+        return $this->name;
+    }
     /**
      * push header for output
-     * 
+     *
      * @param string $header
      *            http header string
      */
@@ -145,7 +137,7 @@ class Template extends AbstractTemplate {
     /**
      * set title ,if $append equal false, then reset title;if $append equal 1 or true,
      * then append end position; other append start position
-     * 
+     *
      * @param string $str
      *            title
      * @param boolean $append
@@ -164,7 +156,7 @@ class Template extends AbstractTemplate {
     }
     /**
      * push variables with a name
-     * 
+     *
      * @param string $name
      *            name of variable
      * @param mixed $value
@@ -172,18 +164,34 @@ class Template extends AbstractTemplate {
      */
     public function push($name, $value = null) {
         if(is_string($name) || is_numeric($name)) {
-            $this->vars[$name] = is_null($value) ? '' : $value;
+            if(array_key_exists($name, $this->vars)) {
+                Logger::warn($name . ' has been defined in template variables', 'TEMPLATE');
+            }
+            if(is_a($value, 'lay\core\Bean')) {
+                $this->vars[$name] = $value->toArray();
+            } else if(is_object($value)) {
+                $this->vars[$name] = get_object_vars($value);
+            } else {
+                $this->vars[$name] = is_null($value) ? '' : $value;
+            }
         } else if(is_array($name)) {
             foreach($name as $n => $val) {
                 $this->push($n, $val);
             }
+        } else if(is_a($name, 'Iterator')) {
+            $this->push(iterator_to_array($name));
+        } else if(is_object($name)) {
+            $this->push(get_object_vars($name));
         } else {
             $this->vars[] = is_null($value) ? '' : $value;
         }
     }
+    public function distinct() {
+        $this->vars = array();
+    }
     /**
      * set language
-     * 
+     *
      * @param string $lan
      *            language
      */
@@ -195,7 +203,7 @@ class Template extends AbstractTemplate {
     }
     /**
      * set skin theme temporarily
-     * 
+     *
      * @param string $theme
      *            theme name
      */
@@ -210,7 +218,7 @@ class Template extends AbstractTemplate {
     }
     /**
      * set include file path
-     * 
+     *
      * @param string $filepath
      *            file path
      */
@@ -222,7 +230,7 @@ class Template extends AbstractTemplate {
             $themes = App::get('themes');
             $theme = App::get('theme');
             if($themes && $theme && in_array($theme, array_keys((array)$themes))) {
-                $dir = App::get('themes.'.$theme.'.dir');
+                $dir = App::get('themes.' . $theme . '.dir');
                 if(strpos($dir, $_ROOTPATH) === 0) {
                     $this->file = realpath($dir . DIRECTORY_SEPARATOR . $filepath);
                 } else {
@@ -235,7 +243,7 @@ class Template extends AbstractTemplate {
     }
     /**
      * set meta infomation
-     * 
+     *
      * @param array $meta
      *            array for html meta tag
      */
@@ -251,7 +259,7 @@ class Template extends AbstractTemplate {
     }
     /**
      * set include js path
-     * 
+     *
      * @param string $js
      *            javascript file src path in html tag script
      */
@@ -267,7 +275,7 @@ class Template extends AbstractTemplate {
     }
     /**
      * set include js path,those will echo in end of document
-     * 
+     *
      * @param string $js
      *            javascript file src path in html tag script
      */
@@ -283,7 +291,7 @@ class Template extends AbstractTemplate {
     }
     /**
      * set include css path
-     * 
+     *
      * @param string $css
      *            css file link path
      */
@@ -300,7 +308,7 @@ class Template extends AbstractTemplate {
     /**
      * get template headers,
      * return the point of template headers
-     * 
+     *
      * @return array
      */
     public function headers() {
@@ -311,20 +319,19 @@ class Template extends AbstractTemplate {
     /**
      * get template variables,
      * return the point of template variables
-     * 
+     *
      * @return array
      */
     public function vars() {
         Logger::info('variable', 'TEMPLATE');
-        $templateVars = &$this->vars;
-        return $templateVars;
+        return $this->vars;
     }
     /**
      * output as json string
      */
     public function json() {
         Logger::info('json', 'TEMPLATE');
-        $lan = &$this->lan;
+        /* $lan = &$this->lan;
         $headers = &$this->headers;
         $templateVars = &$this->vars;
         $res = &$this->res;
@@ -333,14 +340,44 @@ class Template extends AbstractTemplate {
         ));
         foreach($headers as $header) {
             @header($header);
+        } */
+        $this->response->setContentType('application/json');
+        foreach($this->headers as $header) {
+            //@header($header);
+            $this->response->setHeader($header);
         }
-        echo json_encode($templateVars);
+        if(version_compare(phpversion(), '5.4.0') > 0) {
+            $this->response->setData(json_encode($this->vars, JSON_PRETTY_PRINT));
+        } else {
+            $this->response->setData(json_encode($this->vars));
+        }
+        
+        if(Logger::hasOutput()) {
+            echo $this->response->getData();
+        } else {
+            $this->response->send();
+        }
+        //echo json_encode($templateVars);
     }
     /**
      * output as xml string
      */
     public function xml() {
         Logger::info('xml', 'TEMPLATE');
+        $this->response->setContentType('text/xml');
+        foreach($this->headers as $header) {
+            //@header($header);
+            $this->response->setHeader($header);
+        }
+        //$this->response->setHeader($this->headers);
+        $this->response->setData(Util::array2XML($this->vars));
+        
+        if(Logger::hasOutput()) {
+            echo $this->response->getData();
+        } else {
+            $this->response->send();
+        }
+        /* 
         $lan = &$this->lan;
         $headers = &$this->headers;
         $templateVars = &$this->vars;
@@ -351,19 +388,38 @@ class Template extends AbstractTemplate {
         foreach($headers as $header) {
             @header($header);
         }
-        echo Util::array2XML($templateVars);
+        echo Util::array2XML($templateVars); */
     }
     /**
      * output as template
-     * 
+     *
      * @return void
      */
     public function out() {
-        $this->display();
+        Logger::info('out', 'TEMPLATE');
+        $lan = &$this->lan;
+        $theme = &$this->theme;
+        $vars = &$this->vars;
+        $file = &$this->file;
+        $metas = &$this->metas;
+        $jses = &$this->jses;
+        $javascript = &$this->javascript;
+        $csses = &$this->csses;
+        $headers = &$this->headers;
+        $res = &$this->res;
+        
+        ob_start();
+        extract($vars);
+        include ($file);
+        $results = ob_get_contents();
+        ob_end_clean();
+        
+        return $results;
+        //$this->display();
     }
     /**
      * output as template
-     * 
+     *
      * @return void
      */
     public function display() {
@@ -379,13 +435,32 @@ class Template extends AbstractTemplate {
         $headers = &$this->headers;
         $res = &$this->res;
         
+        ob_start();
         extract($vars);
+        include ($file);
+        $results = ob_get_contents();
+        ob_end_clean();
+        
+        $this->response->setContentType('text/html');
+        foreach($this->headers as $header) {
+            //@header($header);
+            $this->response->setHeader($header);
+        }
+        $this->response->setData($results);
+        
+        if(Logger::hasOutput()) {
+            echo $this->response->getData();
+        } else {
+            $this->response->send();
+        }
+        
+        /* extract($vars);
         foreach($headers as $header) {
             @header($header);
         }
         if(file_exists($file)) {
             include ($file);
-        }
+        } */
     }
 }
 ?>

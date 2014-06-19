@@ -29,7 +29,7 @@ class Collector {
         $lister = new Lister();
         $lister->list = $list;
         $lister->total = is_numeric($total) ? $total : count($lister->list);
-        $lister->hasNext = is_bool($offset) ? $offset : Util::hasNext($total, $offset, $num);
+        $lister->hasNext = is_bool($offset) ? $offset : Util::hasNext($lister->total, $offset, $num);
         return $lister;
     }
     /**

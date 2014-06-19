@@ -2,7 +2,7 @@
 /**
  * 
  */
-namespace lay\config;
+namespace config;
 
 if(! defined('INIT_LAY')) {
     exit();

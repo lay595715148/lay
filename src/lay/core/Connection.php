@@ -37,7 +37,7 @@ class Connection {
      * 
      * @var mixed
      */
-    public $connection;
+    public $link;
     /**
      * 构造方法
      * 
@@ -56,29 +56,30 @@ class Connection {
                 $server = "mongodb://$host:$port";
                 $opts = array();
                 if(class_exists('MongoClient', false)) {
-                    $this->connection = new MongoClient($server, $opts);
+                    $this->link = new MongoClient($server, $opts);
                 } else {
-                    $this->connection = new Mongo($server, $opts);
+                    $this->link = new Mongo($server, $opts);
                 }
-                $this->connection->connect();
+                $this->link->connect();
                 break;
             case 'memcache':
                 $port = isset($options['port']) ? intval($options['port']) : 11211;
                 $timeout = isset($options['timeout']) ? $options['timeout'] : 1;
                 $pool = isset($options['pool']) ? $options['pool'] : false;
-                $this->connection = new Memcache();
+                $this->link = new Memcache();
                 if(is_array($pool) && ! empty($pool)) {
                     foreach($pool as $p) {
-                        $this->connection->addserver($p['host'], $p['port']);
+                        $this->link->addserver($p['host'], $p['port']);
                     }
                 } else {
-                    $this->connection->pconnect($host, $port, $timeout);
+                    $this->link->pconnect($host, $port, $timeout);
                 }
                 break;
             case 'mysql':
+            case 'maria':
             default:
                 $port = isset($options['port']) ? intval($options['port']) : 3306;
-                $this->connection = mysqli_connect($host . ':' . $port, $username, $password, $newlink);
+                $this->link = mysqli_connect($host . ':' . $port, $username, $password, $newlink);
                 break;
         }
         $this->name = $name;
@@ -146,6 +147,26 @@ class Connection {
         }
         if(empty(self::$_Instances[$name])) {
             self::$_Instances[$name] = new Connection($name, 'memcache', $options);
+        }
+        return self::$_Instances[$name];
+    }
+    /**
+     * 获取maria连接
+     * 
+     * @param string $name
+     *            名称
+     * @param array $options
+     *            options
+     * @param string $new
+     *            if new instance of Connection
+     * @return Connection
+     */
+    public static function maria($name, $options = array(), $new = false) {
+        if($new) {
+            return new Connection($name, 'maria', $options);
+        }
+        if(empty(self::$_Instances[$name])) {
+            self::$_Instances[$name] = new Connection($name, 'maria', $options);
         }
         return self::$_Instances[$name];
     }

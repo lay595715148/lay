@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 基础数据类，继承此类时需要在构造方法中传递以属性名对应默认属性值的数组给受保护的$properties
  *
@@ -18,165 +19,166 @@ if(! defined('INIT_LAY')) {
 
 /**
  * 基础数据类，继承此类时需要在构造方法中传递以属性名对应默认属性值的数组给受保护的$properties
- * 
+ *
  * @abstract
+ *
  * @author Lay Li
  */
 abstract class Bean extends AbstractBean implements Iterator {
     /**
      * 定义字符串类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_STRING = 'string';
     /**
      * 定义字符串类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_STRING = 1;
     /**
      * 定义数值类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_NUMBER = 'number';
     /**
      * 定义数值类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_NUMBER = 2;
     /**
      * 定义整数类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_INTEGER = 'integer';
     /**
      * 定义整数类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_INTEGER = 3;
     /**
      * 定义布尔类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_BOOLEAN = 'boolean';
     /**
      * 定义布尔类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_BOOLEAN = 4;
     /**
      * 定义日期时间类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_DATETIME = 'datetime';
     /**
      * 定义日期时间类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_DATETIME = 5;
     /**
      * 定义日期类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_DATE = 'date';
     /**
      * 定义日期类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_DATE = 6;
     /**
      * 定义时间类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_TIME = 'time';
     /**
      * 定义时间类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_TIME = 7;
     /**
      * 定义浮点数类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_FLOAT = 'float';
     /**
      * 定义浮点数类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_FLOAT = 8;
     /**
      * 定义double类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_DOUBLE = 'double';
     /**
      * 定义double类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_DOUBLE = 9;
     /**
      * 定义数组类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_ARRAY = 'array';
     /**
      * 定义数组类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_ARRAY = 10;
     /**
      * 定义数组类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_S_PURE_ARRAY = 'pure_array';
     /**
      * 定义数组类型的属性值
-     * 
+     *
      * @var int
      */
     const PROPETYPE_PURE_ARRAY = 11;
     /**
      * 定义特定格式类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_DATEFORMAT = 'dateformat';
     /**
      * 定义其他类型的属性值
-     * 
+     *
      * @var string
      */
     const PROPETYPE_S_OTHER = 'other';
     /**
      * 属性名对默认属性值的数组，如：array('id'=>0,'name'=>'')；
      * 请不要在非__construct，__set，__get方法中修改它
-     * 
+     *
      * @var array
      */
     protected $properties = array();
     /**
      * 构造方法
-     * 
+     *
      * @param array $properties
      *            属性名对默认属性值的数组
      */
@@ -187,7 +189,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 检测属性是否设置
-     * 
+     *
      * @param string $name
      *            属性名
      * @return boolean
@@ -197,7 +199,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 将某个属性去除
-     * 
+     *
      * @param string $name
      *            属性名
      * @return void
@@ -207,7 +209,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 设置对象属性值的魔术方法
-     * 
+     *
      * @see \lay\core\AbstractObject::__set()
      * @param string $name
      *            属性名
@@ -236,7 +238,7 @@ abstract class Bean extends AbstractBean implements Iterator {
                         break;
                     case Model::PROPETYPE_BOOLEAN:
                     case Model::PROPETYPE_S_BOOLEAN:
-                        $properties[$name] = boolval($value);
+                        $properties[$name] = $value ? true : false;
                         break;
                     case Model::PROPETYPE_DATETIME:
                     case Model::PROPETYPE_S_DATETIME:
@@ -322,7 +324,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 获取对象属性值的魔术方法
-     * 
+     *
      * @see \lay\core\AbstractObject::__get()
      * @param string $name
      *            属性名
@@ -339,7 +341,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 其他类型属性赋值时调用的方法
-     * 
+     *
      * @param mixed $value
      *            值
      * @param mixed $propertype
@@ -351,7 +353,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 魔术方法，实现属性的set和get方法
-     * 
+     *
      * @param string $method
      *            方法名
      * @param array $arguments
@@ -394,7 +396,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 返回序列化后的字符串
-     * 
+     *
      * @return string
      */
     public function __toString() {
@@ -419,7 +421,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     
     /**
      * 返回对象所有属性名的数组
-     * 
+     *
      * @see \lay\core\AbstractBean::toProperties()
      * @return array
      */
@@ -428,7 +430,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 清空对象所有属性值
-     * 
+     *
      * @see \lay\core\AbstractBean::distinct()
      * @return Bean
      */
@@ -523,22 +525,33 @@ abstract class Bean extends AbstractBean implements Iterator {
     
     /**
      * 返回对象属性名对属性值的数组
-     * 
+     *
      * @return array
      */
     public function toArray() {
-        return $this->properties;
+        //return $this->properties;
+        $a = array();
+        foreach($this->properties as $key => $val) {
+            if(is_a($val, 'lay\core\Bean')) {
+                $a[$key] = $val->toArray();
+            } else if(is_array($val)) {
+                $a[$key] = $this->_toArray($val);
+            } else {
+                $a[$key] = $val;
+            }
+        }
+        return $a;
     }
     /**
      * 返回对象转换为stdClass后的对象
-     * 
+     *
      * @see \lay\core\AbstractBean::toObject()
      * @return stdClass
      */
     public function toStdClass() {
         $o = new stdClass();
         foreach($this->properties as $key => $val) {
-            if(is_object($val) && is_subclass_of($val, 'lay\core\Bean')) {
+            if(is_a($val, 'lay\core\Bean')) {
                 $o->{$key} = $val->toStdClass();
             } else if(is_array($val)) {
                 $o->{$key} = $this->_toStdClass($val);
@@ -550,7 +563,25 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * 将数据中包含Bean的子对象转换成stdClass
-     * 
+     *
+     * @param mixed $var            
+     * @return mixed
+     */
+     protected function _toArray($var) {
+        if(is_array($var)) {
+            foreach($var as $k => $v) {
+                $var[$k] = $this->_toArray($v);
+            }
+            return $var;
+        } else if(is_a($var, 'lay\core\Bean')) {
+            return $var->toArray();
+        } else {
+            return $var;
+        }
+    }
+    /**
+     * 将数据中包含Bean的子对象转换成stdClass
+     *
      * @param mixed $var            
      * @return mixed
      */
@@ -560,7 +591,7 @@ abstract class Bean extends AbstractBean implements Iterator {
                 $var[$k] = $this->_toStdClass($v);
             }
             return $var;
-        } else if(is_object($var) && is_subclass_of($var, 'lay\core\Bean')) {
+        } else if(is_a($var, 'lay\core\Bean')) {
             return $var->toStdClass();
         } else {
             return $var;
@@ -569,7 +600,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     
     /**
      * 将数组中的数据注入到对象中
-     * 
+     *
      * @see \lay\core\AbstractBean::build()
      * @param array $data
      *            数组数据
@@ -587,6 +618,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * (non-PHPdoc)
+     * 
      * @see Iterator::current()
      */
     public function current() {
@@ -594,6 +626,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * (non-PHPdoc)
+     * 
      * @see Iterator::next()
      */
     public function next() {
@@ -601,6 +634,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * (non-PHPdoc)
+     * 
      * @see Iterator::key()
      */
     public function key() {
@@ -608,6 +642,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * (non-PHPdoc)
+     * 
      * @see Iterator::valid()
      */
     public function valid() {
@@ -615,6 +650,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * (non-PHPdoc)
+     * 
      * @see Iterator::rewind()
      */
     public function rewind() {
@@ -622,6 +658,7 @@ abstract class Bean extends AbstractBean implements Iterator {
     }
     /**
      * json serialize function
+     * 
      * @return stdClass
      */
     public function jsonSerialize() {

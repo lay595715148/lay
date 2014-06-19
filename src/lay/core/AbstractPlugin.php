@@ -62,7 +62,7 @@ abstract class AbstractPlugin {
      * @param string $hookname
      * @param callable $callback
      */
-    public function addHook($hookname, callable $callback) {
+    public function addHook($hookname, $callback) {
         $this->manager->register($hookname, $callback);
     }
     /**
@@ -70,7 +70,7 @@ abstract class AbstractPlugin {
      * @param string $hookname
      * @param callable $callback
      */
-    public function removeHook($hookname, callable $callback) {
+    public function removeHook($hookname, $callback) {
         $this->manager->unregister($hookname, $callback);
     }
 }

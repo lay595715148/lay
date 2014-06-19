@@ -1,4 +1,5 @@
 <?php
+
 /**
  * log工具类
  *
@@ -50,6 +51,12 @@ class Logger {
      */
     const L_ERROR = 8; // 8
     /**
+     * 记录日志级别
+     *
+     * @var int
+     */
+    const L_LOG = 16;
+    /**
      * 定义打印输出或记录日志所有级别信息的级别
      *
      * @var int
@@ -75,6 +82,7 @@ class Logger {
     private static $_Sleep = false;
     /**
      * Logger实例
+     * 
      * @var Logger
      */
     private static $_Instance = null;
@@ -124,7 +132,7 @@ class Logger {
             $debug['sleep'] = isset($debug['sleep']) ? $debug['sleep'] : isset($debug[2]) ? $debug[2] : false;
             self::$_Out = ($debug['out'] === true) ? true : intval($debug['out']);
             self::$_Log = ($debug['log'] === true) ? true : intval($debug['log']);
-            self::$_Sleep = $debug['sleep'] ? intval($debug['sleep']) * 1000: false;
+            self::$_Sleep = $debug['sleep'] ? intval($debug['sleep']) * 1000 : false;
         } else if(is_int($debug)) {
             self::$_Out = self::$_Log = $debug;
         } else if($debug === '') {
@@ -159,7 +167,7 @@ class Logger {
             usleep(self::$_Sleep);
         }
         if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_DEBUG))) {
-            self::getInstance()->log(json_encode($msg), self::L_DEBUG, $tag);
+            self::getInstance()->syslog(json_encode($msg), self::L_DEBUG, $tag);
         }
     }
     /**
@@ -180,7 +188,7 @@ class Logger {
             usleep(self::$_Sleep);
         }
         if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_INFO))) {
-            self::getInstance()->log($msg, self::L_INFO, $tag);
+            self::getInstance()->syslog($msg, self::L_INFO, $tag);
         }
     }
     /**
@@ -213,7 +221,7 @@ class Logger {
             usleep(self::$_Sleep);
         }
         if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_WARN))) {
-            self::getInstance()->log($msg, self::L_WARN, $tag);
+            self::getInstance()->syslog($msg, self::L_WARN, $tag);
         }
     }
     /**
@@ -235,7 +243,7 @@ class Logger {
             usleep(self::$_Sleep);
         }
         if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_ERROR))) {
-            self::getInstance()->log($msg, self::L_ERROR, $tag);
+            self::getInstance()->syslog($msg, self::L_ERROR, $tag);
         }
         if(is_string($msg)) {
             throw new Exception($msg);
@@ -244,8 +252,29 @@ class Logger {
         }
     }
     /**
+     * 记录日志信息
+     *
+     * @param string $msg
+     *            字符信息字符串
+     * @param string $tag
+     *            标签名
+     * @return void
+     */
+    public static function log($msg, $tag = '') {
+        if(self::$_Out === true || (self::$_Out && self::regular(intval(self::$_Out), self::L_LOG))) {
+            self::$_HasOutput = true;
+            self::getInstance()->pre($msg, self::L_LOG, $tag);
+            ob_flush();
+            flush();
+            usleep(self::$_Sleep);
+        }
+        if(self::$_Log === true || (self::$_Log && self::regular(intval(self::$_Log), self::L_LOG))) {
+            self::getInstance()->syslog($msg, self::L_LOG, $tag);
+        }
+    }
+    /**
      * 是否打印输出过
-     * 
+     *
      * @return boolean
      */
     public static function hasOutput() {
@@ -254,7 +283,7 @@ class Logger {
     
     /**
      * 缩短显示字符
-     * 
+     *
      * @param string $string
      *            字符串
      * @param number $front
@@ -285,7 +314,7 @@ class Logger {
     }
     /**
      * 通过级别得到不同CSS样式
-     * 
+     *
      * @param int|string $lv
      *            级别
      * @return string
@@ -307,12 +336,17 @@ class Logger {
             case Logger::L_ERROR:
             case 'ERROR':
                 $lv = 'color:#FF0000';
+                break;
+            case Logger::L_LOG:
+            case 'LOG':
+                $lv = 'color:#CCCCCC';
+                break;
         }
         return $lv;
     }
     /**
      * 级别与特定标签之间转换
-     * 
+     *
      * @param int|string $lv
      *            级别
      * @return mixed
@@ -331,6 +365,9 @@ class Logger {
             case Logger::L_ERROR:
                 $lv = 'ERROR';
                 break;
+            case Logger::L_LOG:
+                $lv = 'LOG';
+                break;
             case 'DEBUG':
                 $lv = Logger::L_DEBUG;
                 break;
@@ -343,12 +380,15 @@ class Logger {
             case 'ERROR':
                 $lv = Logger::L_ERROR;
                 break;
+            case 'LOG':
+                $lv = Logger::L_LOG;
+                break;
         }
         return $lv;
     }
     /**
      * 获取客户端面IP
-     * 
+     *
      * @return string
      */
     protected function ip() {
@@ -366,7 +406,7 @@ class Logger {
     
     /**
      * 使用syslog记录日志信息
-     * 
+     *
      * @param string $msg
      *            日志信息
      * @param int $lv
@@ -375,7 +415,7 @@ class Logger {
      *            标签
      * @return void
      */
-    public function log($msg, $lv = 1, $tag = '') {
+    public function syslog($msg, $lv = 1, $tag = '') {
         $stack = debug_backtrace();
         $first = array_shift($stack);
         $second = array_shift($stack);
@@ -398,28 +438,33 @@ class Logger {
         switch($lv) {
             case Logger::L_DEBUG:
             case 'DEBUG':
-                syslog(LOG_DEBUG, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
+                $flag = LOG_DEBUG;
                 break;
             case Logger::L_INFO:
             case 'INFO':
-                syslog(LOG_INFO, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
+                $flag = LOG_INFO;
                 break;
             case Logger::L_WARN:
             case 'WARN':
-                syslog(LOG_WARNING, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
+                $flag = LOG_WARNING;
                 break;
             case Logger::L_ERROR:
             case 'ERROR':
-                syslog(LOG_ERR, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
+                $flag = LOG_ERR;
+                break;
+            case Logger::L_LOG:
+            case 'LOG':
+                $flag = LOG_SYSLOG;
                 break;
             default:
-                syslog(LOG_INFO, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
+                $flag = LOG_INFO;
                 break;
         }
+        syslog($flag, date('Y-m-d H:i:s') . '.' . floor(microtime() * 1000) . "\t$ip\t[LAY]\t[$lv]\t[$tag]\t[$file($line)]\t$class$type$method()\t$msg");
     }
     /**
      * 打印输出信息
-     * 
+     *
      * @param string $msg
      *            信息
      * @param int $lv
@@ -455,7 +500,7 @@ class Logger {
     }
     /**
      * 打印输出非字符串类型的信息
-     * 
+     *
      * @param string $msg
      *            信息
      * @param int $lv

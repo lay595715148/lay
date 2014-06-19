@@ -13,7 +13,7 @@ if(! defined('INIT_LAY')) {
  * 可设置失效时间的接口
  * @author Lay Li
  */
-interface I_Expireable {
+interface Expireable {
     /**
      * return lifetime
      */

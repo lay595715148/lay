@@ -627,7 +627,7 @@ final class App {
                 $this
         ));
         
-        $_END = date('Y-m-d H:i:s') . substr(( string )microtime(), 1, 8);
+        $_END = Util::microtime();
         Logger::info(array(
                 $_START,
                 $_END

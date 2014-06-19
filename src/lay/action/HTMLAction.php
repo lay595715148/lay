@@ -22,6 +22,7 @@ abstract class HTMLAction extends Action {
      */
     public function onStop() {
         $this->template->display();
+        parent::onStop();
     }
 }
 ?>

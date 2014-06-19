@@ -8,8 +8,7 @@ namespace lay\store;
 use lay\App;
 use lay\core\Connection;
 use lay\core\Store;
-use lay\core\I_Expireable;
-use lay\model\ModelExpire;
+use lay\core\Expireable;
 use Memcache;
 use Exception;
 use lay\util\Logger;
@@ -35,10 +34,10 @@ class MemcacheStore extends Store {
         } else if(is_array($name)) {
             $config = $name;
         }
-        if(is_subclass_of($model, 'lay\core\I_Expireable')) {
+        if(is_subclass_of($model, 'lay\core\Expireable')) {
             parent::__construct($name, $model, $config);
         } else {
-            Logger::error('error I_Expireable instance!');
+            Logger::error('error Expireable instance!');
         }
     }
 
@@ -46,7 +45,7 @@ class MemcacheStore extends Store {
      * 数据库连接对象
      * @var Connection
      */
-    private $connection;
+    protected $connection;
     /**
      * 数据访问对象
      * @var Memcache
@@ -64,7 +63,7 @@ class MemcacheStore extends Store {
     public function connect() {
         try {
             $this->connection = Connection::memcache($this->name, $this->config);
-            $this->link = $this->connection->connection;
+            $this->link = $this->connection->link;
         } catch (Exception $e) {
             Logger::error($e->getTraceAsString());
             return false;
@@ -82,7 +81,7 @@ class MemcacheStore extends Store {
         if($name) {
             $config = App::getStoreConfig($name);
             $this->connection = Connection::memcache($name, $config);
-            $this->link = $this->connection->connection;
+            $this->link = $this->connection->link;
             return true;
         } else {
             return $this->connect();
@@ -169,7 +168,7 @@ class MemcacheStore extends Store {
             }
         }
         if($key) {
-            // Model, I_Expireable
+            // Model, Expireable
             $m = clone $this->model;
             $m->distinct()->build($info);
             $result = $this->link->set($key, json_encode($m->toData()), 0, $m->getLifetime());

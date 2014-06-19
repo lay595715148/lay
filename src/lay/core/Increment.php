@@ -13,7 +13,7 @@ if(! defined('INIT_LAY')) {
  * 自增长接口
  * @author Lay Li
  */
-interface I_Increment {
+interface Increment {
     /**
      * return auto increment primary key
      */

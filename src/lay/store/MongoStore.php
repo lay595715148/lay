@@ -8,7 +8,7 @@ namespace lay\store;
 
 use lay\App;
 use lay\core\Connection;
-use lay\core\I_Increment;
+use lay\core\Increment;
 use lay\core\Coder;
 use lay\core\Store;
 use lay\model\MongoSequence;
@@ -49,13 +49,13 @@ class MongoStore extends Store {
      *
      * @var string
      */
-    private $sequence;
+    protected $sequence;
     /**
      * 数据库连接对象
      *
      * @var MongoClient
      */
-    private $connection;
+    protected $connection;
     /**
      * 数据库访问对象
      *
@@ -69,9 +69,9 @@ class MongoStore extends Store {
      */
     public function connect() {
         try {
-            $this->connection = Connection::mongo($this->name, $this->config);
+            $this->connection = Connection::mongo($this->name, $this->config)->link;
             $this->sequence = is_string($this->config['sequence']) ? $this->config['sequence'] : 'lay_sequence';
-            $this->link = $this->connection->connection->{$this->schema};
+            $this->link = $this->connection->{$this->schema};
         } catch (Exception $e) {
             Logger::error($e);
             return false;
@@ -89,7 +89,7 @@ class MongoStore extends Store {
         if($name) {
             $config = App::getStoreConfig($name);
             $schema = is_string($config['schema']) ? $config['schema'] : '';
-            $this->connection = Connection::mongo($name, $config)->connection;
+            $this->connection = Connection::mongo($name, $config)->link;
             $this->sequence = is_string($config['sequence']) ? $config['sequence'] : 'lay_sequence';
             $this->link = $this->connection->$schema;
             return true;
@@ -204,7 +204,7 @@ class MongoStore extends Store {
         $table = $model->table();
         $columns = $model->columns();
         $pk = $model->primary();
-        $seq = is_subclass_of($model, 'lay\core\I_Increment') ? $model->sequence() : '';
+        $seq = is_subclass_of($model, 'lay\core\Increment') ? $model->sequence() : '';
         if(! $link) {
             $this->connect();
         }
@@ -379,7 +379,7 @@ class MongoStore extends Store {
      */
     protected function nextSequence($step = 1) {
         Logger::debug('do next');
-        if(! is_subclass_of($this->model, 'lay\core\I_Increment')) {
+        if(! is_subclass_of($this->model, 'lay\core\Increment')) {
             return false;
         }
         $result = &$this->result;

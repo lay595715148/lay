@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 工具类
  *
@@ -18,13 +19,13 @@ if(! defined('INIT_LAY')) {
 class Util {
     /**
      * 服务器系统是不是Windows
-     * 
+     *
      * @var boolean
      */
     private static $_IsWindows = false;
     /**
      * 判断服务器系统是不是Windows
-     * 
+     *
      * @return boolean
      */
     public static function isWindows() {
@@ -35,7 +36,7 @@ class Util {
     }
     /**
      * 判断是不是绝对路径
-     * 
+     *
      * @param string $path            
      * @return boolean
      */
@@ -44,7 +45,7 @@ class Util {
     }
     /**
      * 转变为纯粹的数组
-     * 
+     *
      * @param array $arr            
      * @return array
      */
@@ -63,7 +64,7 @@ class Util {
     }
     /**
      * 判断是不是纯粹的数组
-     * 
+     *
      * @param array $arr            
      * @return boolean
      */
@@ -83,7 +84,7 @@ class Util {
     }
     /**
      * 计算有没有下页
-     * 
+     *
      * @param int $total            
      * @param int $offset            
      * @param int $num            
@@ -100,7 +101,7 @@ class Util {
     }
     /**
      * 获取代微秒数的当前时间
-     * 
+     *
      * @param string $format            
      * @return string number
      */
@@ -306,7 +307,7 @@ class Util {
         $xml_str = '';
         foreach($xml as $k => $v) {
             if(is_numeric($k)) {
-                $k = (($nkey) ? $nkey : $key . '-') . $k;
+                $k = $nkey ? $key . '-' . $nkey : $key . '-item';
             }
             $xml_str .= self::x2str($v, $k, $nkey);
         }

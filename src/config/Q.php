@@ -12,7 +12,7 @@ if(! defined('INIT_LAY')) {
  * configuration
  * @author Lay Li
  */
-class P {
+class Q {
     public static $routers = array(
     );
     public static $actions = array(

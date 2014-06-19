@@ -12,11 +12,9 @@ use lay\entity\Lister;
 use lay\util\Util;
 use lay\util\Collector;
 use lay\action\HTMLAction;
-use lay\core\Request;
-use lay\action\XMLAction;
-use lay\action\TypicalAction;
+use lay\core\PluginManager;
 
-class DemoAction extends TypicalAction {
+class DemoHTMLAction extends HTMLAction {
     /**
      * 
      * @var DemoService
@@ -44,12 +42,9 @@ class DemoAction extends TypicalAction {
         //Logger::debug($ret);
     }
     public function onGet() {
-        //Logger::debug($this->response->getRequestHeaders());
-        //$this->response->redirect('/authorize', array('code' => '1111'));
-        //new Request();
-        $ret = $this->demoService->test();
+        //$ret = $this->demoService->test();
         //$this->test();
-        //$this->testMysql();
+        $this->testMysql();
         if(is_a($this, 'lay\action\HTMLAction')) {
             $this->template->file('demo.php');
         }
@@ -63,6 +58,8 @@ class DemoAction extends TypicalAction {
             //$list = Collector::lister($ret, $total, $offset, $num);
             //$this->template->push($list->toArray());
             $this->template->push('list', $ret);
+            $plugins = Collector::lister(PluginManager::getInstance()->getLoadedPlugins());
+            $this->template->push('plugins', $plugins->toArray());
         } else {
             $list = Collector::lister($ret, $total, $offset, $num);
             $this->template->push($list->toArray());
@@ -77,10 +74,6 @@ class DemoAction extends TypicalAction {
         Logger::debug($ret);
         $ret = $this->demoService->count(array(array('type', '1,2', 'in', 'OR', array('table' => true))));
         Logger::debug($ret);
-    }
-    public function onStop() {
-        parent::onStop();
-        Logger::log('DemoAction Stop');
     }
 }
 ?>

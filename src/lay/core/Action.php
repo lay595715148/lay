@@ -11,6 +11,8 @@ namespace lay\core;
 use lay\App;
 use lay\util\Scope;
 use lay\util\Logger;
+use HttpRequest;
+use HttpResponse;
 
 if(!defined('INIT_LAY')) {
     exit();
@@ -112,6 +114,16 @@ abstract class Action extends AbstractAction {
      */
     protected $name = '';
     /**
+     * HttpRequest
+     * @var HttpRequest
+     */
+    protected $request;
+    /**
+     * HttpResponse
+     * @var HttpResponse
+     */
+    protected $response;
+    /**
      * 存放业务逻辑对象的数组
      * @var array
     */
@@ -132,14 +144,29 @@ abstract class Action extends AbstractAction {
      * @param string $name 名称
      * @param Template $template 模板引擎对象
      */
-    public function __construct($name, $template = null) {
+    public function __construct($name) {
         $this->name = $name;
-        $this->template = is_a($template, 'lay\core\Template') ? $template : new Template();
-        $this->template->action = $this;
+        $this->request = new HttpRequest();
+        $this->response = new HttpResponse();
+        $this->template = new Template($this->request, $this->response, $name);
         $this->scope = new Scope();
         EventEmitter::on(self::E_CREATE, array($this, 'onCreate'), 1);
         PluginManager::exec(self::H_CREATE, array($this));
         EventEmitter::emit(self::E_CREATE, array($this));
+    }
+    /**
+     * 返回HttpRequest
+     * @return HttpRequest
+     */
+    public function getRequest() {
+        return $this->request;
+    }
+    /**
+     * 返回HttpReponse
+     * @return HttpReponse
+     */
+     public function getResponse() {
+        return $this->response;
     }
     /**
      * 返回模板引擎对象

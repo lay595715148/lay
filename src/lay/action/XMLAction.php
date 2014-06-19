@@ -21,8 +21,8 @@ abstract class XMLAction extends Action {
      * @see \lay\core\Action::onStop()
      */
     public function onStop() {
-        $this->template->header('Content-Type: text/xml');
         $this->template->xml();
+        parent::onStop();
     }
 }
 ?>

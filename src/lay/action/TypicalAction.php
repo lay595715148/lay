@@ -18,17 +18,19 @@ if(!defined('INIT_LAY')) {
 }
 
 /**
- * 输出JSON格式
+ * 输出典型的JSON格式
  * @abstract
  * @author Lay Li
  */
-abstract class JSONAction extends Action {
+abstract class TypicalAction extends JSONAction {
     /**
      * (non-PHPdoc)
-     * @see \lay\core\Action::onStop()
+     * @see \lay\core\JSONAction::onStop()
      */
     public function onStop() {
-        $this->template->json();
+        $vars = $this->template->vars();
+        $this->template->distinct();
+        $this->template->push(Collector::response($this->name, $vars, true));
         parent::onStop();
     }
 }

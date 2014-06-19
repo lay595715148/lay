@@ -28,7 +28,7 @@ class MysqlStore extends Store {
      * 
      * @var Connection
      */
-    private $connection;
+    protected $connection;
     /**
      * 构造方法
      * 
@@ -49,7 +49,7 @@ class MysqlStore extends Store {
     public function connect() {
         try {
             $this->connection = Connection::mysql($this->name, $this->config);
-            $this->link = $this->connection->connection;
+            $this->link = $this->connection->link;
         } catch (Exception $e) {
             Logger::error($e->getTraceAsString(), 'MYSQL');
             return false;
@@ -68,7 +68,7 @@ class MysqlStore extends Store {
             $config = App::getStoreConfig($name);
             $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
             $this->connection = Connection::mysql($name, $config);
-            $this->link = $this->connection->connection;
+            $this->link = $this->connection->link;
             // return mysql_select_db($schema, $this->link);
             return mysqli_select_db($this->link, $schema);
         } else {

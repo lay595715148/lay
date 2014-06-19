@@ -2,7 +2,7 @@
 /**
  * 
  */
-namespace lay\config;
+namespace config;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -13,7 +13,6 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li
  */
 class C {
-    public static $env = 'test';
     public static $routers = array(
         array(
             'host' => 'web.lay.laysoft.cn',//多个用|做分隔
@@ -64,16 +63,18 @@ class C {
         )
     );
     public static $plugins = array(
-        'json' => array(
-            'host' => 'lay.laysoft.cn',//多个用|做分隔
-            'name' => 'json'
+        'http' => array(
+            'name' => 'http',
+            'classname' => 'plugin\http\HttpPlugin'
         ),
-        '404' => array(
-            'name' => '404',
-            'classname' => 'Http404Plugin'
+        'json' => array(
+            'name' => 'json',
+            'classname' => 'plugin\json\JsonPlugin',
+            'host' => 'lay.laysoft.cn'//多个用|做分隔
         ),
         'oauth2' => array(
             'name' => 'oauth2',
+            'classname' => 'plugin\oauth2\Oauth2Plugin',
             'host' => 'web.lay.laysoft.cn',//多个用|做分隔
             'ip' => '127.0.0.1',//多个用|做分隔
             'port' => 80//多个用|做分隔
@@ -93,7 +94,7 @@ class C {
             //store name or store classname.if undefined this always be loaded.if empty this always be not loaded
             'store' => 'demo\store\DemoStore',
             //if plugin's class name is not the combination of plugin's name and "Plugin",please config this anyway
-            'classname' => 'SSO'
+            'classname' => 'plugin\sso\SSOPlugin'
         )
     );
 }
