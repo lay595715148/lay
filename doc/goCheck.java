@@ -1,19 +1,23 @@
 package cn.laysoft.gocheck;
 
-import java.util.ArrayList;
+import java.util.*;
+import java.util.Scanner;
 
 public class GoCheck {
-	//public static boolean[][] flags;
-	//public static int[] result;
-	//public static int[] count;
-	//public static int[][] arrows = { { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 1 }, { 1, -1 }, { 1, 0 }, { 1, 1 } };
-
 	public static void main(String[] args) {
-		for (int i = 0; i < args.length; i++) {
+		/*for (int i = 0; i < args.length; i++) {
 			int width = 0;
-			int height = 0;
-			width = height = Integer.parseInt(args[i]);
+			int height = 2;
+			width = Integer.parseInt(args[i]);
 			new GoCheck(width, height).run();
+		}*/
+
+		Scanner scanner = new Scanner(System.in);
+		int width = scanner.nextInt();
+		int height = 2;
+		while(width > 0) {
+			new GoCheck(width, height).run();
+			width = scanner.nextInt();
 		}
 	}
 
@@ -75,54 +79,47 @@ public class GoCheck {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	//@SuppressWarnings("unchecked")
 	public void run() {
 		//boolean has = true;
 		//long total = this.width * this.height;
 		Counter counter = new Counter();
-		Cursor cursor = new Cursor(0, 0);
-		ArrayList<Arrow> chance = this.chance.get(0).get(0);
-		ArrayList<Point> finished = new ArrayList<Point>();
 		
-		this.flag.get(0).set(0, true);
-		ArrayList<ArrayList<Boolean>> flag = this.flag;
-		finished.add(cursor.toPoint());
-		for (int i = 0; i < chance.size(); i++) {
-			//cursor = cursor.toCursor();
-			Arrow arrow = chance.get(i);
-			Cursor newcursor = cursor.move(arrow);
-			//newFinished.add(newcursor.toPoint());
-			//counter.increase();
-			if(this.valid(newcursor, counter, finished, flag)) {
-				ArrayList<ArrayList<Boolean>> newflag = (ArrayList<ArrayList<Boolean>>) this.cloneArrayList(flag);//.clone();
-				ArrayList<Point> newFinished = (ArrayList<Point>) this.cloneArrayList(finished);//.clone();
-				newflag.get(newcursor.getY()).set(newcursor.getX(), true);
-				newFinished.add(newcursor.toPoint());
-				this.recur(newcursor, counter, newFinished, newflag);
+		for(int i = 0;i < this.width; i++) {
+			for(int j = 0; j < this.height; j++) {
+				Cursor cursor = new Cursor(i, j);
+				ArrayList<Point> finished = new ArrayList<Point>();
+				ArrayList<ArrayList<Boolean>> flag = this.cloneFlag(this.flag);
+				ArrayList<Arrow> chance = this.chance.get(j).get(i);
+				flag.get(j).set(i, true);
+				finished.add(cursor.toPoint());
+				//System.out.println("Start:" + i + "," + j);
+				if(finished.size() == this.width * this.height) {
+					counter.increase();
+					//System.out.println("----finished:" + finished);
+					this.result.add(finished);
+				} else {
+					for (int k = 0; k < chance.size(); k++) {
+						Arrow arrow = chance.get(k);
+						Cursor newcursor = cursor.move(arrow);
+						if(this.valid(newcursor, counter, finished, flag)) {
+							ArrayList<ArrayList<Boolean>> newflag = this.cloneFlag(flag);//.clone();
+							ArrayList<Point> newFinished = this.cloneFinished(finished);//.clone();
+							newflag.get(newcursor.getY()).set(newcursor.getX(), true);
+							newFinished.add(newcursor.toPoint());
+							this.recur(newcursor, counter, newFinished, newflag);
+						}
+					}
+				}
 			}
-			//this.recur(newcursor, counter, newFinished, newflag);
 		}
-		/*while (this.recur(cursor, counter)) {
-			while (this.result.size() < total) {
-				//this.result.
-				Random r = new Random();
-				int num = r.nextInt(8);
-				Arrow[] arrows = Arrow.values();
-				Arrow arrow = arrows[num];
-				cursor.move(arrow);
-				System.out.println("x:" + arrow.getX() + ";y:" + arrow.getY() + ";cursor:" + cursor.toString());
-				this.result.add(1);
-			}
-			counter++;
-		}*/
 		System.out.println("counter:" + counter.get());
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void recur(Cursor cursor, Counter counter, ArrayList<Point> finished, ArrayList<ArrayList<Boolean>> flag) {
 		if(finished.size() == this.width * this.height) {
 			counter.increase();
-			System.out.println("----finished:" + finished);
+			//System.out.println("----finished:" + finished);
 			this.result.add(finished);
 		} else {
 			int x = cursor.getX();
@@ -136,70 +133,34 @@ public class GoCheck {
 				//ArrayList<ArrayList<Boolean>> newflag = (ArrayList<ArrayList<Boolean>>) flag.clone();
 				//System.out.println(flag);
 				if(this.valid(newcursor, counter, finished, flag)) {
-					ArrayList<ArrayList<Boolean>> newflag = (ArrayList<ArrayList<Boolean>>) this.cloneArrayList(flag);
-					ArrayList<Point> newFinished = (ArrayList<Point>) this.cloneArrayList(finished);
+					ArrayList<ArrayList<Boolean>> newflag = this.cloneFlag(flag);
+					ArrayList<Point> newFinished = this.cloneFinished(finished);
 					newflag.get(newcursor.getY()).set(newcursor.getX(), true);
 					newFinished.add(newcursor.toPoint());
 					this.recur(newcursor, counter, newFinished, newflag);
 				}
 			}
 		}
-		//ArrayList<Integer> currentCounter = this.counter.get(counter.);
 	}
 
-	/*public boolean recur(Cursor cursor, int counter) {
-		boolean hasChanged = false;
-		int x = cursor.getX();
-		int y = cursor.getY();
-		ArrayList<Point> finished = new ArrayList<Point>();
-		ArrayList<Arrow> chance = this.chance.get(y).get(x);
-		ArrayList<Integer> currentCounter = this.counter.get(counter);
-		for (int i = 0; i < chance.size(); i++) {
-			Arrow arrow = chance.get(i);
-			cursor.move(arrow);
-			if(!this.valid(cursor)) {
-				cursor.unmove(arrow);
-			} else {
-				currentCounter.add(x + y * this.width);
-				hasChanged = this.recur(cursor, counter, finished);
-			}
+	private ArrayList<Point> cloneFinished(ArrayList<Point> arr) {
+		ArrayList<Point> newArr = new ArrayList<Point>();
+		for (Point p : arr) {
+			newArr.add(new Point(p.getX(), p.getY()));
 		}
-		return hasChanged;
-	}*/
-	/*public boolean recur(Cursor cursor, int counter, ArrayList<Point> finished) {
-		if(finished.size() < this.height * this.width) {
-			boolean hasChanged = false;
-			int x = cursor.getX();
-			int y = cursor.getY();
-			ArrayList<Arrow> chance = this.chance.get(y).get(x);
-			ArrayList<Integer> currentCounter = this.counter.get(counter);
-			for (int i = 0; i < chance.size(); i++) {
-				Arrow arrow = chance.get(i);
-				if(!this.valid(cursor.move(arrow))) {
-					cursor.unmove(arrow);
-				} else {
-					hasChanged = true;
-					currentCounter.add(x + y * this.width);
-					finished.add(cursor.toPoint());
-					this.recur(cursor, counter, finished);
-				}
-			}
-			return hasChanged;
-		} else {
-			return false;
+		return newArr;
+	}
+	private ArrayList<Boolean> cloneFlagBoolean(ArrayList<Boolean> arr) {
+		ArrayList<Boolean> newArr = new ArrayList<Boolean>();
+		for (Boolean b : arr) {
+			newArr.add(b);
 		}
-	}*/
-	public ArrayList cloneArrayList(ArrayList arr) {
-		ArrayList newArr = new ArrayList();
-		for (Object object : arr) {
-			if(object.getClass().getName() == "java.util.ArrayList" ) {
-				newArr.add(this.cloneArrayList((ArrayList) object));
-			} else if(object.getClass().getName() == "cn.laysoft.gocheck.Point") {
-				Point p = (Point) object;
-				newArr.add(new Point(p.getX(), p.getY()));
-			} else {
-				newArr.add(object);
-			}
+		return newArr;
+	}
+	private ArrayList<ArrayList<Boolean>> cloneFlag(ArrayList<ArrayList<Boolean>> finished) {
+		ArrayList<ArrayList<Boolean>> newArr = new ArrayList<ArrayList<Boolean>>();
+		for (ArrayList<Boolean> object : finished) {
+			newArr.add(this.cloneFlagBoolean(object));
 		}
 		return newArr;
 	}
@@ -218,18 +179,8 @@ public class GoCheck {
 		if(flag.get(y).get(x)) {
 			return false;
 		}
-		System.out.println("--------isTrue:---------");
+		//System.out.println("--------isTrue:---------");
 		return true;
-	}
-}
-
-class Result {
-	private ArrayList<Integer> result = new ArrayList<Integer>();
-	
-	public Result() {
-	}
-	public void add(int value) {
-		this.result.add(value);
 	}
 }
 enum Arrow {
@@ -322,5 +273,3 @@ class Point {
 		return this.x + "," + this.y;
 	}
 }
-
-

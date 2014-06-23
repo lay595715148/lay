@@ -228,7 +228,6 @@ final class App {
      * @var array
      */
     private $classpath = array(
-            'src'
     );
     /**
      * 当前行为控制类对象实例
@@ -268,9 +267,7 @@ final class App {
         // 设置根目录路径
         App::$_RootPath = $rootpath = dirname(dirname(__DIR__));
         // 设置核心类加载路径
-        foreach($this->classpath as $i => $path) {
-            $this->classpath[$i] = $rootpath . DIRECTORY_SEPARATOR . $path;
-        }
+        array_unshift($this->classpath, $rootpath . DIRECTORY_SEPARATOR . 'src');
         // 加载类文件路径缓存
         $this->loadCache();
         // 初始化logger
