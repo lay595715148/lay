@@ -437,7 +437,9 @@ class Template extends AbstractTemplate {
         
         ob_start();
         extract($vars);
-        include ($file);
+        if($file && is_file($file)) {
+            include ($file);
+        }
         $results = ob_get_contents();
         ob_end_clean();
         

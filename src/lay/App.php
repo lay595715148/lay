@@ -286,7 +286,11 @@ final class App {
         // 设置其他类自动加载目录路径
         $classpaths = include_once $rootpath . "/inc/config/classpath.php";
         foreach($classpaths as $i => $path) {
-            $this->classpath[] = $rootpath . DIRECTORY_SEPARATOR . $path;
+            if(strpos($path, $rootpath) === 0) {
+                $this->classpath[] = $path;
+            } else if($realpath = realpath($rootpath . DIRECTORY_SEPARATOR . $path)){
+                $this->classpath[] = $realpath;
+            }
         }
         // 触发lay的H_INIT钩子
         PluginManager::exec(App::H_INIT, array(
@@ -518,7 +522,7 @@ final class App {
             $action = $this->createActionByConfig($uri, $config);
         }
         // 如果以下没有再正则匹配
-        if(! $action && $uri) {
+        if(! $action && $uri && $routers) {
             foreach($routers as $router) {
                 $action = $this->createActionByRouter($uri, $router);
                 if($action) {

@@ -204,7 +204,7 @@ class MongoStore extends Store {
         $table = $model->table();
         $columns = $model->columns();
         $pk = $model->primary();
-        $seq = is_subclass_of($model, 'lay\core\Increment') ? $model->sequence() : '';
+        $seq = is_a($model, 'lay\core\Increment') ? $model->sequence() : '';
         if(! $link) {
             $this->connect();
         }

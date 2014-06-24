@@ -202,7 +202,10 @@ abstract class Action extends AbstractAction {
      * @return Service
      */
     public function service($classname) {
-        return Service::getInstance($classname);
+        if(!array_key_exists($classname, $this->services)) {
+            $this->services[$classname] = Service::getInstance($classname);
+        }
+        return $this->services[$classname];
     }
     /**
      * 创建事件触发方法

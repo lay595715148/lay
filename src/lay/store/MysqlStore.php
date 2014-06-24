@@ -340,7 +340,7 @@ class MysqlStore extends Store {
         $classname = get_class($this->model);
         if(! $result) {
             // result is empty or null
-        } else if($count != 0) {
+        } else if($count > 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
@@ -373,7 +373,7 @@ class MysqlStore extends Store {
         $classname = get_class($this->model);
         if(! $result) {
             // result is empty or null
-        } else if($count != 0) {
+        } else if($count > 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
@@ -410,7 +410,7 @@ class MysqlStore extends Store {
         $classname = get_class($this->model);
         if(! $result) {
             // result is empty or null
-        } else if($count != 0) {
+        } else if($count > 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {

@@ -6,8 +6,9 @@ use lay\action\JSONAction;
 use demo\model\DemoModel;
 use lay\core\Service;
 use demo\service\DemoService;
+use lay\action\TypicalAction;
 
-class WebWeb extends JSONAction {
+class WebWeb extends TypicalAction {
     /**
      * 
      * @var DemoService

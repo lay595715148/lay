@@ -77,8 +77,8 @@ abstract class Service extends AbstractService {
      * 构造方法
      * @param Store $store 数据库访问对象
      */
-    public function __construct($store) {
-        if(is_subclass_of($store, 'lay\core\Store')) {
+    public function __construct($store = '') {
+        if($store && is_a($store, 'lay\core\Store')) {
             $this->store = $store;
         }
         PluginManager::exec(Service::H_CREATE, array($this));
