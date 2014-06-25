@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 操作mongodb数据库类
  *
@@ -28,6 +29,42 @@ if(! defined('INIT_LAY')) {
  */
 class MongoStore extends Store {
     /**
+     * 数据库连接对象
+     *
+     * @var MongoClient
+     */
+    protected $connection;
+    /**
+     * 标记自增涨字段的数据库表名
+     *
+     * @var string
+     */
+    protected $sequence;
+    /**
+     * 数据库访问对象
+     *
+     * @var MongoDB
+     */
+    protected $link;
+    /**
+     * MongoCollection
+     * 
+     * @var MongoCollection
+     */
+    protected $collection;
+    /**
+     * MongoCursor
+     * 
+     * @var MongoCursor
+     */
+    protected $cursor;
+    /**
+     * Coder
+     * 
+     * @var Coder
+     */
+    protected $coder;
+    /**
      * 构造方法
      *
      * @param Model $model
@@ -43,25 +80,6 @@ class MongoStore extends Store {
         }
         parent::__construct($name, $model, $config);
     }
-    
-    /**
-     * 标记自增涨字段的数据库表名
-     *
-     * @var string
-     */
-    protected $sequence;
-    /**
-     * 数据库连接对象
-     *
-     * @var MongoClient
-     */
-    protected $connection;
-    /**
-     * 数据库访问对象
-     *
-     * @var MongoDB
-     */
-    protected $link;
     /**
      * 连接MongoDB数据库
      *
@@ -117,6 +135,9 @@ class MongoStore extends Store {
             $this->connect();
         }
         
+        if(is_a($sql, 'lay\core\Coder')) {
+        }
+        
         if(! $encoding && $config['encoding']) {
             $encoding = $config['encoding'];
         }
@@ -159,12 +180,11 @@ class MongoStore extends Store {
             $this->connect();
         }
         
-        $coder = new Coder($model, $link);
-        $coder->setQuery(array(
+        $this->coder = new Coder($model);
+        $this->coder->setQuery(array(
                 $pk => $id
         ));
-        $result = $coder->makeSelectOne();
-        return $result;
+        return $this->makeSelectOne();
     }
     /**
      * delete by primary id
@@ -183,12 +203,11 @@ class MongoStore extends Store {
             $this->connect();
         }
         
-        $coder = new Coder($model, $link);
-        $coder->setQuery(array(
+        $this->coder = new Coder($model);
+        $this->coder->setQuery(array(
                 $pk => $id
         ));
-        $result = $coder->makeDelete();
-        return $result;
+        return $this->makeDelete();
     }
     /**
      * return id,always replace
@@ -209,7 +228,7 @@ class MongoStore extends Store {
             $this->connect();
         }
         
-        $coder = new Coder($model, $link);
+        $this->coder = new Coder($model);
         if($seq) {
             $k = array_search($seq, $columns);
             if(! array_key_exists($seq, $info) && $k !== false && ! array_key_exists($columns[$k], $info)) {
@@ -217,9 +236,8 @@ class MongoStore extends Store {
                 $info[$seq] = $new;
             }
         }
-        $coder->setValues($info);
-        $result = $coder->makeInsert();
-        return $result;
+        $this->coder->setValues($info);
+        return $this->makeInsert();
     }
     /**
      * update by primary id
@@ -240,13 +258,12 @@ class MongoStore extends Store {
             $this->connect();
         }
         
-        $coder = new Coder($model, $link);
-        $coder->setSetter($info);
-        $coder->setQuery(array(
+        $this->coder = new Coder($model);
+        $this->coder->setSetter($info);
+        $this->coder->setQuery(array(
                 $pk => $id
         ));
-        $result = $coder->makeUpdate();
-        return $result;
+        return $this->makeUpdate();
     }
     /**
      * 某些条件下的记录数
@@ -265,14 +282,10 @@ class MongoStore extends Store {
             $this->connect();
         }
         
-        $coder = new Coder($model, $link);
-        $coder->setQuery($info);
-        $result = $coder->makeCount();
-        return $result;
+        $this->coder = new Coder($model);
+        $this->coder->setQuery($info);
+        return $this->makeCount();
     }
-    /**
-     * find
-     */
     /**
      * 搜索查询数据
      *
@@ -320,15 +333,14 @@ class MongoStore extends Store {
             $this->connect();
         }
         
-        $coder = new Coder($model, $link);
-        $coder->setFields($fields);
-        $coder->setQuery($query);
-        $coder->setOrder($sort);
-        $coder->setLimit($limit);
-        $coder->setGroup($group);
-        $coder->setHaving($having);
-        $coder->makeSelect();
-        return $coder->makeIterator();
+        $this->coder = new Coder($model);
+        $this->coder->setFields($fields);
+        $this->coder->setQuery($query);
+        $this->coder->setOrder($sort);
+        $this->coder->setLimit($limit);
+        $this->coder->setGroup($group);
+        $this->coder->setHaving($having);
+        return $this->makeSelect();
     }
     /**
      * find and modify
@@ -355,13 +367,12 @@ class MongoStore extends Store {
             $this->connect();
         }
         
-        $coder = new Coder($model, $link);
-        $coder->setFields($fields);
-        $coder->setQuery($query);
-        $coder->setSetter($setter);
-        $coder->setNew($new);
-        $result = $coder->makeFindModify();
-        return $result;
+        $this->coder = new Coder($model);
+        $this->coder->setFields($fields);
+        $this->coder->setQuery($query);
+        $this->coder->setSetter($setter);
+        $this->coder->setNew($new);
+        return $this->makeFindModify();
     }
     /**
      * close connection
@@ -369,6 +380,153 @@ class MongoStore extends Store {
     public function close() {
         if($this->link)
             $this->link->close();
+    }
+    /**
+     * 返回单一数据
+     *
+     * @return mixed
+     */
+    public function toScalar() {
+        $row = array_values($this->toOne(true));
+        return $row[0];
+    }
+    /**
+     * 返回单条数据
+     *
+     * @param boolean $origin
+     *            是否数据库原始数据
+     * @return mixed
+     */
+    public function toOne($origin = false) {
+        $rows = $this->toArray(1, $origin);
+        return $rows[0];
+    }
+    /**
+     * 将结果集转换为指定数量的数组
+     *
+     * @param int $count
+     *            指定数量
+     * @param boolean $origin
+     *            是否数据库原始数据
+     * @return array
+     */
+    public function toArray($count = 0, $origin = false) {
+        $rows = array();
+        $result = $this->result;
+        $cursor = $this->cursor;
+        $model = $this->model;
+        if(! $result && ! $cursor) {
+            // result is empty or null
+        } else {
+            $i = 0;
+            if($cursor) {
+                if(! $result) {
+                    $this->doIterator();
+                    $result = $this->result;
+                }
+                foreach($result as $k => $row) {
+                    if($count <= 0 || $i < $count) {
+                        if($origin) {
+                            $rows[$i] = (array)$row;
+                        } else {
+                            $obj = clone $model;
+                            $obj->distinct()->build((array)$row);
+                            $rows[$i] = $obj->toArray();
+                        }
+                        $i++;
+                    } else {
+                        break;
+                    }
+                }
+            } else if($result && empty($result['err'])) {
+                if($origin) {
+                    $rows[$i] = (array)$result;
+                } else {
+                    $m = clone $model;
+                    $m->distinct()->build((array)$result);
+                    $rows[$i] = $m->toArray();
+                }
+            }
+        }
+        return $rows;
+    }
+    /**
+     * 将结果集转换为指定数量的Model对象数组
+     *
+     * @param int $count
+     *            指定数量
+     * @return array
+     */
+    public function toModelArray($count = 0) {
+        $rows = array();
+        $result = $this->result;
+        $cursor = $this->cursor;
+        $model = $this->model;
+        if(! $result && ! $cursor) {
+            // result is empty or null
+        } else {
+            $i = 0;
+            if($cursor) {
+                if(! $result) {
+                    $this->doIterator();
+                    $result = $this->result;
+                }
+                foreach($result as $k => $row) {
+                    if($count <= 0 || $i < $count) {
+                        $obj = clone $model;
+                        $obj->distinct()->build((array)$row);
+                        $rows[$i] = $obj;
+                        $i++;
+                    } else {
+                        break;
+                    }
+                }
+            } else if($result && empty($result['err'])) {
+                $obj = clone $model;
+                $obj->distinct()->build((array)$result);
+                $rows[$i] = $obj;
+            }
+        }
+        return $rows;
+    }
+    /**
+     * 将结果集转换为指定数量的stdClass对象数组
+     *
+     * @param int $count
+     *            指定数量
+     * @return array
+     */
+    public function toObjectArray($count = 0) {
+        $rows = array();
+        $result = $this->result;
+        $cursor = $this->cursor;
+        $model = $this->model;
+        if(! $result && ! $cursor) {
+            // result is empty or null
+        } else {
+            $i = 0;
+            if($cursor) {
+                if(! $result) {
+                    $this->doIterator();
+                    $result = $this->result;
+                }
+                foreach($result as $k => $row) {
+                    if($count <= 0 || $i < $count) {
+                        $obj = clone $model;
+                        $obj->distinct()->build((array)$row);
+                        $rows[$i] = $obj->toStdClass();
+                        $i++;
+                    } else {
+                        break;
+                    }
+                }
+            } else if($result && empty($result['err'])) {
+                $obj = clone $model;
+                $obj->distinct()->build((array)$result);
+                $rows[$i] = $obj->toStdClass();
+            }
+        }
+        return $rows;
     }
     /**
      * 返回下一个自增涨数据
@@ -379,7 +537,7 @@ class MongoStore extends Store {
      */
     protected function nextSequence($step = 1) {
         Logger::debug('do next');
-        if(! is_subclass_of($this->model, 'lay\core\Increment')) {
+        if(! is_a($this->model, 'lay\core\Increment')) {
             return false;
         }
         $result = &$this->result;
@@ -393,19 +551,326 @@ class MongoStore extends Store {
         }
         
         $seqStore = new MongoStore(new MongoSequence(), $this->name);
-        $seqquery = array(
-                'name' => $table . '.' . $seq
-        );
-        $ret = $seqStore->findModify(array(
+        $q = array(
                 'name' => $table . '.' . $pk
-        ), array(
+        );
+        $s = array(
                 '$inc' => array(
                         'seq' => $step
                 )
-        ), array(
+        );
+        $f = array(
                 'seq'
-        ), true);
+        );
+        $ret = $seqStore->findModify($q, $s, $f, true);
         return $ret['seq'];
+    }
+    /**
+     * make select query
+     * 
+     * @return MongoCursor
+     */
+    private function makeSelect() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeFindFun();
+        $this->makeGroup();
+        $this->makeSort();
+        $this->makeSkip();
+        $this->makeLimit();
+        return $this->toArray(0, true);
+    }
+    /**
+     * make select one query
+     * 
+     * @return mixed
+     */
+    private function makeSelectOne() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeFindOneFun();
+        return $this->toOne();
+    }
+    /**
+     * make findAndodify query
+     * 
+     * @return mixed
+     */
+    private function makeFindModify() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeFindModifyFun();
+        return $this->toOne();
+    }
+    /**
+     * make insert query
+     * 
+     * @return boolean
+     */
+    private function makeInsert() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeInsertFun();
+        return $this->result ? $this->result['ok'] : false;
+    }
+    /**
+     * make remove querying
+     * 
+     * @return boolean
+     */
+    private function makeDelete() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeDeleteFun();
+        return $this->result ? $this->result['ok'] : false;
+    }
+    /**
+     * make update query
+     * 
+     * @return boolean
+     */
+    private function makeUpdate() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeUpdateFun();
+        return $this->result ? $this->result['ok'] : false;
+    }
+    /**
+     * make record's count query
+     * 
+     * @return int
+     */
+    private function makeCount() {
+        $this->makeDb();
+        $this->makeCollection();
+        $this->makeCountFun();
+        return $this->toScalar();
+    }
+    /**
+     * make record's iterator
+     * 
+     * @return mixed
+     */
+    private function doIterator() {
+        if(empty($this->cursor)) {
+            $this->result = array();
+            // don't do
+        } else if(is_a($this->cursor, 'MongoCursor')) {
+            $this->result = iterator_to_array($this->cursor);
+        } else {
+            $this->result = $this->cursor['result'];
+        }
+        return $this->result;
+    }
+    /**
+     * make one record
+     * 
+     * @return mixed
+     */
+    private function doOne() {
+        if(empty($this->result)) {
+            // don't do
+            $this->result = false;
+        } else {
+            // $classname = get_class($this->model);
+            // $bean = new $classname();
+            // $this->result = $bean->build($this->result)->toArray();
+        }
+        return $this->result;
+    }
+    /**
+     * make or update MongoDB
+     */
+    private function makeDb() {
+        $this->result = false;
+        $this->cursor = false;
+        if($this->link) {
+            // don't do
+        } else if($this->connection && $this->coder->schema) {
+            $this->link = $this->connection->selectDB($this->coder->schema);
+        } else {
+            Logger::error('null given schema or null given mongo client!');
+        }
+    }
+    /**
+     * make or update MongoCollection
+     */
+    private function makeCollection() {
+        if($this->link && $this->coder->table) {
+            $this->collection = $this->link->selectCollection($this->coder->table);
+        } else {
+            Logger::error('null given table or null given mongo db!');
+        }
+    }
+    /**
+     * make find function
+     */
+    private function makeFindFun() {
+        if($this->collection) {
+            if(! $this->coder->fields && $this->model) {
+                $this->coder->setFields($this->model->toFields());
+            }
+            $fields = ! $this->coder->fields ? array() : $this->coder->fields;
+            $query = ! $this->coder->query ? array() : $this->coder->query;
+            if(method_exists($this->collection, 'aggregate')) {
+                $command = array();
+                if($query) {
+                    $command[]['$match'] = $query;
+                }
+                if($this->coder->group) {
+                    $command[]['$group'] = $this->coder->group;
+                }
+                if($this->coder->order) {
+                    $command[]['$sort'] = $this->coder->order;
+                }
+                if($fields) {
+                    $columns = $this->model->columns();
+                    foreach($fields as $field => $v) {
+                        $k = array_search($field, $columns);
+                        if($k && $field !== $k && $v != 0) {
+                            $fields[$field] = 0;
+                            $fields[$k] = '$' . $field;
+                        }
+                    }
+                    $command[]['$project'] = $fields;
+                }
+                if($this->coder->offset > 0) {
+                    $command[]['$skip'] = $this->coder->offset;
+                }
+                if($this->coder->num > 0) {
+                    $command[]['$limit'] = $this->coder->num;
+                }
+                $this->cursor = $this->collection->aggregate($command);
+            } else {
+                $this->cursor = $this->collection->find($query, $fields);
+            }
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    /**
+     * make findOne function
+     */
+    private function makeFindOneFun() {
+        $query = ! $this->coder->query ? array() : $this->coder->query;
+        $fields = ! $this->coder->fields ? ($this->model ? $this->model->toFields() : array()) : $this->coder->fields;
+        if($this->collection) {
+            $this->result = $this->collection->findOne($query, $fields);
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    /**
+     * make findAndModify function
+     */
+    private function makeFindModifyFun() {
+        if(! $this->coder->query || ! $this->coder->setter) {
+            // don't do
+        } else if($this->collection) {
+            if($this->coder->new) {
+                $options = array(
+                        'new' => true
+                );
+            } else {
+                $options = array();
+            }
+            $this->result = $this->collection->findAndModify($this->coder->query, $this->coder->setter, $this->coder->fields, $options);
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    /**
+     * make insert function
+     */
+    private function makeInsertFun() {
+        if(! $this->coder->values) {
+            // don't do
+        } else if($this->collection) {
+            $options = array();
+            $this->result = $this->collection->insert($this->coder->values, $options);
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    /**
+     * make remove function
+     */
+    private function makeDeleteFun() {
+        if(! $this->coder->query) {
+            // don't do
+        } else if($this->collection) {
+            $options = array();
+            $this->result = $this->collection->remove($this->coder->query, $options);
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    /**
+     * make update function
+     */
+    private function makeUpdateFun() {
+        if(! $this->coder->query || ! $this->coder->setter) {
+            // don't do
+        } else if($this->collection) {
+            $options = array();
+            $this->result = $this->collection->update($this->coder->query, $this->coder->setter, $options);
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    /**
+     * make count function
+     */
+    private function makeCountFun() {
+        if($this->collection) {
+            if(! $this->coder->query) {
+                $this->result = $this->collection->count();
+            } else {
+                $this->result = $this->collection->count($this->coder->query);
+            }
+        } else {
+            Logger::error('null given mongo collection!');
+        }
+    }
+    /**
+     * make group function
+     */
+    private function makeGroup() {
+        if(! $this->coder->group) {
+            // don't do
+        } else if(is_a($this->cursor, 'MongoCursor')) {
+            // $this->cursor->($this->order);
+        }
+    }
+    /**
+     * make sort function
+     */
+    private function makeSort() {
+        if(! $this->coder->order) {
+            // don't do
+        } else if(is_a($this->cursor, 'MongoCursor')) {
+            $this->cursor->sort($this->order);
+        }
+    }
+    /**
+     * make skip function
+     */
+    private function makeSkip() {
+        if($this->coder->offset > 0 && is_a($this->cursor, 'MongoCursor')) {
+            $this->cursor->skip($this->coder->offset);
+        } else {
+            // don't do
+        }
+    }
+    /**
+     * make limit function
+     */
+    private function makeLimit() {
+        if($this->coder->num > 0 && is_a($this->cursor, 'MongoCursor')) {
+            $this->cursor->limit($this->coder->num);
+        } else {
+            // don't do
+        }
     }
 }
 ?>

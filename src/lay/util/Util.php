@@ -126,9 +126,10 @@ class Util {
             $r = '';
             $r .= self::array2String($arr);
         } else {
-            $r = "<?php return ";
+            $r = "<?php";
+            $r .= "\r\nreturn ";
             self::a2s($r, $arr);
-            $r .= ";?>\r\n";
+            $r .= ";\r\n?>\r\n";
         }
         return $r;
     }

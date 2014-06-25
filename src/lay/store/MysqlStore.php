@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 操作mysql数据库类
  * 
@@ -19,21 +20,23 @@ if(! defined('INIT_LAY')) {
 
 /**
  * 操作mysql数据库类
- * 
+ *
  * @author Lay Li
  */
 class MysqlStore extends Store {
     /**
      * mysql数据库连接句柄
-     * 
+     *
      * @var Connection
      */
     protected $connection;
     /**
      * 构造方法
-     * 
-     * @param Model $model            
-     * @param string $name            
+     *
+     * @param Model $model
+     *            模型对象
+     * @param string $name
+     *            名称
      */
     public function __construct($model, $name = 'default') {
         if(is_string($name)) {
@@ -93,7 +96,7 @@ class MysqlStore extends Store {
         if(! $link) {
             $this->connect();
         }
-        
+
         if(! $encoding && $config['encoding']) {
             $encoding = $config['encoding'];
         }
@@ -105,15 +108,14 @@ class MysqlStore extends Store {
                 Logger::info('SET NAMES ' . $encoding, 'MYSQL');
             }
             $connection->encoding = $encoding;
-            // mysql_query('SET NAMES ' . $encoding, $link);
             mysqli_query($link, 'SET NAMES ' . $encoding);
         }
         if($showsql) {
             Logger::info($sql, 'MYSQL');
         }
         if($sql) {
+            $result = false;
             $result = mysqli_query($link, $sql);
-            // $result = mysql_query($sql, $link);
         }
         
         return $result;
@@ -141,7 +143,7 @@ class MysqlStore extends Store {
         $sql = $criteria->makeSelectSQL();
         $this->query($sql, 'UTF8', true);
         
-        return $this->toArray(1);
+        return $this->toOne(1);
     }
     /**
      * delete by primary id
@@ -199,7 +201,7 @@ class MysqlStore extends Store {
     }
     /**
      * update by primary id
-     * 
+     *
      * @param int|string $id
      *            the ID
      * @param array $info
@@ -231,7 +233,7 @@ class MysqlStore extends Store {
     }
     /**
      * 条件下记录数
-     * 
+     *
      * @param array $info
      *            query information array
      * @return int
@@ -255,7 +257,7 @@ class MysqlStore extends Store {
     }
     /**
      * 搜索查询数据
-     * 
+     *
      * @param array $fields
      *            字段数组
      * @param array $condition
@@ -314,6 +316,7 @@ class MysqlStore extends Store {
      *
      *
      *
+     *
      */
     public function toLastid() {
         return mysqli_insert_id($this->link);
@@ -328,23 +331,40 @@ class MysqlStore extends Store {
         return $row['0'];
     }
     /**
+     * 返回单条数据
+     *
+     * @param boolean $origin
+     *            是否数据库原始数据
+     * @return mixed
+     */
+    public function toOne($origin = false) {
+        $rows = $this->toArray(1, $origin);
+        return $rows[0];
+    }
+    /**
      * 将结果集转换为指定数量的数组
      *
      * @param int $count
      *            指定数量
      * @return array
      */
-    public function toArray($count = 0) {
+    public function toArray($count = 0, $origin = false) {
         $rows = array();
         $result = $this->result;
-        $classname = get_class($this->model);
+        $model = $this->model;
         if(! $result) {
             // result is empty or null
         } else if($count > 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                    $rows[$i] = (array)$row;
+                    if($origin) {
+                        $rows[$i] = (array)$row;
+                    } else {
+                        $obj = clone $model;
+                        $obj->distinct()->build((array)$row);
+                        $rows[$i] = $m->toArray();
+                    }
                     $i++;
                 }
             }
@@ -357,7 +377,7 @@ class MysqlStore extends Store {
                 }
             }
         }
-        
+
         return $rows;
     }
     /**
@@ -370,15 +390,15 @@ class MysqlStore extends Store {
     public function toModelArray($count = 0) {
         $rows = array();
         $result = $this->result;
-        $classname = get_class($this->model);
+        $model = $this->model;
         if(! $result) {
             // result is empty or null
         } else if($count > 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                    $obj = new $classname();
-                    $obj->build((array)$row);
+                    $obj = clone $model;
+                    $obj->distinct()->build((array)$row);
                     $rows[$i] = $obj;
                     $i++;
                 }
@@ -387,8 +407,8 @@ class MysqlStore extends Store {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                    $obj = new $classname();
-                    $obj->build((array)$row);
+                    $obj = clone $model;
+                    $obj->distinct()->build((array)$row);
                     $rows[$i] = $obj;
                     $i++;
                 }
@@ -407,15 +427,15 @@ class MysqlStore extends Store {
     public function toObjectArray($count = 0) {
         $rows = array();
         $result = $this->result;
-        $classname = get_class($this->model);
+        $model = $this->model;
         if(! $result) {
             // result is empty or null
         } else if($count > 0) {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                    $obj = new $classname();
-                    $obj->build((array)$row);
+                    $obj = clone $model;
+                    $obj->distinct()->build((array)$row);
                     $rows[$i] = $obj->toStdClass();
                     $i++;
                 }
@@ -424,8 +444,8 @@ class MysqlStore extends Store {
             $i = 0;
             if(mysqli_num_rows($result)) {
                 while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                    $obj = new $classname();
-                    $obj->build((array)$row);
+                    $obj = clone $model;
+                    $obj->distinct()->build((array)$row);
                     $rows[$i] = $obj->toStdClass();
                     $i++;
                 }

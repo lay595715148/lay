@@ -29,6 +29,7 @@ ini_set('implicit_flush', 'off');
  * @author Lay Li 2014-04-29
  */
 final class App {
+    const NAME = 'lay';
     /**
      * 事件常量，初始化时
      *
@@ -781,7 +782,7 @@ final class App {
      * @return void
      */
     private function loadCache() {
-        $cachename = realpath(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lay-classes.php');
+        $cachename = realpath(sys_get_temp_dir() . DIRECTORY_SEPARATOR . App::NAME . '.classes.php');
         if(is_file($cachename)) {
             $this->caches = include $cachename;
         } else {
@@ -800,7 +801,7 @@ final class App {
         Logger::info('$this->cached:' . $this->cached);
         if($this->cached) {
             // 先读取，再merge，再存储
-            $cachename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lay-classes.php';
+            $cachename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . App::NAME . '.classes.php';
             if(is_file($cachename)) {
                 $caches = include realpath($cachename);
                 $this->caches = array_merge($caches, $this->caches);

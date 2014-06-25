@@ -112,15 +112,19 @@ class MemcacheStore extends Store {
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
-        $table = $model->table();
-        $pk = $model->primary();
         if(! $link) {
             $this->connect();
         }
-        $key = $table.'.'.$pk.'.'.$id;
-        $result = $this->link->get($key);
-        $result = json_decode($result, true);
-        return $result;
+        if($model) {
+            $table = $model->table();
+            $pk = $model->primary();
+            $key = $table.'.'.$pk.'.'.$id;
+            $result = $this->link->get($key);
+            $result = json_decode($result, true);
+        } else {
+            $result = $this->link->get($id);
+        }
+        return $this->toOne();
     }
     /**
      * delete by id
@@ -133,12 +137,16 @@ class MemcacheStore extends Store {
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
-        $table = $model->table();
-        $pk = $model->primary();
         if(! $link) {
             $this->connect();
         }
-        $key = $table.'.'.$pk.'.'.$id;
+        if($model) {
+            $table = $model->table();
+            $pk = $model->primary();
+            $key = $table.'.'.$pk.'.'.$id;
+        } else {
+            $key = $id;
+        }
         return $this->link->delete($key);
     }
     /**
@@ -152,30 +160,34 @@ class MemcacheStore extends Store {
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
-        $table = $model->table();
-        $columns = $model->columns();
-        $pk = $model->primary();
         if(! $link) {
             $this->connect();
         }
         
-        if(array_key_exists($pk, $info)) {
-            $key = $table.'.'.$pk.'.'.$info[$pk];
-        } else {
-            $k = array_search($pk, $columns);
-            if($k !== false && array_key_exists($columns[$k], $info)) {
-                $key = $table.'.'.$pk.'.'.$info[$columns[$k]];
+        if($model) {
+            $table = $model->table();
+            $columns = $model->columns();
+            $pk = $model->primary();
+            if(array_key_exists($pk, $info)) {
+                $key = $table.'.'.$pk.'.'.$info[$pk];
+            } else {
+                $k = array_search($pk, $columns);
+                if($k !== false && array_key_exists($k, $info)) {
+                    $key = $table.'.'.$pk.'.'.$info[$k];
+                }
             }
-        }
-        if($key) {
-            // Model, Expireable
-            $m = clone $this->model;
-            $m->distinct()->build($info);
-            $result = $this->link->set($key, json_encode($m->toData()), 0, $m->getLifetime());
-            return $result;
+            if($key) {
+                // Model, Expireable
+                $m = clone $model;
+                $m->distinct()->build($info);
+                $result = $this->link->set($key, json_encode($m->toData()), 0, $m->getLifetime());
+            } else {
+                $result = false;
+            }
         } else {
-            return false;
+            $result = false;
         }
+        return $result;
     }
     /**
      * update by primary id
@@ -190,19 +202,29 @@ class MemcacheStore extends Store {
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
-        $table = $model->table();
-        $columns = $model->columns();
-        $pk = $model->primary();
         if(! $link) {
             $this->connect();
         }
         
-        //$result = $this->get($id);
-        $key = $table.'.'.$pk.'.'.$id;
-        $m = clone $this->model;
-        $m->distinct()->build($info)->build(array($pk => $id));
-        $lifetime = $m->getLifetime();
-        $result = $this->link->set($key, json_encode($m->toData()), 0, $lifetime);
+        if($model) {
+            $table = $model->table();
+            $columns = $model->columns();
+            $pk = $model->primary();
+            $key = $table.'.'.$pk.'.'.$id;
+            $m = clone $model;
+            $m->distinct()->build($info)->build(array($pk => $id));
+            $lifetime = $m->getLifetime();
+            $result = $this->link->set($key, json_encode($m->toData()), 0, $lifetime);
+        } else {
+            $key = $id;
+            if(array_key_exists('lifetime', $info)) {
+                $lifetime = $info['lifetime'];
+                unset($info['lifetime']);
+                $result = $this->link->set($key, json_encode((array)$info), 0, $lifetime);
+            } else {
+                $result = $this->link->set($key, json_encode((array)$info));
+            }
+        }
         return $result;
     }
     /**
@@ -221,6 +243,39 @@ class MemcacheStore extends Store {
     public function close() {
         if($this->link)
             $this->link->close();
+    }
+    /**
+     * 返回单一数据
+     *
+     * @return mixed
+     */
+    public function toScalar() {
+        $row = array_values($this->toOne(true));
+        return $row[0];
+    }
+    /**
+     * 返回单条数据
+     *
+     * @param boolean $origin
+     *            是否数据库原始数据
+     * @return mixed
+     */
+    public function toOne($origin = false) {
+        $row = array();
+        $result = $this->result;
+        $model = $this->model;
+        if(!$result) {
+            //
+        } else {
+            if($origin) {
+                $row = (array)$result;
+            } else {
+                $obj = clone $model;
+                $obj->distinct()->build($result);
+                $row = $obj->toArray();
+            }
+        }
+        return $row;
     }
 }
 ?>

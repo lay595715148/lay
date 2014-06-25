@@ -63,8 +63,8 @@ class EventEmitter {
      * @param number $level
      *            层级
      */
-    public static function on($eventid, $func, $level = 0) {
-        self::getInstance()->register($eventid, $func, $level);
+    public static function on($eventid, $func, $level = 0, $param = array()) {
+        self::getInstance()->register($eventid, $func, $level, $param);
     }
     /**
      * 返回已经触发的事件名数组
@@ -111,6 +111,10 @@ class EventEmitter {
             foreach($events as $key => $func) {
                 if(is_callable($func)) {
                     call_user_func_array($func, (array)$params);
+                } else if(is_array($func)) {
+                    if(is_callable($func[0])) {
+                        call_user_func_array($func[0], array_merge((array)$params, $func[1]));
+                    }
                 } else {
                     throw new Exception("Function not defined for EVENTS[$eventid][$level][$key]");
                 }
@@ -128,13 +132,13 @@ class EventEmitter {
      *            层级
      * @return boolean
      */
-    public function register($eventid, $func, $level = 0) {
+    public function register($eventid, $func, $level = 0, $param = array()) {
         // initialize
         if(! isset(self::$_EventStack[$eventid])) {
             self::$_EventStack[$eventid] = array();
         }
         $level = abs(intval($level));
-        self::$_EventStack[$eventid][$level][] = $func;
+        self::$_EventStack[$eventid][$level][] = array($func, (array)$param);
         ksort(self::$_EventStack[$eventid]);
         return true;
     }
