@@ -326,6 +326,9 @@ class Template extends AbstractTemplate {
         Logger::info('variable', 'TEMPLATE');
         return $this->vars;
     }
+    public function redirect($url, array $params = array()) {
+        $this->redirect = $url . ($params? '?' . http_build_query($params):'');
+    }
     /**
      * output as json string
      */
@@ -341,6 +344,9 @@ class Template extends AbstractTemplate {
         foreach($headers as $header) {
             @header($header);
         } */
+        if($this->redirect) {
+            $this->response->redirect($this->redirect);
+        }
         $this->response->setContentType('application/json');
         foreach($this->headers as $header) {
             //@header($header);
@@ -364,6 +370,9 @@ class Template extends AbstractTemplate {
      */
     public function xml() {
         Logger::info('xml', 'TEMPLATE');
+        if($this->redirect) {
+            $this->response->redirect($this->redirect);
+        }
         $this->response->setContentType('text/xml');
         foreach($this->headers as $header) {
             //@header($header);
@@ -434,7 +443,10 @@ class Template extends AbstractTemplate {
         $csses = &$this->csses;
         $headers = &$this->headers;
         $res = &$this->res;
-        
+
+        if($this->redirect) {
+            $this->response->redirect($this->redirect);
+        }
         ob_start();
         extract($vars);
         if($file && is_file($file)) {

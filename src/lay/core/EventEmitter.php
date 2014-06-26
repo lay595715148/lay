@@ -18,6 +18,9 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li
  */
 class EventEmitter {
+    const L_LOW = 2;
+    const L_MIDDLE = 1;
+    const L_HIGH = 0;
     /**
      * 事件集合
      *

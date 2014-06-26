@@ -237,15 +237,6 @@ final class App {
      */
     private $action;
     /**
-     * 设置action属性
-     * @param Action $action
-     */
-    public function setAction($action) {
-        if(is_subclass_of($action, 'lay\core\Action')) {
-            $this->action = $action;
-        }
-    }
-    /**
      * 获取action属性
      * @param Action $action
      */
@@ -280,7 +271,7 @@ final class App {
         EventEmitter::on(App::E_STOP, array(
                 $this,
                 'updateCache'
-        ), 1);
+        ), EventEmitter::L_MIDDLE);
         // 设置并加载插件
         PluginManager::initilize();
         
@@ -530,9 +521,6 @@ final class App {
                     break;
                 }
             }
-        }
-        if(! $action) {
-            Logger::error('have no action');
         }
         $this->action = $action;
     }

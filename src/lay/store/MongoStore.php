@@ -302,7 +302,7 @@ class MongoStore extends Store {
      * @param array $having
      *            having数组
      */
-    public function select($query, $fields, $sort = array(), $limit = array(), $group = array(), $having = array()) {
+    public function select($query, $fields = array(), $sort = array(), $limit = array(), $group = array(), $having = array()) {
         return $this->find($query, $fields, $sort, $limit, $group, $having);
     }
     /**
@@ -322,7 +322,7 @@ class MongoStore extends Store {
      *            having数组
      * @return mixed
      */
-    public function find($query, $fields, $sort = array(), $limit = array(), $group = array(), $having = array()) {
+    public function find($query, $fields = array(), $sort = array(), $limit = array(), $group = array(), $having = array()) {
         // TODO relations
         $result = &$this->result;
         $link = &$this->link;

@@ -23,6 +23,14 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  */
 abstract class TypicalAction extends JSONAction {
+    protected $errorResponse = false;
+    protected $errorMessage = '';
+    protected $errorCode = 0;
+    public function errorResponse($msg, $code = 0) {
+        $this->errorResponse = true;
+        $this->errorMessage = $msg;
+        $this->errorCode = $code;
+    }
     /**
      * (non-PHPdoc)
      * @see \lay\core\JSONAction::onStop()
@@ -30,7 +38,11 @@ abstract class TypicalAction extends JSONAction {
     public function onStop() {
         $vars = $this->template->vars();
         $this->template->distinct();
-        $this->template->push(Collector::response($this->name, $vars, true));
+        if($this->errorResponse) {
+            $this->template->push(Collector::errorResponse($this->name, $this->errorMessage, $this->errorCode));
+        } else {
+            $this->template->push(Collector::response($this->name, $vars, true));
+        }
         parent::onStop();
     }
 }
