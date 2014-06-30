@@ -5,6 +5,7 @@ use config\T;
 
 return array(
     'logger' => array(Logger::L_NONE, false, 0),//0x01 | 0x02 | 0x10 | 0x20 | 0x21
+    'appname' => 'lay',
     'code' => array(
         '404' => '/404.html'
     ),

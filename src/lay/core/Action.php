@@ -134,11 +134,6 @@ abstract class Action extends AbstractAction {
     */
     protected $template;
     /**
-     * Scope实例
-     * @var Scope
-     */
-    protected $scope;
-    /**
      * 构造方法
      *
      * @param string $name 名称
@@ -148,8 +143,7 @@ abstract class Action extends AbstractAction {
         $this->name = $name;
         $this->request = new HttpRequest();
         $this->response = new HttpResponse();
-        $this->template = new Template($this->request, $this->response, $name);
-        $this->scope = new Scope();
+        $this->template = new Template($this->request, $this->response);
         EventEmitter::on(self::E_CREATE, array($this, 'onCreate'), 1);
         PluginManager::exec(self::H_CREATE, array($this));
         EventEmitter::emit(self::E_CREATE, array($this));
@@ -174,13 +168,6 @@ abstract class Action extends AbstractAction {
      */
     public function getTemplate() {
         return $this->template;
-    }
-    /**
-     * 返回Scope对象
-     * @return Scope
-     */
-    public function getScope() {
-        return $this->scope;
     }
     /**
      * 返回名称

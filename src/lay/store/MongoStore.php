@@ -343,8 +343,22 @@ class MongoStore extends Store {
         return $this->makeSelect();
     }
     /**
-     * find and modify
+     * modify
      */
+    public function update($query, $setter) {
+        $result = &$this->result;
+        $link = &$this->link;
+        $model = &$this->model;
+        $table = $model->table();
+        if(! $link) {
+            $this->connect();
+        }
+        
+        $this->coder = new Coder($model);
+        $this->coder->setQuery($query);
+        $this->coder->setSetter($setter);
+        return $this->makeUpdate();
+    }
     /**
      * find and modify
      *
@@ -358,7 +372,7 @@ class MongoStore extends Store {
      *            是否返回新数据
      * @return mixed
      */
-    public function findModify($query, $setter, $fields = array(), $new = false) {
+    public function findModify($query, $setter, $fields = array(), $new = true) {
         $result = &$this->result;
         $link = &$this->link;
         $model = &$this->model;
@@ -373,6 +387,22 @@ class MongoStore extends Store {
         $this->coder->setSetter($setter);
         $this->coder->setNew($new);
         return $this->makeFindModify();
+    }
+    /**
+     * remove
+     */
+    public function remove($query) {
+        $result = &$this->result;
+        $link = &$this->link;
+        $model = &$this->model;
+        $table = $model->table();
+        if(! $link) {
+            $this->connect();
+        }
+        
+        $this->coder = new Coder($model);
+        $this->coder->setQuery($query);
+        return $this->makeDelete();
     }
     /**
      * close connection
@@ -811,7 +841,7 @@ class MongoStore extends Store {
         if(! $this->coder->query || ! $this->coder->setter) {
             // don't do
         } else if($this->collection) {
-            $options = array();
+            $options = array('multiple' => 1);
             $this->result = $this->collection->update($this->coder->query, $this->coder->setter, $options);
         } else {
             Logger::error('null given mongo collection!');

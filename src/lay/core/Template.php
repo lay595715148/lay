@@ -41,12 +41,6 @@ class Template extends AbstractTemplate {
      */
     protected $response;
     /**
-     * name
-     *
-     * @var string $name
-     */
-    protected $name;
-    /**
      * the language
      *
      * @var string $lan
@@ -101,6 +95,12 @@ class Template extends AbstractTemplate {
      */
     protected $csses = array();
     /**
+     * template files directory
+     *
+     * @var string $dir
+     */
+    protected $dir;
+    /**
      * file path
      *
      * @var string $file
@@ -118,18 +118,12 @@ class Template extends AbstractTemplate {
      * @param Action $action
      *            配置信息数组
      */
-    public function __construct($request, $response, $name) {
-        // $this->action = $action;
+    public function __construct($request, $response) {
         $this->request = $request;
         $this->response = $response;
-        $this->name = $name;
-        $lans = App::get('languages');
-        $lan = App::get('language');
-        $this->lan = in_array($lan, (array)$lans) ? $lan : 'zh-cn';
-        $this->theme(App::get('theme'));
-    }
-    public function getName() {
-        return $this->name;
+        $this->language();//初始化语言
+        $this->directory(App::$_RootPath);//初始化目录
+        $this->theme(App::get('theme'));//初始化主题皮肤
     }
     /**
      * push header for output
@@ -220,6 +214,19 @@ class Template extends AbstractTemplate {
             if($theme != App::get('theme')) {
                 App::set('theme', $theme);
             }
+            $this->directory(App::get('themes.' . $this->theme . '.dir', ''));
+        }
+    }
+    /**
+     * set template dir
+     * @param string $dir
+     */
+    public function directory($dir) {
+        $_ROOTPATH = App::$_RootPath;
+        if(strpos($dir, $_ROOTPATH) === 0) {
+            $this->dir = realpath($dir);
+        } else {
+            $this->dir = realpath($_ROOTPATH . DIRECTORY_SEPARATOR . $dir);
         }
     }
     /**
@@ -231,19 +238,13 @@ class Template extends AbstractTemplate {
     public function file($filepath) {
         $_ROOTPATH = App::$_RootPath;
         if(strpos($filepath, $_ROOTPATH) === 0) {
-            $this->file = $filepath;
+            $this->file = realpath($filepath);
         } else {
-            $themes = App::get('themes');
-            $theme = App::get('theme');
-            if($themes && $theme && in_array($theme, array_keys((array)$themes))) {
-                $dir = App::get('themes.' . $theme . '.dir');
-                if(strpos($dir, $_ROOTPATH) === 0) {
-                    $this->file = realpath($dir . DIRECTORY_SEPARATOR . $filepath);
-                } else {
-                    $this->file = realpath($_ROOTPATH . $dir . DIRECTORY_SEPARATOR . $filepath);
-                }
+            $dir = $this->dir;
+            if(strpos($filepath, $dir) === 0) {
+                $this->file = realpath($filepath);
             } else {
-                $this->file = realpath($_ROOTPATH . DIRECTORY_SEPARATOR . $filepath);
+                $this->file = realpath($dir . DIRECTORY_SEPARATOR . $filepath);
             }
         }
     }
@@ -343,6 +344,7 @@ class Template extends AbstractTemplate {
         if($this->redirect) {
             $this->response->redirect($this->redirect);
         }
+        
         $this->response->setContentType('application/json');
         foreach($this->headers as $header) {
             $this->response->setHeader($header);
@@ -367,6 +369,7 @@ class Template extends AbstractTemplate {
         if($this->redirect) {
             $this->response->redirect($this->redirect);
         }
+        
         $this->response->setContentType('text/xml');
         foreach($this->headers as $header) {
             $this->response->setHeader($header);
@@ -386,6 +389,7 @@ class Template extends AbstractTemplate {
      */
     public function out() {
         Logger::info('out', 'TEMPLATE');
+        ob_start();
         $lan = &$this->lan;
         $theme = &$this->theme;
         $vars = &$this->vars;
@@ -396,8 +400,6 @@ class Template extends AbstractTemplate {
         $csses = &$this->csses;
         $headers = &$this->headers;
         $res = &$this->res;
-        
-        ob_start();
         extract($vars);
         include ($file);
         $results = ob_get_contents();
@@ -410,8 +412,16 @@ class Template extends AbstractTemplate {
      *
      * @return void
      */
-    public function display() {
+    public function display($filepath = '') {
         Logger::info('display', 'TEMPLATE');
+        if($filepath) {
+            $this->file($filepath);
+        }
+        if($this->redirect) {
+            $this->response->redirect($this->redirect);
+        }
+        
+        ob_start();
         $lan = &$this->lan;
         $theme = &$this->theme;
         $vars = &$this->vars;
@@ -422,11 +432,6 @@ class Template extends AbstractTemplate {
         $csses = &$this->csses;
         $headers = &$this->headers;
         $res = &$this->res;
-        
-        if($this->redirect) {
-            $this->response->redirect($this->redirect);
-        }
-        ob_start();
         extract($vars);
         if($file && is_file($file)) {
             include ($file);
