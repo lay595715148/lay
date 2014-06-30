@@ -536,7 +536,6 @@ class MongoStore extends Store {
      * @return boolean int
      */
     protected function nextSequence($step = 1) {
-        Logger::debug('do next');
         if(! is_a($this->model, 'lay\core\Increment')) {
             return false;
         }

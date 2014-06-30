@@ -107,13 +107,19 @@ class Template extends AbstractTemplate {
      */
     protected $file;
     /**
+     * redirect url
+     *
+     * @var string $redirect
+     */
+    protected $redirect;
+    /**
      * 构造方法
      *
      * @param Action $action
      *            配置信息数组
      */
     public function __construct($request, $response, $name) {
-        //$this->action = $action;
+        // $this->action = $action;
         $this->request = $request;
         $this->response = $response;
         $this->name = $name;
@@ -327,29 +333,18 @@ class Template extends AbstractTemplate {
         return $this->vars;
     }
     public function redirect($url, array $params = array()) {
-        $this->redirect = $url . ($params? '?' . http_build_query($params):'');
+        $this->redirect = $url . ($params ? '?' . http_build_query($params) : '');
     }
     /**
      * output as json string
      */
     public function json() {
         Logger::info('json', 'TEMPLATE');
-        /* $lan = &$this->lan;
-        $headers = &$this->headers;
-        $templateVars = &$this->vars;
-        $res = &$this->res;
-        $templateVars = array_diff_key($templateVars, array(
-                'title' => 1
-        ));
-        foreach($headers as $header) {
-            @header($header);
-        } */
         if($this->redirect) {
             $this->response->redirect($this->redirect);
         }
         $this->response->setContentType('application/json');
         foreach($this->headers as $header) {
-            //@header($header);
             $this->response->setHeader($header);
         }
         if(version_compare(phpversion(), '5.4.0') > 0) {
@@ -363,7 +358,6 @@ class Template extends AbstractTemplate {
         } else {
             $this->response->send();
         }
-        //echo json_encode($templateVars);
     }
     /**
      * output as xml string
@@ -375,10 +369,8 @@ class Template extends AbstractTemplate {
         }
         $this->response->setContentType('text/xml');
         foreach($this->headers as $header) {
-            //@header($header);
             $this->response->setHeader($header);
         }
-        //$this->response->setHeader($this->headers);
         $this->response->setData(Util::array2XML($this->vars));
         
         if(Logger::hasOutput()) {
@@ -386,18 +378,6 @@ class Template extends AbstractTemplate {
         } else {
             $this->response->send();
         }
-        /* 
-        $lan = &$this->lan;
-        $headers = &$this->headers;
-        $templateVars = &$this->vars;
-        $res = &$this->res;
-        $templateVars = array_diff_key($templateVars, array(
-                'title' => 1
-        ));
-        foreach($headers as $header) {
-            @header($header);
-        }
-        echo Util::array2XML($templateVars); */
     }
     /**
      * output as template
@@ -424,7 +404,6 @@ class Template extends AbstractTemplate {
         ob_end_clean();
         
         return $results;
-        //$this->display();
     }
     /**
      * output as template
@@ -443,7 +422,7 @@ class Template extends AbstractTemplate {
         $csses = &$this->csses;
         $headers = &$this->headers;
         $res = &$this->res;
-
+        
         if($this->redirect) {
             $this->response->redirect($this->redirect);
         }
@@ -457,7 +436,6 @@ class Template extends AbstractTemplate {
         
         $this->response->setContentType('text/html');
         foreach($this->headers as $header) {
-            //@header($header);
             $this->response->setHeader($header);
         }
         $this->response->setData($results);
@@ -467,14 +445,6 @@ class Template extends AbstractTemplate {
         } else {
             $this->response->send();
         }
-        
-        /* extract($vars);
-        foreach($headers as $header) {
-            @header($header);
-        }
-        if(file_exists($file)) {
-            include ($file);
-        } */
     }
 }
 ?>
