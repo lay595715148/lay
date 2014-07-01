@@ -104,6 +104,33 @@ class Coder {
      * @var array
      */
     private $modifiers = array(
+            '$or',
+            '$and',
+            '$not',
+            '$nor',
+            '$lt',
+            '$gt',
+            '$lte',
+            '$gte',
+            '$in',
+            '$ne',
+            '$nin',
+            '$exists',
+            '$type',
+            '$mod',
+            '$regex',
+            '$text',
+            '$where',
+            '$geoWithin',
+            '$geoIntersects',
+            '$near',
+            '$nearSphere',
+            '$all',
+            '$elemMatch',
+            '$',
+            '$meta',
+            '$slice',
+            
             '$comment',
             '$explain',
             '$hint',
@@ -275,13 +302,18 @@ class Coder {
         } else if(is_array($info) && $this->model) {
             $setter = array();
             $columns = $this->model->columns();
+            $pk = $this->model->primary();
             foreach($info as $field => $value) {
                 if(in_array($field, $this->sepcifics)) {
                     $setter[$field] = $value;
                 } else if(array_search($field, $columns)) {
-                    $setter['$set'][$field] = $value;
+                    if($pk != $field) {
+                        $setter['$set'][$field] = $value;
+                    }
                 } else if(array_key_exists($field, $columns)) {
-                    $setter['$set'][$columns[$field]] = $value;
+                    if($pk != $columns[$field]) {
+                        $setter['$set'][$columns[$field]] = $value;
+                    }
                 } else {
                     Logger::warn('invalid field:' . $field);
                 }
@@ -314,22 +346,33 @@ class Coder {
         if(empty($info)) {
             //
         } else if($this->model) {
-            $query = array();
-            $columns = $this->model->columns();
-            foreach($info as $field => $value) {
-                if(array_search($field, $columns)) {
-                    $query[$field] = $value;
-                } else if(array_key_exists($field, $columns)) {
-                    $query[$columns[$field]] = $value;
-                } else {
-                    Logger::warn('invalid field:' . $field);
-                }
-            }
-            $this->query = $query;
+            $this->query = $this->dealQuery($info);
         } else if(is_array($info)) {
             $this->query = $info;
         } else {
             Logger::error('invalid query array!');
+        }
+    }
+    protected function dealQuery($value) {
+        if(is_array($value)) {
+            $query = array();
+            $columns = $this->model->columns();
+            foreach ($value as $f => $v) {
+                if(is_int($f) && is_array($v)) {
+                    $query[$f] = $this->dealQuery($v);
+                } else if(in_array($f, $this->modifiers) && is_array($v)) {
+                    $query[$f] = $this->dealQuery($v);
+                } else if(array_search($f, $columns)) {
+                    $query[$f] = $v;
+                } else if(array_key_exists($f, $columns)) {
+                    $query[$columns[$f]] = $v;
+                } else {
+                    Logger::warn('invalid field:' . $f);
+                }
+            }
+            return $query;
+        } else {
+            return $value;
         }
     }
     /**

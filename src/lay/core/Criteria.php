@@ -231,18 +231,23 @@ class Criteria {
         } else if(is_array($info) && $this->model) {
             $setter = array();
             $columns = $this->model->columns();
+            $pk = $this->model->primary();
             foreach($info as $field => $value) {
                 // 去除可能存在于两边的着重号
                 // $field = $this->trimModifier($field);
                 $value = addslashes($value);
                 if(array_search($field, $columns)) {
-                    $fieldstr = $this->modifier ? $this->untrimModifier($field) : $field;
-                    $valuestr = $this->untrimQuote(addslashes($value));
-                    $setter[] = "$fieldstr = $valuestr";
+                    if($pk != $field) {
+                        $fieldstr = $this->modifier ? $this->untrimModifier($field) : $field;
+                        $valuestr = $this->untrimQuote(addslashes($value));
+                        $setter[] = "$fieldstr = $valuestr";
+                    }
                 } else if(array_key_exists($field, $columns)) {
-                    $fieldstr = $this->modifier ? $this->untrimModifier($columns[$field]) : $columns[$field];
-                    $valuestr = $this->untrimQuote(addslashes($value));
-                    $setter[] = "$fieldstr = $valuestr";
+                    if($pk != $columns[$field]) {
+                        $fieldstr = $this->modifier ? $this->untrimModifier($columns[$field]) : $columns[$field];
+                        $valuestr = $this->untrimQuote(addslashes($value));
+                        $setter[] = "$fieldstr = $valuestr";
+                    }
                 } else {
                     Logger::warn('invalid field:' . $field);
                 }
