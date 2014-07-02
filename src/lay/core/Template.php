@@ -113,6 +113,12 @@ class Template extends AbstractTemplate {
      */
     protected $redirect;
     /**
+     * rendered html string
+     *
+     * @var string $out
+     */
+    protected $rendered;
+    /**
      * 构造方法
      *
      * @param Action $action
@@ -124,6 +130,20 @@ class Template extends AbstractTemplate {
         $this->language();//初始化语言
         $this->directory(App::$_RootPath);//初始化目录
         $this->theme(App::get('theme'));//初始化主题皮肤
+    }
+    /**
+     * get template file path
+     * @return string
+     */
+    public function getFile() {
+        return $this->file;
+    }
+    /**
+     * get template dir path
+     * @return string
+     */
+    public function getDir() {
+        return $this->dir;
     }
     /**
      * push header for output
@@ -237,14 +257,16 @@ class Template extends AbstractTemplate {
      */
     public function file($filepath) {
         $_ROOTPATH = App::$_RootPath;
-        if(strpos($filepath, $_ROOTPATH) === 0) {
-            $this->file = realpath($filepath);
-        } else {
-            $dir = $this->dir;
-            if(strpos($filepath, $dir) === 0) {
+        if(is_string($filepath) && $filepath) {
+            if(strpos($filepath, $_ROOTPATH) === 0) {
                 $this->file = realpath($filepath);
             } else {
-                $this->file = realpath($dir . DIRECTORY_SEPARATOR . $filepath);
+                $dir = $this->dir;
+                if(strpos($filepath, $dir) === 0) {
+                    $this->file = realpath($filepath);
+                } else {
+                    $this->file = realpath($dir . DIRECTORY_SEPARATOR . $filepath);
+                }
             }
         }
     }
@@ -389,22 +411,25 @@ class Template extends AbstractTemplate {
      */
     public function out() {
         Logger::info('out', 'TEMPLATE');
-        ob_start();
-        $lan = &$this->lan;
-        $theme = &$this->theme;
-        $vars = &$this->vars;
-        $file = &$this->file;
-        $metas = &$this->metas;
-        $jses = &$this->jses;
-        $javascript = &$this->javascript;
-        $csses = &$this->csses;
-        $headers = &$this->headers;
-        $res = &$this->res;
-        extract($vars);
-        include ($file);
-        $results = ob_get_contents();
-        ob_end_clean();
-        
+        if($this->rendered) {
+            $results = $this->rendered;
+        } else {
+            ob_start();
+            $lan = &$this->lan;
+            $theme = &$this->theme;
+            $vars = &$this->vars;
+            $file = &$this->file;
+            $metas = &$this->metas;
+            $jses = &$this->jses;
+            $javascript = &$this->javascript;
+            $csses = &$this->csses;
+            $headers = &$this->headers;
+            $res = &$this->res;
+            extract($vars);
+            include ($file);
+            $results = $this->rendered = ob_get_contents();
+            ob_end_clean();
+        }
         return $results;
     }
     /**
@@ -412,32 +437,13 @@ class Template extends AbstractTemplate {
      *
      * @return void
      */
-    public function display($filepath = '') {
+    public function display() {
         Logger::info('display', 'TEMPLATE');
-        if($filepath) {
-            $this->file($filepath);
-        }
         if($this->redirect) {
             $this->response->redirect($this->redirect);
         }
-        
-        ob_start();
-        $lan = &$this->lan;
-        $theme = &$this->theme;
-        $vars = &$this->vars;
-        $file = &$this->file;
-        $metas = &$this->metas;
-        $jses = &$this->jses;
-        $javascript = &$this->javascript;
-        $csses = &$this->csses;
-        $headers = &$this->headers;
-        $res = &$this->res;
-        extract($vars);
-        if($file && is_file($file)) {
-            include ($file);
-        }
-        $results = ob_get_contents();
-        ob_end_clean();
+
+        $results = $this->out();
         
         $this->response->setContentType('text/html');
         foreach($this->headers as $header) {

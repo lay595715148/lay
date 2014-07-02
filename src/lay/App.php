@@ -482,7 +482,7 @@ final class App {
         } else {
             // 将匹配到的数组放到$_PARAM全局变量中
             global $_PARAM;
-            $_PARAM = $matches;
+            $_PARAM = $matches[0];
         }
         
         return Action::getInstance($name, $classname);
@@ -552,26 +552,10 @@ final class App {
                     'onDestroy'
             ), EventEmitter::L_MIDDLE);
             
-            // 触发action的request事件
+            // 直接先触发action的request事件
             EventEmitter::emit(Action::E_REQUEST, array(
                     $this->action
             ));
-            switch($_SERVER['REQUEST_METHOD']) {
-                case 'GET':
-                    // 触发action的get事件
-                    EventEmitter::emit(Action::E_GET, array(
-                            $this->action
-                    ));
-                    break;
-                case 'POST':
-                    // 触发action的post事件
-                    EventEmitter::emit(Action::E_POST, array(
-                            $this->action
-                    ));
-                    break;
-                default:
-                    break;
-            }
         }
         
         // 触发action的H_STOP钩子

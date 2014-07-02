@@ -206,7 +206,22 @@ abstract class Action extends AbstractAction {
      * @see \lay\core\AbstractAction::onRequest()
      */
     public function onRequest() {
-        
+        switch($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                // 触发action的get事件
+                EventEmitter::emit(Action::E_GET, array(
+                        $this
+                ));
+                break;
+            case 'POST':
+                // 触发action的post事件
+                EventEmitter::emit(Action::E_POST, array(
+                        $this
+                ));
+                break;
+            default:
+                break;
+        }
     }
     /**
      * GET事件触发方法
