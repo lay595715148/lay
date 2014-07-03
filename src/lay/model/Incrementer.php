@@ -6,7 +6,6 @@
 namespace lay\model;
 
 use lay\core\Model;
-use lay\core\Increment;
 
 /**
  * 可设置自增涨键的模型

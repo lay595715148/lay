@@ -753,7 +753,7 @@ final class App {
      * @return void
      */
     private function loadCache() {
-        $cachename = realpath(sys_get_temp_dir() . DIRECTORY_SEPARATOR . App::get('appname', 'lay') . '.classes.php');
+        $cachename = realpath(sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename(App::$_RootPath) . '.classes.php');
         if(is_file($cachename)) {
             $this->caches = include $cachename;
         } else {
@@ -772,7 +772,7 @@ final class App {
         Logger::info('$this->cached:' . $this->cached);
         if($this->cached) {
             // 先读取，再merge，再存储
-            $cachename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . App::get('appname', 'lay') . '.classes.php';
+            $cachename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename(App::$_RootPath) . '.classes.php';
             if(is_file($cachename)) {
                 $caches = include realpath($cachename);
                 $this->caches = array_merge($caches, $this->caches);

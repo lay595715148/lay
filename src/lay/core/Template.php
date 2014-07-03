@@ -355,6 +355,11 @@ class Template extends AbstractTemplate {
         Logger::info('variable', 'TEMPLATE');
         return $this->vars;
     }
+    /**
+     * 此方法只是标记了跳转，在输出时才真正地进行跳转
+     * @param string $url
+     * @param array $params
+     */
     public function redirect($url, array $params = array()) {
         $this->redirect = $url . ($params ? '?' . http_build_query($params) : '');
     }
@@ -410,7 +415,6 @@ class Template extends AbstractTemplate {
      * @return void
      */
     public function out() {
-        Logger::info('out', 'TEMPLATE');
         if($this->rendered) {
             $results = $this->rendered;
         } else {
@@ -430,6 +434,7 @@ class Template extends AbstractTemplate {
             $results = $this->rendered = ob_get_contents();
             ob_end_clean();
         }
+        Logger::info('out', 'TEMPLATE');
         return $results;
     }
     /**
@@ -438,7 +443,6 @@ class Template extends AbstractTemplate {
      * @return void
      */
     public function display() {
-        Logger::info('display', 'TEMPLATE');
         if($this->redirect) {
             $this->response->redirect($this->redirect);
         }
@@ -456,6 +460,7 @@ class Template extends AbstractTemplate {
         } else {
             $this->response->send();
         }
+        Logger::info('display', 'TEMPLATE');
     }
 }
 ?>

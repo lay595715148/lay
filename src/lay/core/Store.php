@@ -44,7 +44,7 @@ abstract class Store extends AbstractStore {
     public static function getInstance($classname) {
         if(empty(self::$_Instances[$classname])) {
             $instance = new $classname();
-            if(is_subclass_of($instance, 'lay\core\Store')) {
+            if(is_a($instance, 'lay\core\Store')) {
                 self::$_Instances[$classname] = $instance;
             } else {
                 unset($instance);

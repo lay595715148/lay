@@ -8,10 +8,13 @@ namespace lay\store;
 use lay\App;
 use lay\core\Connection;
 use lay\core\Store;
-use lay\core\Expireable;
+use lay\model\Expireable;
 use Memcache;
 use Exception;
 use lay\util\Logger;
+use lay\core\Model;
+use lay\model\Expirer;
+use lay\model\SecondaryExpirer;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -28,17 +31,18 @@ class MemcacheStore extends Store {
      * @param string $name 名称
      * @throws Exception
      */
-    public function __construct($model, $name = 'memcache') {
+    public function __construct($model = false, $name = 'memcache') {
         if(is_string($name)) {
             $config = App::get('stores.'.$name);
         } else if(is_array($name)) {
             $config = $name;
         }
-        if(is_subclass_of($model, 'lay\core\Expireable')) {
+        parent::__construct($name, $model, $config);
+        /* if(is_a($model, 'lay\model\Expireable')) {
             parent::__construct($name, $model, $config);
         } else {
             Logger::error('error Expireable instance!');
-        }
+        } */
     }
 
     /**
@@ -53,7 +57,7 @@ class MemcacheStore extends Store {
     protected $link;
     /**
      * 模型对象
-     * @var ModelExpire
+     * @var SecondaryExpirer
      */
     protected $model;
     /**
@@ -120,11 +124,21 @@ class MemcacheStore extends Store {
             $pk = $model->primary();
             $key = $table.'.'.$pk.'.'.$id;
             $result = $this->link->get($key);
+            //设置第二键
+            if(empty($result) && is_a($model, 'lay\model\Secondary')) {
+                $second = $model->second();
+                $secondKey = $table.'.'.$second.'.'.$id;
+                $result = $this->link->get($secondKey);
+            }
             $result = json_decode($result, true);
+            $info = $this->toOne();
         } else {
             $result = $this->link->get($id);
+            $result = json_decode($result, true);
+            $info = $this->toOne(true);
         }
-        return $this->toOne();
+        Logger::info(array('key' => $key, 'second' => $secondKey, 'data' => $info));
+        return $info;
     }
     /**
      * delete by id
@@ -141,13 +155,31 @@ class MemcacheStore extends Store {
             $this->connect();
         }
         if($model) {
+            $info = $this->get($id);
             $table = $model->table();
+            $columns = $model->columns();
             $pk = $model->primary();
             $key = $table.'.'.$pk.'.'.$id;
+            $result = $this->link->delete($key);
+            //第二键
+            if($info && is_a($model, 'lay\model\Secondary')) {
+                $second = $model->second();
+                if(array_key_exists($second, $info)) {
+                    $secondKey = $table.'.'.$second.'.'.$info[$second];
+                } else {
+                    $k = array_search($second, $columns);
+                    if($k !== false && array_key_exists($k, $info)) {
+                        $secondKey = $table.'.'.$second.'.'.$info[$k];
+                    }
+                }
+                $result = $this->link->delete($secondKey);
+            }
         } else {
             $key = $id;
+            $result = $this->link->delete($key);
         }
-        return $this->link->delete($key);
+        Logger::info(array('key' => $key, 'second' => $secondKey, 'data' => $info));
+        return $result;
     }
     /**
      * always has primary key
@@ -164,7 +196,7 @@ class MemcacheStore extends Store {
             $this->connect();
         }
         
-        if($model) {
+        if($model && is_a($model, 'lay\model\Expireable')) {
             $table = $model->table();
             $columns = $model->columns();
             $pk = $model->primary();
@@ -176,21 +208,40 @@ class MemcacheStore extends Store {
                     $key = $table.'.'.$pk.'.'.$info[$k];
                 }
             }
+            //设置第二键
+            if(is_a($model, 'lay\model\Secondary')) {
+                $second = $model->second();
+                if(array_key_exists($second, $info)) {
+                    $secondKey = $table.'.'.$second.'.'.$info[$second];
+                } else {
+                    $k = array_search($second, $columns);
+                    if($k !== false && array_key_exists($k, $info)) {
+                        $secondKey = $table.'.'.$second.'.'.$info[$k];
+                    }
+                }
+            }
             if($key) {
                 // Model, Expireable
                 $m = clone $model;
                 $m->distinct()->build($info);
-                $result = $this->link->set($key, json_encode($m->toData()), 0, $m->getLifetime());
+                $data = $m->toData();
+                $lifetime = $m->getLifetime();
+                $result = $this->link->set($key, json_encode($data), 0, $lifetime);
+                //如果有第二键，也以第二键存入缓存中
+                if($result && $secondKey) {
+                    $result = $this->link->set($secondKey, json_encode($data), 0, $lifetime);
+                }
             } else {
                 $result = false;
             }
         } else {
             $result = false;
         }
+        Logger::info(array('key' => $key, 'second' => $secondKey, 'data' => $info));
         return $result;
     }
     /**
-     * update by primary id
+     * set by primary key and by second key as if it exists
      *
      * @param int|string $id
      *            the ID
@@ -205,16 +256,33 @@ class MemcacheStore extends Store {
         if(! $link) {
             $this->connect();
         }
-        
-        if($model) {
+
+        if($model && is_a($model, 'lay\model\Expireable')) {
             $table = $model->table();
             $columns = $model->columns();
             $pk = $model->primary();
             $key = $table.'.'.$pk.'.'.$id;
+            //第二键
+            if(is_a($model, 'lay\model\Secondary')) {
+                $second = $model->second();
+                if(array_key_exists($second, $data)) {
+                    $secondKey = $table.'.'.$second.'.'.$data[$second];
+                } else {
+                    $k = array_search($second, $columns);
+                    if($k !== false && array_key_exists($k, $info)) {
+                        $secondKey = $table.'.'.$second.'.'.$data[$k];
+                    }
+                }
+            }
             $m = clone $model;
             $m->distinct()->build($info)->build(array($pk => $id));
+            $data = $m->toData();
             $lifetime = $m->getLifetime();
-            $result = $this->link->set($key, json_encode($m->toData()), 0, $lifetime);
+            $result = $this->link->set($key, json_encode($data), 0, $lifetime);
+            //如果有第二键，也以第二键存入缓存中
+            if($result && $secondKey) {
+                $result = $this->link->set($secondKey, json_encode($data), 0, $lifetime);
+            }
         } else {
             $key = $id;
             if(array_key_exists('lifetime', $info)) {
@@ -225,6 +293,7 @@ class MemcacheStore extends Store {
                 $result = $this->link->set($key, json_encode((array)$info));
             }
         }
+        Logger::info(array('key' => $key, 'second' => $secondKey, 'data' => $info));
         return $result;
     }
     /**
@@ -243,6 +312,18 @@ class MemcacheStore extends Store {
     public function close() {
         if($this->link)
             $this->link->close();
+    }
+    /**
+     * set by primary key and by second key as if it exists
+     * 
+     * @param int|string $id
+     *            the ID
+     * @param array $info
+     *            information array
+     * @return boolean
+     */
+    public function set($id, array $info) {
+        return $this->upd($id, $info);
     }
     /**
      * 返回单一数据
@@ -267,7 +348,7 @@ class MemcacheStore extends Store {
         if(!$result) {
             //
         } else {
-            if($origin) {
+            if($origin || empty($model)) {
                 $row = (array)$result;
             } else {
                 $obj = clone $model;

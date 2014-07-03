@@ -354,8 +354,8 @@ class Coder {
         }
     }
     protected function dealQuery($value) {
+        $query = array();
         if(is_array($value)) {
-            $query = array();
             $columns = $this->model->columns();
             foreach ($value as $f => $v) {
                 if(is_int($f) && is_array($v)) {
@@ -372,7 +372,7 @@ class Coder {
             }
             return $query;
         } else {
-            return $value;
+            return $query;
         }
     }
     /**

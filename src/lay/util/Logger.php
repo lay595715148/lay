@@ -280,6 +280,12 @@ class Logger {
     public static function hasOutput() {
         return self::$_Out && self::$_HasOutput ? true : false;
     }
+    /**
+     * 标记已经打印输出过
+     */
+    public static function hadOutput() {
+        self::$_HasOutput = true;
+    }
     
     /**
      * 缩短显示字符

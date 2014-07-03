@@ -9,7 +9,7 @@ namespace lay\store;
 
 use lay\App;
 use lay\core\Connection;
-use lay\core\Increment;
+use lay\model\Increment;
 use lay\core\Coder;
 use lay\core\Store;
 use lay\model\MongoSequence;
@@ -180,11 +180,14 @@ class MongoStore extends Store {
             $this->connect();
         }var_dump($id);
         
-        $this->coder = new Coder($model);
-        $this->coder->setQuery(array(
+        $query = array(
                 $pk => $id
-        ));
-        return $this->makeSelectOne();
+        );
+        $this->coder = new Coder($model);
+        $this->coder->setQuery($query);
+        $data = $this->makeSelectOne();
+        Logger::info(array('table' => $table, 'query' => $query, 'data' => $data));
+        return $data;
     }
     /**
      * delete by primary id
@@ -202,12 +205,15 @@ class MongoStore extends Store {
         if(! $link) {
             $this->connect();
         }
-        
-        $this->coder = new Coder($model);
-        $this->coder->setQuery(array(
+
+        $query = array(
                 $pk => $id
-        ));
-        return $this->makeDelete();
+        );
+        $this->coder = new Coder($model);
+        $this->coder->setQuery($query);
+        $data = $this->makeDelete();
+        Logger::info(array('table' => $table, 'query' => $query, 'data' => $data));
+        return $data;
     }
     /**
      * return id,always replace
@@ -223,7 +229,7 @@ class MongoStore extends Store {
         $table = $model->table();
         $columns = $model->columns();
         $pk = $model->primary();
-        $seq = is_a($model, 'lay\core\Increment') ? $model->sequence() : '';
+        $seq = is_a($model, 'lay\model\Increment') ? $model->sequence() : '';
         if(! $link) {
             $this->connect();
         }
@@ -237,7 +243,9 @@ class MongoStore extends Store {
             }
         }
         $this->coder->setValues($info);
-        return $this->makeInsert();
+        $data = $this->makeInsert();
+        Logger::info(array('table' => $table, 'info' => $info, 'data' => $data));
+        return $data;
     }
     /**
      * update by primary id
@@ -258,12 +266,15 @@ class MongoStore extends Store {
             $this->connect();
         }
         
+        $query = array(
+                $pk => $id
+        );
         $this->coder = new Coder($model);
         $this->coder->setSetter($info);
-        $this->coder->setQuery(array(
-                $pk => $id
-        ));
-        return $this->makeUpdate();
+        $this->coder->setQuery($query);
+        $data = $this->makeUpdate();
+        Logger::info(array('table' => $table, 'query' => $query, 'data' => $data));
+        return $data;
     }
     /**
      * 某些条件下的记录数
@@ -284,7 +295,9 @@ class MongoStore extends Store {
         
         $this->coder = new Coder($model);
         $this->coder->setQuery($info);
-        return $this->makeCount();
+        $data = $this->makeCount();
+        Logger::info(array('table' => $table, 'query' => $info, 'data' => $data));
+        return $data;
     }
     /**
      * 搜索查询数据
@@ -340,7 +353,9 @@ class MongoStore extends Store {
         $this->coder->setLimit($limit);
         $this->coder->setGroup($group);
         $this->coder->setHaving($having);
-        return $this->makeSelect();
+        $data = $this->makeSelect();
+        Logger::info(array('table' => $table, 'query' => $query, 'sort' => $sort, 'limit' => $limit, 'data' => $data));
+        return $data;
     }
     /**
      * modify
@@ -357,7 +372,9 @@ class MongoStore extends Store {
         $this->coder = new Coder($model);
         $this->coder->setQuery($query);
         $this->coder->setSetter($setter);
-        return $this->makeUpdate();
+        $data = $this->makeUpdate();
+        Logger::info(array('table' => $table, 'query' => $query, 'setter' => $setter, 'data' => $data));
+        return $data;
     }
     /**
      * find and modify
@@ -566,7 +583,7 @@ class MongoStore extends Store {
      * @return boolean int
      */
     protected function nextSequence($step = 1) {
-        if(! is_a($this->model, 'lay\core\Increment')) {
+        if(! is_a($this->model, 'lay\model\Increment')) {
             return false;
         }
         $result = &$this->result;
