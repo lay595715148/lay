@@ -8,7 +8,7 @@ namespace lay\core;
 
 use MongoClient;
 use Memcache;
-use Mongo;
+use Redis;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -69,7 +69,26 @@ class Connection {
                 $this->link = new Memcache();
                 if(is_array($pool) && ! empty($pool)) {
                     foreach($pool as $p) {
-                        $this->link->addserver($p['host'], $p['port']);
+                        $host = isset($p['host']) ? $p['host'] : 'localhost';
+                        $port = isset($p['port']) ? intval($p['port']) : 11211;
+                        $weight = isset($p['weight']) ? intval($p['weight']) : 1;
+                        $retry = isset($p['retry']) ? intval($p['retry']) : -1;
+                        $this->link->addserver($host, $port, true, $weight, $timeout, $retry);
+                    }
+                } else {
+                    $this->link->pconnect($host, $port, $timeout);
+                }
+                break;
+            case 'redis':
+                $port = isset($options['port']) ? intval($options['port']) : 11211;
+                $timeout = isset($options['timeout']) ? $options['timeout'] : 1;
+                $pool = false;
+                $this->link = new Redis();
+                if(is_array($pool) && ! empty($pool)) {
+                    foreach($pool as $p) {
+                        $host = isset($p['host']) ? $p['host'] : 'localhost';
+                        $port = isset($p['port']) ? intval($p['port']) : 11211;
+                        $this->link->addserver($host, $port);
                     }
                 } else {
                     $this->link->pconnect($host, $port, $timeout);
@@ -79,7 +98,7 @@ class Connection {
             case 'maria':
             default:
                 $port = isset($options['port']) ? intval($options['port']) : 3306;
-                $this->link = mysqli_connect($host . ':' . $port, $username, $password, $newlink);
+                $this->link = mysqli_connect($host . ':' . $port, $username, $password);
                 break;
         }
         $this->name = $name;
@@ -127,6 +146,26 @@ class Connection {
         }
         if(empty(self::$_Instances[$name])) {
             self::$_Instances[$name] = new Connection($name, 'mongo', $options);
+        }
+        return self::$_Instances[$name];
+    }
+    /**
+     * 获取redis连接
+     * 
+     * @param string $name
+     *            名称
+     * @param array $options
+     *            options
+     * @param string $new
+     *            if new instance of Connection
+     * @return Connection
+     */
+    public static function redis($name, $options = array(), $new = false) {
+        if($new) {
+            return new Connection($name, 'redis', $options);
+        }
+        if(empty(self::$_Instances[$name])) {
+            self::$_Instances[$name] = new Connection($name, 'redis', $options);
         }
         return self::$_Instances[$name];
     }

@@ -178,7 +178,7 @@ class MongoStore extends Store {
         $pk = $model->primary();
         if(! $link) {
             $this->connect();
-        }var_dump($id);
+        }
         
         $query = array(
                 $pk => $id

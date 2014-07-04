@@ -33,7 +33,7 @@ abstract class Store extends AbstractStore {
     /**
      * 数据访问对象数组
      * 
-     * @var array
+     * @var array<Store>
      */
     protected static $_Instances = array();
     /**
@@ -139,7 +139,7 @@ abstract class Store extends AbstractStore {
      * @return void
      */
     public function setModel($model) {
-        if(is_subclass_of($model, 'lay\core\Model'))
+        if(is_a($model, 'lay\core\Model'))
             $this->model = $model;
     }
     /**

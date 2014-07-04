@@ -16,6 +16,7 @@ if(! defined('INIT_LAY')) {
 interface Expireable {
     /**
      * return lifetime
+     * @return int
      */
     public function getLifetime();
     /**
