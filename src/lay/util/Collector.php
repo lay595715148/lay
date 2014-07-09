@@ -7,6 +7,7 @@ namespace lay\util;
 
 use lay\entity\Lister;
 use lay\entity\Response;
+use lay\App;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -41,13 +42,12 @@ class Collector {
      * @return lay\entity\Response
      */
     public static function response($action, $content, $success = true, $code = 0) {
-        global $_START;
         $response = new Response();
         $response->success = $success;
         $response->action = $action;
         $response->content = $content;
         $response->code = $code;
-        $response->exp = Util::microtime() - $_START;
+        $response->exp = Util::microtime() - App::$_StartTime;
         return $response;
     }
     /**

@@ -14,6 +14,8 @@ use lay\core\PluginManager;
 use lay\core\Action;
 use lay\config\C;
 use Exception;
+use lay\core\Store;
+use lay\core\FilterChain;
 
 if(! defined('INIT_LAY')) {
     define('INIT_LAY', true); // 标记
@@ -48,6 +50,12 @@ final class App {
      */
     const E_DESTROY = 'lay_destroy';
     /**
+     * 钩子常量，没有指定action时
+     *
+     * @var string
+     */
+    const H_NONE_ACTION = 'hook_lay_none_action';
+    /**
      * 钩子常量，初始化时
      *
      * @var string
@@ -72,6 +80,12 @@ final class App {
      */
     public static $_RootPath = '';
     /**
+     * 开始时间
+     *
+     * @var float
+     */
+    public static $_StartTime = 0.0;
+    /**
      * 获取App实例
      *
      * @return App
@@ -88,10 +102,8 @@ final class App {
      * @return App
      */
     public static function start() {
-        global $_START;
-        //起始时间
-        $_START = time() + substr(( string )microtime(), 1, 8);
-        return self::getInstance()->initilize()->run();
+        App::$_StartTime = time() + substr(( string )microtime(), 1, 8);
+        self::getInstance()->initilize()->run();
     }
     /**
      * 设置某个配置项
@@ -521,6 +533,12 @@ final class App {
                 }
             }
         }
+        if(empty($action)) {
+            // 触发lay的H_NONE_ACTION钩子
+            PluginManager::exec(App::H_NONE_ACTION, array(
+                    $this
+            ));
+        }
         $this->action = $action;
     }
     /**
@@ -552,20 +570,23 @@ final class App {
                     'onDestroy'
             ), EventEmitter::L_MIDDLE);
             
+            //打开过滤器
+            FilterChain::getInstance()->initilize()->doFilter($this->action);
+            
             // 直接先触发action的request事件
             EventEmitter::emit(Action::E_REQUEST, array(
                     $this->action
             ));
+            
+            // 触发action的H_STOP钩子
+            PluginManager::exec(Action::H_STOP, array(
+                    $this->action
+            ));
+            // 触发action的stop事件
+            EventEmitter::emit(Action::E_STOP, array(
+                    $this->action
+            ));
         }
-        
-        // 触发action的H_STOP钩子
-        PluginManager::exec(Action::H_STOP, array(
-                $this->action
-        ));
-        // 触发action的stop事件
-        EventEmitter::emit(Action::E_STOP, array(
-                $this->action
-        ));
     }
     /**
      * 运行，创建Action生命周期，触发一系列事件和钩子
@@ -575,15 +596,13 @@ final class App {
      * @return App
      */
     public function run($name = '') {
-        global $_START, $_END;
-        // 创建
-        try {
-            $this->createAction($name);
+        /* try {
         } catch (Exception $e) {
             // catch
             // 404 不处理
-        }
-        
+        } */
+        // 创建
+        $this->createAction($name);
         // 创建生命周期
         $this->createLifecycle();
         
@@ -600,12 +619,10 @@ final class App {
                 $this
         ));
         
-        $_END = Util::microtime();
         Logger::info(array(
-                $_START,
-                $_END
+                App::$_StartTime,
+                Util::microtime()
         ));
-        return $this;
     }
     /**
      * 类自动加载
@@ -829,6 +846,7 @@ final class App {
         EventEmitter::emit(App::E_DESTROY, array(
                 $this
         ));
+        //Store::closeAll();
     }
 }
 ?>

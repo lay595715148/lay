@@ -206,7 +206,6 @@ class RedisStore extends Store {
                 $data = $m->toData();
                 $lifetime = $m->getLifetime();
                 $result = $this->link->setnx($key, json_encode($data));
-                Logger::debug($result);
                 $result = $lifetime <= 0 || empty($result)?:$this->link->expire($key, $lifetime);
                 //如果有第二键，也以第二键存入缓存中
                 if($result && $secondKey) {

@@ -108,6 +108,7 @@ class PluginManager {
      * @var array
      */
     private $hooks = array(
+            App::H_NONE_ACTION,
             App::H_INIT,
             App::H_STOP,
             Action::H_CREATE,

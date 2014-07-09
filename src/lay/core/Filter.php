@@ -24,11 +24,11 @@ interface Filter {
      * 初始化
      * @param array $filterConfig 配置项
      */
-    public function initFilter($filterConfig);
+    public function initilize($filterConfig);
     /**
      * 执行过滤
      * @param Action $action 实现Action的对象
-     * @param Filter $chain 实现Filter的下一个对象
+     * @param FilterChain $chain FilterChain
      */
     public function doFilter($action, $chain);
 }

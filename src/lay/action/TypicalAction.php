@@ -26,10 +26,20 @@ abstract class TypicalAction extends JSONAction {
     protected $errorResponse = false;
     protected $errorMessage = '';
     protected $errorCode = 0;
-    public function errorResponse($msg, $code = 0) {
+    /**
+     * 设置错误信息
+     * @param string|array $msg 错误信息内容或数组，如：'invalid'或array(1000, 'invalid')
+     * @param number $code 错误码，如$msg是数组则此参数无效
+     */
+    public function errorResponse($msg, $code = 1) {
         $this->errorResponse = true;
-        $this->errorMessage = $msg;
-        $this->errorCode = $code;
+        if(is_string($msg)) {
+            $this->errorMessage = $msg;
+            $this->errorCode = $code;
+        } else if(is_array($msg)) {
+            $this->errorCode = $msg[0];
+            $this->errorMessage = $msg[1];
+        }
     }
     /**
      * (non-PHPdoc)
@@ -41,7 +51,7 @@ abstract class TypicalAction extends JSONAction {
         if($this->errorResponse) {
             $this->template->push(Collector::errorResponse($this->name, $this->errorMessage, $this->errorCode));
         } else {
-            $this->template->push(Collector::response($this->name, $vars, true));
+            $this->template->push(Collector::response($this->name, $vars));
         }
         parent::onStop();
     }

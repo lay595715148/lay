@@ -434,7 +434,6 @@ class Template extends AbstractTemplate {
             $results = $this->rendered = ob_get_contents();
             ob_end_clean();
         }
-        Logger::info('out', 'TEMPLATE');
         return $results;
     }
     /**
@@ -443,6 +442,7 @@ class Template extends AbstractTemplate {
      * @return void
      */
     public function display() {
+        Logger::info('display', 'TEMPLATE');
         if($this->redirect) {
             $this->response->redirect($this->redirect);
         }
@@ -460,7 +460,6 @@ class Template extends AbstractTemplate {
         } else {
             $this->response->send();
         }
-        Logger::info('display', 'TEMPLATE');
     }
 }
 ?>
