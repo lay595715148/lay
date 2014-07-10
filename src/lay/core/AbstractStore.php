@@ -19,7 +19,7 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  * @abstract
  */
-abstract class AbstractStore {
+abstract class AbstractStore extends AbstractSingleton {
     /**
      * 连接数据库
      * @return boolean

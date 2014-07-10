@@ -22,23 +22,14 @@ if(! defined('INIT_LAY')) {
  *
  * @author Lay Li
  */
-class PluginManager {
-    /**
-     * PluginManager实例
-     *
-     * @var PluginManager
-     */
-    private static $_Instance = null;
+class PluginManager extends AbstractSingleton {
     /**
      * 获取PluginManager实例
      *
      * @return PluginManager
      */
     public static function getInstance() {
-        if(self::$_Instance == null) {
-            self::$_Instance = new PluginManager();
-        }
-        return self::$_Instance;
+        return parent::getInstance();
     }
     /**
      * 初始化插件
@@ -84,11 +75,6 @@ class PluginManager {
      */
     public static function activedHooks() {
         return self::getInstance()->getActivedHooks();
-    }
-    /**
-     * 私有的构造方法
-     */
-    private function __construct() {
     }
     /**
      * 注册在事件中的插件配置，待事件触发时初始化

@@ -31,26 +31,23 @@ abstract class Store extends AbstractStore {
      */
     const H_CREATE = 'hook_store_create';
     /**
-     * 数据访问对象数组
-     * 
-     * @var array<Store>
-     */
-    protected static $_Instances = array();
-    /**
      * 获取池中的一个数据访问对象实例
      * @param string $classname 类名
      * @return Store
      */
-    public static function getInstance($classname) {
-        if(empty(self::$_Instances[$classname])) {
+    public static function getInstance($classname = '') {
+        if(empty($classname)) {
+            return parent::getInstance();
+        }
+        if(empty(self::$_SingletonStack[$classname])) {
             $instance = new $classname();
             if(is_a($instance, 'lay\core\Store')) {
-                self::$_Instances[$classname] = $instance;
+                self::$_SingletonStack[$classname] = $instance;
             } else {
                 unset($instance);
             }
         }
-        return self::$_Instances[$classname];
+        return self::$_SingletonStack[$classname];
     }
     /**
      * 获取一个新数据访问对象实例
@@ -59,6 +56,9 @@ abstract class Store extends AbstractStore {
      * @return Store
      */
     public static function newInstance($classname) {
+        if(empty($classname)) {
+            $classname = get_called_class();
+        }
         $instance = new $classname();
         if(is_subclass_of($instance, 'lay\core\Store')) {
             return $instance;
@@ -120,7 +120,7 @@ abstract class Store extends AbstractStore {
      * @param Model $model 模型对象
      * @param array $config 配置数组
      */
-    public function __construct($name, $model, $config = array()) {
+    protected function __construct($name, $model, $config = array()) {
         $this->name = $name;
         $this->model = is_subclass_of($model, 'lay\core\Model') ? $model : false;
         $this->config = is_array($config) ? $config : array();

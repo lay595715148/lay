@@ -12,6 +12,7 @@ use lay\App;
 use stdClass;
 use lay\util\Util;
 use Iterator;
+use ArrayAccess;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -24,7 +25,7 @@ if(! defined('INIT_LAY')) {
  *
  * @author Lay Li
  */
-abstract class Bean extends AbstractBean implements Iterator {
+abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
     /**
      * 定义字符串类型的属性值
      *
@@ -655,6 +656,22 @@ abstract class Bean extends AbstractBean implements Iterator {
      */
     public function rewind() {
         return reset($this->properties);
+    }
+    public function offsetExists ($index) {
+        return array_key_exists($index, $this->properties);
+    }
+
+    public function offsetGet ($index) {
+        return $this->$index;
+    }
+
+    public function offsetSet ($index, $value) {
+        $this->$index = $value;
+    }
+
+    public function offsetUnset ($index) {
+        //unset($this->$index);
+        return false;
     }
     /**
      * json serialize function

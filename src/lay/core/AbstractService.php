@@ -19,7 +19,7 @@ if(!defined('INIT_LAY')) {
  * @author Lay Li
  * @abstract
  */
-abstract class AbstractService {
+abstract class AbstractService extends AbstractSingleton {
     /**
      * 获取某条记录
      * 

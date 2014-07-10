@@ -22,6 +22,7 @@ if(! defined('INIT_LAY')) {
 }
 error_reporting(E_ALL & ~ E_NOTICE);
 // ob_start();
+ini_set('date.timezone', 'Asia/Shanghai');
 ini_set('output_buffering', 'on');
 ini_set('implicit_flush', 'off');
 
@@ -85,6 +86,7 @@ final class App {
      * @var float
      */
     public static $_StartTime = 0.0;
+    public static $_Parameter = array();
     /**
      * 获取App实例
      *
@@ -493,8 +495,8 @@ final class App {
             return false;
         } else {
             // 将匹配到的数组放到$_PARAM全局变量中
-            global $_PARAM;
-            $_PARAM = $matches[0];
+            //global $_PARAM;
+            App::$_Parameter = empty($matches[0])?:$matches[0];
         }
         
         return Action::getInstance($name, $classname);

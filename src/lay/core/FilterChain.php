@@ -3,18 +3,13 @@ namespace lay\core;
 
 use lay\App;
 use lay\util\Logger;
-class FilterChain {
-    private static $_Instance;
+
+class FilterChain extends AbstractSingleton {
     public static function getInstance() {
-        if(empty(self::$_Instance)) {
-            self::$_Instance = new FilterChain();
-        }
-        return self::$_Instance;
+        return parent::getInstance();
     }
     private $filters = array();
     private $current;
-    private function __construct() {
-    }
     public function initilize($configs = array()) {
         $configs = is_array($configs) && !empty($configs)?  :App::get('filters', array());
         foreach ($configs as $config) {

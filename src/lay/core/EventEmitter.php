@@ -17,7 +17,7 @@ if(! defined('INIT_LAY')) {
  *
  * @author Lay Li
  */
-class EventEmitter {
+class EventEmitter extends AbstractSingleton {
     const L_LOW = 2;
     const L_MIDDLE = 1;
     const L_HIGH = 0;
@@ -28,21 +28,12 @@ class EventEmitter {
      */
     protected static $_EventStack = array();
     /**
-     * EventEmitter实例
-     *
-     * @var EventEmitter
-     */
-    private static $_Instance;
-    /**
      * 获取EventEmitter实例
      *
      * @return EventEmitter
      */
     public static function getInstance() {
-        if(! self::$_Instance) {
-            self::$_Instance = new EventEmitter();
-        }
-        return self::$_Instance;
+        return parent::getInstance();
     }
     
     /**
@@ -83,11 +74,6 @@ class EventEmitter {
      * @var array
      */
     private $emittedEvents = array();
-    /**
-     * 构造方法
-     */
-    private function __construct() {
-    }
     /**
      * 返回已经触发的事件名数组
      *

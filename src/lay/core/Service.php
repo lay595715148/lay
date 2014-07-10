@@ -33,25 +33,23 @@ abstract class Service extends AbstractService {
     const H_CREATE = 'hook_service_create';
     
     /**
-     * 业务逻辑对象数组
-     * @var array
-     */
-    protected static $_Instances = array();
-    /**
      * 通过类名，获取一个业务逻辑对象实例
      * @param string $classname 继承Service的类名
      * @return Service
      */
-    public static function getInstance($classname) {
-        if(empty(self::$_Instances[$classname])) {
+    public static function getInstance($classname = '') {
+        if(empty($classname)) {
+            return parent::getInstance();
+        }
+        if(empty(self::$_SingletonStack[$classname])) {
             $instance = new $classname();
             if(is_subclass_of($instance, 'lay\core\Service')) {
-                self::$_Instances[$classname] = $instance;
+                self::$_SingletonStack[$classname] = $instance;
             } else {
                 unset($instance);
             }
         }
-        return self::$_Instances[$classname];
+        return self::$_SingletonStack[$classname];
     }
     /**
      * 获取一个新业务逻辑对象实例
@@ -59,8 +57,11 @@ abstract class Service extends AbstractService {
      * @return Service
      */
     public static function newInstance($classname) {
+        if(empty($classname)) {
+            $classname = get_called_class();
+        }
         $instance = new $classname();
-        if(is_subclass_of($instance, 'lay\core\Service')) {
+        if(is_a($instance, 'lay\core\Service')) {
             return $instance;
         } else {
             unset($instance);
@@ -77,7 +78,7 @@ abstract class Service extends AbstractService {
      * 构造方法
      * @param Store $store 数据库访问对象
      */
-    public function __construct($store = '') {
+    protected function __construct($store = '') {
         if($store && is_a($store, 'lay\core\Store')) {
             $this->store = $store;
         }
