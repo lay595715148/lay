@@ -57,9 +57,10 @@ abstract class Model extends Bean {
     public function toData() {
         $values = array();
         $columns = $this->columns();
-        foreach ($this->properties as $k => $v) {
+        $properties = $this->properties();
+        foreach ($properties as $k => $def) {
             $field = $columns[$k];
-            $values[$field] = $v;
+            $values[$field] = $this->$k;
         }
         return $values;
     }
@@ -98,6 +99,13 @@ abstract class Model extends Bean {
         }
     }
     /**
+     * 获取所有属性名
+     * @return mixed 
+     */
+    public function toProperties() {
+        return array_keys($this->properties());
+    }
+    /**
      * 重写数据注入方法，兼容字段名
      * @param array $data 数组数据
      * @return Bean
@@ -105,7 +113,8 @@ abstract class Model extends Bean {
     public function build($data) {
         $columns = $this->columns();
         if(is_array($data)) {
-            foreach($this->properties as $k => $v) {
+            $properties = $this->properties();
+            foreach($properties as $k => $v) {
                 $field = $columns[$k];
                 if(array_key_exists($k, $data)) {
                     $this->$k = $data[$k];

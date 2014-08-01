@@ -549,6 +549,7 @@ final class App {
      * @return void
      */
     private function createLifecycle() {
+        Logger::info('createLifecycle');
         if($this->action) {
             // 注册action的一些事件
             EventEmitter::on(Action::E_GET, array(
@@ -797,6 +798,8 @@ final class App {
                 $this->caches = array_merge($caches, $this->caches);
             }
             // 写入
+            //print_r($this->caches);
+            /*$content = "<?php return " . var_export($this->caches, true) . ";\n?>\n";*/
             $content = Util::array2PHPContent($this->caches);
             $handle = fopen($cachename, 'w');
             $result = fwrite($handle, $content);

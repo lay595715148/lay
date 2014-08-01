@@ -5,11 +5,19 @@ use lay\App;
 use lay\util\Logger;
 
 class FilterChain extends AbstractSingleton {
+    /**
+     * @return FilterChain
+     */
     public static function getInstance() {
         return parent::getInstance();
     }
     private $filters = array();
     private $current;
+    /**
+     * 
+     * @param array $configs
+     * @return FilterChain
+     */
     public function initilize($configs = array()) {
         $configs = is_array($configs) && !empty($configs)?  :App::get('filters', array());
         foreach ($configs as $config) {
@@ -26,6 +34,7 @@ class FilterChain extends AbstractSingleton {
         return $this;
     }
     public function doFilter($action) {
+        Logger::info('doFilter');
         $filter = $this->current();
         $next = $this->next();
         if($filter && is_a($filter, 'lay\core\Filter')) {

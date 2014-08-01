@@ -3,15 +3,25 @@ namespace demo\model;
 
 use lay\core\Model;
 use lay\core\Bean;
+use lay\util\Logger;
 
 class DemoModel extends Model {
+    //private $id = 0;
+    //private $name = '';
+    //private $datetime = '0000-00-00 00:00:00';
+    //private $type = 0;
     public function __construct() {
-        parent::__construct(array(
+    }
+    /**
+     * @return array
+     */
+    public function properties() {
+        return array(
                 'id' => 0,
                 'name' => '',
                 'datetime' => '0000-00-00 00:00:00',
                 'type' => 0
-        ));
+        );
     }
     protected function rules() {
         return array(

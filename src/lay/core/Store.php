@@ -104,6 +104,12 @@ abstract class Store extends AbstractStore {
      */
     protected $config = array();
     /**
+     * Connection
+     * 
+     * @var Connection
+     */
+    protected $connection;
+    /**
      * 数据库连接句柄
      * 
      * @var mixed

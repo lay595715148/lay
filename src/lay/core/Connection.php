@@ -9,6 +9,7 @@ namespace lay\core;
 use MongoClient;
 use Memcache;
 use Redis;
+use PDO;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -49,12 +50,13 @@ class Connection {
         $host = isset($options['host']) ? $options['host'] : 'localhost';
         $username = isset($options['username']) ? $options['username'] : '';
         $password = isset($options['password']) ? $options['password'] : '';
+        $encoding = isset($options['encoding']) ? $options['encoding'] : 'UTF8';
         $newlink = isset($options['new']) ? $options['new'] : false;
         switch($protocol) {
             case 'mongo':
                 $port = isset($options['port']) ? intval($options['port']) : 27017;
                 $server = "mongodb://$host:$port";
-                $opts = array();
+                $opts = empty($options['options']) ? array() : $options['options'];
                 if(class_exists('MongoClient', false)) {
                     $this->link = new MongoClient($server, $opts);
                 } else {
@@ -94,6 +96,11 @@ class Connection {
                     $this->link->pconnect($host, $port, $timeout);
                 }
                 break;
+            case 'pdo':
+                $dsn = empty($options['dsn']) ? 'mysql:host=127.0.0.1;port=3306' : $options['dsn'];
+                $opts = empty($options['options']) ? array() : $options['options'];
+                $this->link = new PDO($dsn, $username, $password, $opts);
+                break;
             case 'mysql':
             case 'maria':
             default:
@@ -102,6 +109,7 @@ class Connection {
                 break;
         }
         $this->name = $name;
+        $this->encoding = $encoding;
     }
     /**
      * 数据库连接数组池
@@ -206,6 +214,26 @@ class Connection {
         }
         if(empty(self::$_Instances[$name])) {
             self::$_Instances[$name] = new Connection($name, 'maria', $options);
+        }
+        return self::$_Instances[$name];
+    }
+    /**
+     * 获取pdo连接
+     * 
+     * @param string $name
+     *            名称
+     * @param array $options
+     *            options
+     * @param string $new
+     *            if new instance of Connection
+     * @return Connection
+     */
+    public static function pdo($name, $options = array(), $new = false) {
+        if($new) {
+            return new Connection($name, 'pdo', $options);
+        }
+        if(empty(self::$_Instances[$name])) {
+            self::$_Instances[$name] = new Connection($name, 'pdo', $options);
         }
         return self::$_Instances[$name];
     }

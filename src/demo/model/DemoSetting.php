@@ -5,12 +5,20 @@ use lay\core\Model;
 use lay\core\Bean;
 
 class DemoSetting extends Model {
+    //private $id = 0;
+    //private $k = '';
+    //private $v = '';
     public function __construct() {
-        parent::__construct(array(
+    }
+    /**
+     * @return array
+     */
+    public function properties() {
+        return array(
                 'id' => 0,
                 'k' => '',
                 'v' => ''
-        ));
+        );
     }
     protected function rules() {
         return array(

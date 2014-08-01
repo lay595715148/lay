@@ -13,15 +13,23 @@ use lay\core\Bean;
  * @author Lay Li
  */
 class MongoSequence extends Model {
+    //private $id = '';
+    //private $name = '';
+    //private $seq = 0;
     /**
      * 构造方法
      */
     public function __construct() {
-        parent::__construct(array(
-                'id' => '',
-                'name' => '',
-                'seq' => 0
-        ));
+    }
+    /**
+     * @return array
+     */
+    public function properties() {
+        return array(
+            'id' => '',
+            'name' => '',
+            'seq' => 0
+        );
     }
     /**
      * (non-PHPdoc)

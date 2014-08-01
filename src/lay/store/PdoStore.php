@@ -13,23 +13,41 @@ use lay\core\Criteria;
 use lay\core\Store;
 use lay\util\Logger;
 use Exception;
+use PDO;
+use PDOStatement;
+use lay\core\Statment;
 
 if(! defined('INIT_LAY')) {
     exit();
 }
 
 /**
- * 操作mysql数据库类
+ * PDO操作数据库类
  *
  * @author Lay Li
  */
-class MysqlStore extends Store {
+class PdoStore extends Store {
     /**
      * mysql数据库连接句柄
      *
      * @var Connection
      */
     protected $connection;
+    /**
+     * PDO
+     * @var PDO
+     */
+    protected $link;
+    /**
+     * PDOStatement
+     * @var PDOStatement
+     */
+    protected $stmt;
+    /**
+     * bound param value array
+     * @var array
+     */
+    protected $paramValues;
     /**
      * 构造方法
      *
@@ -38,7 +56,7 @@ class MysqlStore extends Store {
      * @param string $name
      *            名称
      */
-    public function __construct($model, $name = 'default') {
+    public function __construct($model, $name = 'pdo') {
         if(is_string($name)) {
             $config = App::get('stores.' . $name);
         } else if(is_array($name)) {
@@ -51,13 +69,23 @@ class MysqlStore extends Store {
      */
     public function connect() {
         try {
-            $this->connection = Connection::mysql($this->name, $this->config);
+            $name = $this->name;
+            $config = $this->config;
+            $this->connection = Connection::pdo($name, $config);
             $this->link = $this->connection->link;
+            if(!empty($config['encoding'])) {
+                $this->connection->encoding = $config['encoding'];
+                $sql = 'SET NAMES ' . $config['encoding'];
+                if(!empty($config['showsql'])) {
+                    Logger::info($sql, 'PDO');
+                }
+                $this->link->exec($sql);
+            }
         } catch (Exception $e) {
-            Logger::error($e->getTraceAsString(), 'MYSQL');
+            Logger::error($e->getTraceAsString(), 'PDO');
             return false;
         }
-        return mysqli_select_db($this->link, $this->schema);
+        return true;
     }
     /**
      * 切换mysql数据库
@@ -69,11 +97,16 @@ class MysqlStore extends Store {
     public function change($name = '') {
         if($name) {
             $config = App::getStoreConfig($name);
-            $schema = isset($config['schema']) && is_string($config['schema']) ? $config['schema'] : '';
-            $this->connection = Connection::mysql($name, $config);
+            $this->connection = Connection::pdo($name, $config);
             $this->link = $this->connection->link;
-            // return mysql_select_db($schema, $this->link);
-            return mysqli_select_db($this->link, $schema);
+            if(!empty($config['encoding'])) {
+                $sql = 'SET NAMES ' . $config['encoding'];
+                if(!empty($config['showsql'])) {
+                    Logger::info($sql, 'PDO');
+                }
+                $this->link->exec($sql);
+            }
+            return true;
         } else {
             return $this->connect();
         }
@@ -88,34 +121,37 @@ class MysqlStore extends Store {
      * @param boolean $showsql
      *            是否记录查询信息
      */
-    public function query($sql, $encoding = 'UTF8', $showsql = false) {
+    public function query($sql, $encoding = '', $showsql = false) {
         $config = &$this->config;
         $result = &$this->result;
+        $model = &$this->model;
         $connection = &$this->connection;
         $link = &$this->link;
-        if(! $link) {
+        $stmt = &$this->stmt;
+        if(empty($link)) {
             $this->connect();
         }
 
-        if(! $encoding && $config['encoding']) {
-            $encoding = $config['encoding'];
-        }
         if(! $showsql && $config['showsql']) {
             $showsql = $config['showsql'];
         }
-        if($encoding && $connection->encoding != $encoding) {
-            if($showsql) {
-                Logger::info('SET NAMES ' . $encoding, 'MYSQL');
-            }
-            $connection->encoding = $encoding;
-            mysqli_query($link, 'SET NAMES ' . $encoding);
-        }
         if($showsql) {
-            Logger::info($sql, 'MYSQL');
+            Logger::info($sql, 'PDO');
+            Logger::info($this->paramValues, 'PDO');
         }
         if($sql) {
-            $result = false;
-            $result = mysqli_query($link, $sql);
+            if(strpos(strtolower(trim($sql)), 'select') === 0) {
+                if(empty($this->paramValues)) {
+                    $stmt = $this->link->query($sql);
+                } else {
+                    $stmt = $this->link->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+                    $stmt->execute($this->paramValues);
+                }
+                $stmt->setFetchMode(PDO::FETCH_CLASS, get_class($model));
+                $result = $stmt->fetchAll();
+            } else {
+                $result = $this->link->exec($sql);
+            }
         }
         
         return $result;
@@ -138,9 +174,10 @@ class MysqlStore extends Store {
             $this->connect();
         }
         
-        $criteria = new Criteria($model);
+        $criteria = new Statment($model);
         $criteria->addCondition($pk, $id);
         $sql = $criteria->makeSelectSQL();
+        $this->paramValues = $criteria->returnParamValues();
         $this->query($sql, 'UTF8', true);
         
         return $this->toOne(1);
@@ -162,12 +199,13 @@ class MysqlStore extends Store {
             $this->connect();
         }
         
-        $criteria = new Criteria($model);
+        $criteria = new Statment($model);
         $criteria->setCondition(array(
                 $pk,
                 $id
         ));
         $sql = $criteria->makeDeleteSQL();
+        $this->paramValues = $criteria->returnParamValues();
         
         return $this->query($sql, 'UTF8', true);
     }
@@ -192,9 +230,10 @@ class MysqlStore extends Store {
             return false;
         }
         
-        $criteria = new Criteria($model);
+        $criteria = new Statment($model);
         $criteria->setValues($info);
         $sql = $criteria->makeInsertSQL();
+        $this->paramValues = $criteria->returnParamValues();
         
         $result = $this->query($sql, 'UTF8', true);
         return $result ? $this->toLastid() : false;
@@ -221,13 +260,14 @@ class MysqlStore extends Store {
             return false;
         }
         
-        $criteria = new Criteria($model);
+        $criteria = new Statment($model);
         $criteria->setSetter($info);
         $criteria->setCondition(array(
                 $pk,
                 $id
         ));
         $sql = $criteria->makeUpdateSQL();
+        $this->paramValues = $criteria->returnParamValues();
         
         return $this->query($sql, 'UTF8', true);
     }
@@ -248,9 +288,10 @@ class MysqlStore extends Store {
             $this->connect();
         }
         
-        $criteria = new Criteria($model);
+        $criteria = new Statment($model);
         $criteria->addMultiCondition($info);
         $sql = $criteria->makeCountSQL();
+        $this->paramValues = $criteria->returnParamValues();
         
         $result = $this->query($sql, 'UTF8', true);
         return $this->toScalar();
@@ -283,16 +324,17 @@ class MysqlStore extends Store {
             $this->connect();
         }
         
-        $criteria = new Criteria($model);
+        $criteria = new Statment($model);
         $criteria->addMultiCondition($condition);
         $criteria->setOrder($order);
         $criteria->setLimit($limit);
         $criteria->setGroup($group);
         $criteria->setHaving($having);
         $sql = $criteria->makeSelectSQL();
+        $this->paramValues = $criteria->returnParamValues();
         
         $result = $this->query($sql, 'UTF8', true);
-        return $this->toArray();
+        return $this->toModelArray();
     }
     
     /**
@@ -303,10 +345,13 @@ class MysqlStore extends Store {
      * @return mixed
      */
     public function toCount($isselect = true) {
-        if($isselect) {
-            return mysqli_num_rows($result);
+        if($this->stmt) {
+            return $this->stmt->rowCount();
         } else {
-            return mysql_affected_rows($this->link);
+            if($isselect) {
+                return count($this->result);
+            }
+            return is_numeric($this->result) ? $this->result : 0;
         }
     }
     /**
@@ -319,7 +364,7 @@ class MysqlStore extends Store {
      *
      */
     public function toLastid() {
-        return mysqli_insert_id($this->link);
+        return $this->link->lastInsertId();
     }
     /**
      * 返回单一数据
@@ -327,7 +372,7 @@ class MysqlStore extends Store {
      * @return mixed
      */
     public function toScalar() {
-        $row = mysqli_fetch_row($this->result);
+        $row = array_values($this->toOne());
         return $row['0'];
     }
     /**
@@ -350,26 +395,52 @@ class MysqlStore extends Store {
      */
     public function toArray($count = 0, $origin = false) {
         $rows = array();
-        $result = $this->result;
-        $model = $this->model;
-        if(! $result) {
+        $result = &$this->result;
+        $model = &$this->model;
+        if(empty($result)) {
             // result is empty or null
         } else if($count > 0) {
             $i = 0;
-            while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                if($origin) {
-                    $rows[$i] = (array)$row;
+            foreach ($result as $k => $row) {
+                if($i < $count) {
+                    if(is_a($row, get_class($model))) {
+                        if($origin) {
+                            $rows[$i] = $row->toArray();
+                        } else {
+                            $rows[$i] = $row;
+                        }
+                    } else {
+                        if($origin) {
+                            $rows[$i] = (array)$row;
+                        } else {
+                            $obj = clone $model;
+                            $obj->distinct()->build((array)$row);
+                            $rows[$i] = $obj->toArray();
+                        }
+                    }
+                    $i++;
                 } else {
-                    $obj = clone $model;
-                    $obj->distinct()->build((array)$row);
-                    $rows[$i] = $m->toArray();
+                    break;
                 }
-                $i++;
             }
         } else {
             $i = 0;
-            while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                $rows[$i] = (array)$row;
+            foreach ($result as $k => $row) {
+                if(is_a($row, get_class($model))) {
+                    if($origin) {
+                        $rows[$i] = $row->toArray();
+                    } else {
+                        $rows[$i] = $row;
+                    }
+                } else {
+                    if($origin) {
+                        $rows[$i] = (array)$row;
+                    } else {
+                        $obj = clone $model;
+                        $obj->distinct()->build((array)$row);
+                        $rows[$i] = $obj->toArray();
+                    }
+                }
                 $i++;
             }
         }
@@ -385,30 +456,40 @@ class MysqlStore extends Store {
      */
     public function toModelArray($count = 0) {
         $rows = array();
-        $result = $this->result;
-        $model = $this->model;
-        if(! $result) {
+        $result = &$this->result;
+        $model = &$this->model;
+        if(empty($result)) {
             // result is empty or null
         } else if($count > 0) {
             $i = 0;
-            while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                $obj = clone $model;
-                $obj->distinct()->build((array)$row);
-                $rows[$i] = $obj;
-                $i++;
+            foreach ($result as $k => $row) {
+                if($i < $count) {
+                    if(is_a($row, get_class($model))) {
+                        $rows[$i] = $row;
+                    } else {
+                        $obj = clone $model;
+                        $obj->distinct()->build((array)$row);
+                        $rows[$i] = $obj;
+                    }
+                    $i++;
+                } else {
+                    break;
+                }
             }
         } else {
             $i = 0;
-            if(mysqli_num_rows($result)) {
-                while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+            foreach ($result as $k => $row) {
+                if(is_a($row, get_class($model))) {
+                    $rows[$i] = $row;
+                } else {
                     $obj = clone $model;
                     $obj->distinct()->build((array)$row);
                     $rows[$i] = $obj;
-                    $i++;
                 }
+                $i++;
             }
         }
-        
+
         return $rows;
     }
     /**
@@ -420,28 +501,37 @@ class MysqlStore extends Store {
      */
     public function toObjectArray($count = 0) {
         $rows = array();
-        $result = $this->result;
-        $model = $this->model;
+        $result = &$this->result;
+        $model = &$this->model;
         if(! $result) {
             // result is empty or null
         } else if($count > 0) {
             $i = 0;
-            while($i < $count && $row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                $obj = clone $model;
-                $obj->distinct()->build((array)$row);
-                $rows[$i] = $obj->toStdClass();
-                $i++;
+            foreach ($result as $k => $row) {
+                if($i < $count) {
+                    if(is_a($row, get_class($model))) {
+                        $rows[$i] = $row->toStdClass();
+                    } else {
+                        $obj = clone $model;
+                        $obj->distinct()->build((array)$row);
+                        $rows[$i] = $obj->toStdClass();
+                    }
+                    $i++;
+                }
             }
         } else {
             $i = 0;
-            while($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-                $obj = clone $model;
-                $obj->distinct()->build((array)$row);
-                $rows[$i] = $obj->toStdClass();
-                $i++;
+            foreach ($result as $k => $row) {
+                if(is_a($row, get_class($model))) {
+                    $rows[$i] = $row->toStdClass();
+                } else {
+                    $obj = clone $model;
+                    $obj->distinct()->build((array)$row);
+                    $rows[$i] = $obj->toStdClass();
+                }
             }
         }
-        
+
         return $rows;
     }
     /**

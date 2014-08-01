@@ -21,7 +21,7 @@ abstract class AbstractBean {
      * 返回对象所有属性名的数组
      * @return array
      */
-    public abstract function toProperties();
+    public abstract function properties();
     /**
      * 返回对象属性名对属性值的数组
      * @return array

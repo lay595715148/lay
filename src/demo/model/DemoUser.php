@@ -6,15 +6,24 @@ use lay\core\Bean;
 use lay\model\ExpireIncrementer;
 
 class DemoUser extends ExpireIncrementer {
+    //private $id = 0;
+    //private $name = '';
+    //private $nick = '';
+    //private $pass = '';
+    //private $lifetime = 1800;
     public function __construct() {
-        parent::__construct(array(
+    }
+    /**
+     * @return array
+     */
+    public function properties() {
+        return array(
                 'id' => 0,
                 'name' => '',
                 'nick' => '',
                 'pass' => ''
-        ));
+        );
     }
-    private $lifetime = 1800;
     public function getLifetime() {
         return $this->lifetime;
     }

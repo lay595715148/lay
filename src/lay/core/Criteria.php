@@ -23,77 +23,77 @@ class Criteria {
      * Model
      * @var Model
      */
-    private $model = false;
+    protected $model = false;
     /**
      * modifier
      * @var string
      */
-    private $modifier = true;
+    protected $modifier = true;
     /**
      * current operation flag
      * @var string
      */
-    private $operation = 'SELECT';
+    protected $operation = 'SELECT';
     /**
      * query fields string
      * @var array
      */
-    private $fields = '';
+    protected $fields = '';
     /**
      * values info string
      * @var string
      */
-    private $values = '';
+    protected $values = '';
     /**
      * sets info string
      * @var string
      */
-    private $setter = '';
+    protected $setter = '';
     /**
      * schema name string
      * @var string
      */
-    private $schema = '';
+    protected $schema = '';
     /**
      * table name string
      * @var string
      */
-    private $table = '';
+    protected $table = '';
     /**
      * query condition string
      * @var string
      */
-    private $condition = '';
+    protected $condition = '';
     /**
      * group condition string
      * @var string
      */
-    private $group = '';
+    protected $group = '';
     /**
      * having condition string
      * @var string
      */
-    private $having = '';
+    protected $having = '';
     /**
      * sorting condition string
      * @var string
      */
-    private $order = '';
+    protected $order = '';
     /**
      * limit first number
      * @var int
      */
-    private $offset = - 1; // for paging
+    protected $offset = - 1; // for paging
     /**
      * limit second number
      * @var int
      */
-    private $num = - 1; // for paging
+    protected $num = - 1; // for paging
     /**
      * SQL string
      * @var string
      */
-    private $sql = '';
+    protected $sql = '';
     
     /**
      * please always set model
@@ -126,11 +126,11 @@ class Criteria {
      *
      * @param array $fields field array
      */
-    public function setFields(array $fields) {
+    public function setFields(array $fields, $modelize = true) {
         $m = $this->modifier;
         if(empty($fields)) {
             // Logger::error('empty fields');
-        } else if(is_array($fields) && $this->model) {
+        } else if(is_array($fields) && $modelize && $this->model) {
             $tmp = array();
             // 去除可能存在于两边的着重号
             // $fields = $this->trimModifier($fields);
@@ -154,9 +154,6 @@ class Criteria {
                     Logger::warn('invalid field:' . $field);
                 }
             }
-            /*
-             * if($this->modifier) { $tmp = $this->untrimModifier($tmp); }
-             */
             $this->fields = implode(", ", $tmp);
         } else if(is_array($fields)) {
             // 去除可能存在于两边的着重号
@@ -165,11 +162,13 @@ class Criteria {
                 $fields = $this->untrimModifier($fields);
             }
             $this->fields = implode(", ", $fields);
-        } else if(is_string($fields)) {
+        } else if(is_string($fields) && $modelize && $this->model) {
             $fields = explode(',', $fields);
             // 去除可能存在于两边的着重号
             $fields = $this->trimModifier($fields);
             $this->setFields($fields);
+        } else if(is_string($fields)) {
+            $this->fields = $fields;
         } else {
             Logger::error('invalid fields');
         }
@@ -409,7 +408,7 @@ class Criteria {
                 // $table = $this->trimModifier($table);
                 $tablestr = $this->modifier ? $this->untrimModifier($table) : $table;
                 // option中存在table参数，一般使用不到，可调节优等级
-                $fieldstr = isset($options['table']) && $options['table'] ? $tablestr . '.' : '';
+                $fieldstr = ! empty($options['table']) ? $tablestr . '.' : '';
                 $columns = $this->model->columns();
                 if(array_search($field, $columns)) {
                     $fieldstr .= $this->modifier ? $this->untrimModifier($field) : $field;
@@ -449,7 +448,8 @@ class Criteria {
             case '=':
                 if(is_string($value) || is_numeric($value)) {
                     $value = addslashes(strval($value));
-                    $condition = $fieldstr . ' ' . $symbol . ' \'' . $value . '\'';
+                    $value = $this->untrimQuote($value);
+                    $condition = $fieldstr . ' ' . $symbol . ' ' . $value . '';
                 } else {
                     Logger::error('"in" condition value is not string');
                 }
@@ -786,7 +786,7 @@ class Criteria {
      * @param array $str
      * @return array
      */
-    private function explodeSetter($str) {
+    protected function explodeSetter($str) {
         if(is_array($str)) {
             $setter = array();
             foreach($str as $s) {
@@ -812,14 +812,14 @@ class Criteria {
     /**
      * make COUNT SQL field clause
      */
-    private function makeCountFieldSQL() {
+    protected function makeCountFieldSQL() {
         $this->fields = 'COUNT(*)';
         $this->sql .= ' ' . $this->fields;
     }
     /**
      * make SQL INSERT INTO fields clause
      */
-    private function makeIntoFieldsSQL() {
+    protected function makeIntoFieldsSQL() {
         if($this->fields) {
             $this->sql .= ' (' . $this->fields . ')';
         } else {
@@ -829,7 +829,7 @@ class Criteria {
     /**
      * make fields SQL clause
      */
-    private function makeFieldsSQL() {
+    protected function makeFieldsSQL() {
         if($this->fields) {
             $this->sql .= ' ' . $this->fields;
         } else if($this->model) {
@@ -842,7 +842,7 @@ class Criteria {
     /**
      * make FROM TABLE SQL clause
      */
-    private function makeFromTableSQL() {
+    protected function makeFromTableSQL() {
         if($this->table && $this->schema) {
             $this->sql .= ' FROM ' . $this->schema . '.' . $this->table;
         } else if($this->table) {
@@ -858,7 +858,7 @@ class Criteria {
     /**
      * make INTO TABLE SQL clause
      */
-    private function makeIntoTableSQL() {
+    protected function makeIntoTableSQL() {
         if($this->table && $this->schema) {
             $this->sql .= ' INTO ' . $this->schema . '.' . $this->table;
         } else if($this->table) {
@@ -874,7 +874,7 @@ class Criteria {
     /**
      * make normal TABLE SQL clause
      */
-    private function makeTableSQL() {
+    protected function makeTableSQL() {
         if($this->table && $this->schema) {
             $this->sql .= ' ' . $this->schema . '.' . $this->table;
         } else if($this->table) {
@@ -890,7 +890,7 @@ class Criteria {
     /**
      * make VALUES SQL clause
      */
-    private function makeValuesSQL() {
+    protected function makeValuesSQL() {
         if($this->values) {
             $this->sql .= ' VALUES (' . $this->values . ')';
         } else {
@@ -900,7 +900,7 @@ class Criteria {
     /**
      * make SET SQL clause
      */
-    private function makeSetterSQL() {
+    protected function makeSetterSQL() {
         if($this->setter) {
             $this->sql .= ' SET ' . $this->setter;
         } else {
@@ -910,7 +910,7 @@ class Criteria {
     /**
      * make WHERE SQL clause
      */
-    private function makeConditionSQL() {
+    protected function makeConditionSQL() {
         if($this->condition) {
             $this->sql .= ' WHERE ' . $this->condition;
         }
@@ -918,7 +918,7 @@ class Criteria {
     /**
      * make strict WHERE SQL clause
      */
-    private function makeStrictConditionSQL() {
+    protected function makeStrictConditionSQL() {
         if($this->condition) {
             $this->sql .= ' WHERE ' . $this->condition;
         } else {
@@ -928,7 +928,7 @@ class Criteria {
     /**
      * make GROUP BY SQL clause
      */
-    private function makeGroupSQL() {
+    protected function makeGroupSQL() {
         if($this->group) {
             $this->sql .= ' GROUP BY ' . $this->group;
         }
@@ -936,7 +936,7 @@ class Criteria {
     /**
      * make HAVING SQL clause
      */
-    private function makeHavingSQL() {
+    protected function makeHavingSQL() {
         if($this->group && $this->having) {
             $this->sql .= ' HAVING ' . $this->having;
         }
@@ -944,7 +944,7 @@ class Criteria {
     /**
      * make ORDER BY SQL clause
      */
-    private function makeOrderSQL() {
+    protected function makeOrderSQL() {
         if($this->order) {
             $this->sql .= ' ORDER BY ' . $this->order;
         }
@@ -952,7 +952,7 @@ class Criteria {
     /**
      * make LIMT SQL clause
      */
-    private function makeLimitSQL() {
+    protected function makeLimitSQL() {
         if($this->offset > 0) {
             $this->sql .= ' LIMIT ' . $this->offset . ',' . $this->num;
         } elseif($this->num > 0) {

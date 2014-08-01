@@ -13,6 +13,7 @@ use stdClass;
 use lay\util\Util;
 use Iterator;
 use ArrayAccess;
+use lay\util\Logger;
 
 if(! defined('INIT_LAY')) {
     exit();
@@ -171,22 +172,12 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      */
     const PROPETYPE_S_OTHER = 'other';
     /**
-     * 属性名对默认属性值的数组，如：array('id'=>0,'name'=>'')；
-     * 请不要在非__construct，__set，__get方法中修改它
-     *
-     * @var array
-     */
-    protected $properties = array();
-    /**
      * 构造方法
      *
      * @param array $properties
      *            属性名对默认属性值的数组
      */
-    public function __construct(array $properties = array()) {
-        if(is_array($properties)) {
-            $this->properties = $properties;
-        }
+    public function __construct() {
     }
     /**
      * 检测属性是否设置
@@ -196,7 +187,8 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @return boolean
      */
     public function __isset($name) {
-        return isset($this->properties[$name]);
+        //$properties = $this->properties();
+        return array_key_exists($name, $this->properties());
     }
     /**
      * 将某个属性去除
@@ -206,12 +198,11 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @return void
      */
     public function __unset($name) {
-        unset($this->properties[$name]);
+        return false;
     }
     /**
      * 设置对象属性值的魔术方法
      *
-     * @see \lay\core\AbstractObject::__set()
      * @param string $name
      *            属性名
      * @param mixed $value
@@ -220,104 +211,103 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      */
     public function __set($name, $value) {
         $propetypes = $this->rules();
-        $properties = &$this->properties;
-        
-        if(array_key_exists($name, $properties)) {
+        //$properties = $this->properties();
+        if(isset($this->$name)) {
             if(! empty($propetypes) && array_key_exists($name, $propetypes)) {
                 switch($propetypes[$name]) {
-                    case Model::PROPETYPE_STRING:
-                    case Model::PROPETYPE_S_STRING:
-                        $properties[$name] = strval($value);
+                    case Bean::PROPETYPE_STRING:
+                    case Bean::PROPETYPE_S_STRING:
+                        $this->$name = strval($value);
                         break;
-                    case Model::PROPETYPE_NUMBER:
-                    case Model::PROPETYPE_S_NUMBER:
-                        $properties[$name] = 0 + $value;
+                    case Bean::PROPETYPE_NUMBER:
+                    case Bean::PROPETYPE_S_NUMBER:
+                        $this->$name = 0 + $value;
                         break;
-                    case Model::PROPETYPE_INTEGER:
-                    case Model::PROPETYPE_S_INTEGER:
-                        $properties[$name] = intval($value);
+                    case Bean::PROPETYPE_INTEGER:
+                    case Bean::PROPETYPE_S_INTEGER:
+                        $this->$name = intval($value);
                         break;
-                    case Model::PROPETYPE_BOOLEAN:
-                    case Model::PROPETYPE_S_BOOLEAN:
-                        $properties[$name] = $value ? true : false;
+                    case Bean::PROPETYPE_BOOLEAN:
+                    case Bean::PROPETYPE_S_BOOLEAN:
+                        $this->$name = $value ? true : false;
                         break;
-                    case Model::PROPETYPE_DATETIME:
-                    case Model::PROPETYPE_S_DATETIME:
+                    case Bean::PROPETYPE_DATETIME:
+                    case Bean::PROPETYPE_S_DATETIME:
                         if(is_numeric($value)) {
-                            $properties[$name] = date('Y-m-d H:i:s', intval($value));
+                            $this->$name = date('Y-m-d H:i:s', intval($value));
                         } else if(is_string($value)) {
-                            $properties[$name] = date('Y-m-d H:i:s', strtotime($value));
+                            $this->$name = date('Y-m-d H:i:s', strtotime($value));
                         }
                         break;
-                    case Model::PROPETYPE_DATE:
-                    case Model::PROPETYPE_S_DATE:
+                    case Bean::PROPETYPE_DATE:
+                    case Bean::PROPETYPE_S_DATE:
                         if(is_numeric($value)) {
-                            $properties[$name] = date('Y-m-d', intval($value));
+                            $this->$name = date('Y-m-d', intval($value));
                         } else if(is_string($value)) {
-                            $properties[$name] = date('Y-m-d', strtotime($value));
+                            $this->$name = date('Y-m-d', strtotime($value));
                         }
                         break;
-                    case Model::PROPETYPE_TIME:
-                    case Model::PROPETYPE_S_TIME:
+                    case Bean::PROPETYPE_TIME:
+                    case Bean::PROPETYPE_S_TIME:
                         if(is_numeric($value)) {
-                            $properties[$name] = date('H:i:s', intval($value));
+                            $this->$name = date('H:i:s', intval($value));
                         } else if(is_string($value)) {
-                            $properties[$name] = date('H:i:s', strtotime($value));
+                            $this->$name = date('H:i:s', strtotime($value));
                         }
                         break;
-                    case Model::PROPETYPE_FLOAT:
-                    case Model::PROPETYPE_S_FLOAT:
-                        $properties[$name] = floatval($value);
+                    case Bean::PROPETYPE_FLOAT:
+                    case Bean::PROPETYPE_S_FLOAT:
+                        $this->$name = floatval($value);
                         break;
-                    case Model::PROPETYPE_DOUBLE:
-                    case Model::PROPETYPE_S_DOUBLE:
-                        $properties[$name] = doubleval($value);
+                    case Bean::PROPETYPE_DOUBLE:
+                    case Bean::PROPETYPE_S_DOUBLE:
+                        $this->$name = doubleval($value);
                         break;
-                    case Model::PROPETYPE_ARRAY:
-                    case Model::PROPETYPE_S_ARRAY:
+                    case Bean::PROPETYPE_ARRAY:
+                    case Bean::PROPETYPE_S_ARRAY:
                         if(is_array($value)) {
-                            $properties[$name] = $value;
+                            $this->$name = $value;
                         } else {
                             Logger::error('invalid value,property:' . $name . '\'s value must be an array in class:' . get_class($this), 'MODEL');
                         }
                         break;
-                    case Model::PROPETYPE_PURE_ARRAY:
-                    case Model::PROPETYPE_S_PURE_ARRAY:
+                    case Bean::PROPETYPE_PURE_ARRAY:
+                    case Bean::PROPETYPE_S_PURE_ARRAY:
                         if(is_array($value)) {
-                            $properties[$name] = Util::toPureArray($value);
+                            $this->{$name} = Util::toPureArray($value);
                         } else {
                             Logger::error('invalid value,property:' . $name . '\'s value must be an pure array in class:' . get_class($this), 'MODEL');
                         }
                         break;
                     default:
                         if(is_array($propetypes[$name])) {
-                            if(array_key_exists(Model::PROPETYPE_S_DATEFORMAT, $propetypes[$name])) {
+                            if(array_key_exists(Bean::PROPETYPE_S_DATEFORMAT, $propetypes[$name])) {
                                 // 自定义日期格式
-                                $dateformart = $propetypes[$name][Model::PROPETYPE_S_DATEFORMAT];
+                                $dateformart = $propetypes[$name][Bean::PROPETYPE_S_DATEFORMAT];
                                 if(is_numeric($value)) {
-                                    $properties[$name] = date($dateformart, intval($value));
+                                    $this->$name = date($dateformart, intval($value));
                                 } else if(is_string($value)) {
-                                    $properties[$name] = date($dateformart, strtotime($value));
+                                    $this->$name = date($dateformart, strtotime($value));
                                 }
-                            } else if(array_key_exists(Model::PROPETYPE_S_OTHER, $propetypes[$name])) {
+                            } else if(array_key_exists(Bean::PROPETYPE_S_OTHER, $propetypes[$name])) {
                                 // other
-                                $properties[$name] = $this->otherFormat($value, $propetypes[$name][Model::PROPETYPE_S_OTHER]);
+                                $this->$name = $this->otherFormat($value, $propetypes[$name][Bean::PROPETYPE_S_OTHER]);
                             } else {
                                 // enum
                                 $key = array_search($value, $propetypes[$name]);
                                 if($key !== false) {
-                                    $properties[$name] = $propetypes[$name][$key];
+                                    $this->$name = $propetypes[$name][$key];
                                 } else {
                                     Logger::error('invalid value,it is not in class:' . get_class($this) . ' $propetypes', 'MODEL');
                                 }
                             }
                         } else {
-                            $properties[$name] = $value;
+                            $this->$name = $value;
                         }
                         break;
                 }
             } else {
-                $properties[$name] = $value;
+                $this->$name = $value;
             }
         } else {
             Logger::error('There is no property:' . $name . ' in class:' . get_class($this), 'MODEL');
@@ -332,10 +322,8 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @return mixed
      */
     public function &__get($name) {
-        $properties = &$this->properties;
-        
-        if(array_key_exists($name, $properties)) {
-            return $properties[$name];
+        if(isset($this->$name)) {
+            return $this->$name;
         } else {
             Logger::error('There is no property:' . $name . ' in class:' . get_class($this), 'MODEL');
         }
@@ -368,28 +356,12 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
                     $method
             ), $arguments);
         } else {
-            $keys = array_keys($this->properties);
-            $lower = array(); // setter和getter方法中不区分大小写时使用
-            foreach($keys as $i => $key) {
-                $lower[$i] = strtolower($key);
-            }
-            
             if(strtolower(substr($method, 0, 3)) === 'get') {
-                $proper = strtolower(substr($method, 3));
-                $index = array_search($proper, $lower);
-                if($index !== null) {
-                    return $this->{$keys[$index]};
-                } else {
-                    return $this->{$proper};
-                }
+                $proper = lcfirst(substr($method, 3));
+                return $this->{$proper};
             } else if(strtolower(substr($method, 0, 3)) === 'set') {
-                $proper = strtolower(substr($method, 3));
-                $index = array_search($proper, $lower);
-                if($index !== null) {
-                    $this->{$keys[$index]} = $arguments[0];
-                } else {
-                    $this->{$proper} = $arguments[0];
-                }
+                $proper = lcfirst(substr($method, 3));
+                $this->{$proper} = $arguments[0];
             } else {
                 Logger::error('There is no method:' . $method . '( ) in class:' . get_class($this), 'MODEL');
             }
@@ -421,15 +393,6 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
     }
     
     /**
-     * 返回对象所有属性名的数组
-     *
-     * @see \lay\core\AbstractBean::toProperties()
-     * @return array
-     */
-    public function toProperties() {
-        return array_keys($this->properties);
-    }
-    /**
      * 清空对象所有属性值
      *
      * @see \lay\core\AbstractBean::distinct()
@@ -437,89 +400,9 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      */
     public function distinct() {
         $propetypes = $this->rules();
-        $properties = &$this->properties;
-        foreach($this->properties as $name => $v) {
-            if(! empty($propetypes) && array_key_exists($name, $propetypes)) {
-                switch($propetypes[$name]) {
-                    case Model::PROPETYPE_STRING:
-                    case Model::PROPETYPE_S_STRING:
-                        $properties[$name] = '';
-                        break;
-                    case Model::PROPETYPE_NUMBER:
-                    case Model::PROPETYPE_S_NUMBER:
-                        $properties[$name] = 0;
-                        break;
-                    case Model::PROPETYPE_INTEGER:
-                    case Model::PROPETYPE_S_INTEGER:
-                        $properties[$name] = 0;
-                        break;
-                    case Model::PROPETYPE_BOOLEAN:
-                    case Model::PROPETYPE_S_BOOLEAN:
-                        $properties[$name] = false;
-                        break;
-                    case Model::PROPETYPE_DATETIME:
-                    case Model::PROPETYPE_S_DATETIME:
-                        $properties[$name] = '0000-00-00 00:00:00';
-                        break;
-                    case Model::PROPETYPE_DATE:
-                    case Model::PROPETYPE_S_DATE:
-                        $properties[$name] = '0000-00-00';
-                        break;
-                    case Model::PROPETYPE_TIME:
-                    case Model::PROPETYPE_S_TIME:
-                        $properties[$name] = '00:00:00';
-                        break;
-                    case Model::PROPETYPE_FLOAT:
-                    case Model::PROPETYPE_S_FLOAT:
-                        $properties[$name] = 0.0;
-                        break;
-                    case Model::PROPETYPE_DOUBLE:
-                    case Model::PROPETYPE_S_DOUBLE:
-                        $properties[$name] = 0.0;
-                        break;
-                    case Model::PROPETYPE_ARRAY:
-                    case Model::PROPETYPE_S_ARRAY:
-                    case Model::PROPETYPE_PURE_ARRAY:
-                    case Model::PROPETYPE_S_PURE_ARRAY:
-                        $properties[$name] = array();
-                        break;
-                    default:
-                        if(is_array($propetypes[$name])) {
-                            if(array_key_exists(Model::PROPETYPE_S_DATEFORMAT, $propetypes[$name])) {
-                                // 自定义日期格式
-                                $dateformart = $propetypes[$name][Model::PROPETYPE_S_DATEFORMAT];
-                                $properties[$name] = date($dateformart, 0);
-                            } else if(array_key_exists(Model::PROPETYPE_S_OTHER, $propetypes[$name])) {
-                                // other
-                                $properties[$name] = $this->otherFormat('', $propetypes[$name]);
-                            } else {
-                                // enum
-                                $properties[$name] = array_shift(array_values($propetypes[$name]));
-                            }
-                        } else {
-                            $properties[$name] = '';
-                        }
-                        break;
-                }
-            } else {
-                if(is_string($v)) {
-                    $properties[$name] = '';
-                } else if(is_double($v)) {
-                    $properties[$name] = 0.0;
-                } else if(is_int($v)) {
-                    $properties[$name] = 0;
-                } else if(is_numeric($v)) {
-                    $properties[$name] = 0;
-                } else if(is_bool($v)) {
-                    $properties[$name] = false;
-                } else if(is_array($v)) {
-                    $properties[$name] = array();
-                } else if(is_object($v) || is_resource($v)) {
-                    $properties[$name] = '';
-                } else {
-                    $properties[$name] = '';
-                }
-            }
+        $properties = $this->properties();
+        foreach ($properties as $name => $v) {
+            $this->$name = $v;
         }
         return $this;
     }
@@ -530,9 +413,10 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @return array
      */
     public function toArray() {
-        //return $this->properties;
         $a = array();
-        foreach($this->properties as $key => $val) {
+        $properties = $this->properties();
+        foreach($properties as $key => $def) {
+            $val = $this->$key;
             if(is_a($val, 'lay\core\Bean')) {
                 $a[$key] = $val->toArray();
             } else if(is_array($val)) {
@@ -551,7 +435,9 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      */
     public function toStdClass() {
         $o = new stdClass();
-        foreach($this->properties as $key => $val) {
+        $properties = $this->properties();
+        foreach($properties as $key => $def) {
+            $val = $this->$key;
             if(is_a($val, 'lay\core\Bean')) {
                 $o->{$key} = $val->toStdClass();
             } else if(is_array($val)) {
@@ -623,7 +509,7 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @see Iterator::current()
      */
     public function current() {
-        return current($this->properties);
+        return current($this);
     }
     /**
      * (non-PHPdoc)
@@ -631,7 +517,7 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @see Iterator::next()
      */
     public function next() {
-        return next($this->properties);
+        return next($this);
     }
     /**
      * (non-PHPdoc)
@@ -639,7 +525,7 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @see Iterator::key()
      */
     public function key() {
-        return key($this->properties);
+        return key($this);
     }
     /**
      * (non-PHPdoc)
@@ -647,7 +533,7 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @see Iterator::valid()
      */
     public function valid() {
-        return key($this->properties) !== null;
+        return key($this) !== null;
     }
     /**
      * (non-PHPdoc)
@@ -655,10 +541,10 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
      * @see Iterator::rewind()
      */
     public function rewind() {
-        return reset($this->properties);
+        return reset($this);
     }
     public function offsetExists ($index) {
-        return array_key_exists($index, $this->properties);
+        return isset($this->$index);
     }
 
     public function offsetGet ($index) {
@@ -670,7 +556,6 @@ abstract class Bean extends AbstractBean implements Iterator, ArrayAccess {
     }
 
     public function offsetUnset ($index) {
-        //unset($this->$index);
         return false;
     }
     /**

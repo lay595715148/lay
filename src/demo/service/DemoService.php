@@ -12,6 +12,8 @@ use web;
 use lay\entity\Lister;
 use lay\util\Util;
 use lay\util\Collector;
+use lay\store\PdoStore;
+use demo\model\DemoModel;
 
 class DemoService extends Service {
     /**
@@ -85,6 +87,15 @@ class DemoService extends Service {
         //$ret = $memcacheStore->del(2013);
         $ret = $memcacheStore->get(2013);
         Logger::debug($ret, 'DEMO', true);
+    }
+    /**
+     * 测试mecmache
+     */
+    public function pdo($info, $limit = array()) {//Logger::debug(new DemoModel(), 'DEMO', true);
+        $pdoStore = new PdoStore(new DemoModel());
+        $ret = $pdoStore->select(array(), $info, array('id'=>'desc'), $limit);
+        //Logger::debug($ret, 'DEMO', true);
+        return $ret;
     }
 }
 ?>

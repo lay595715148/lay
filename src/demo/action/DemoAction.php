@@ -47,9 +47,10 @@ class DemoAction extends TypicalAction {
         //Logger::debug($this->response->getRequestHeaders());
         //$this->response->redirect('/authorize', array('code' => '1111'));
         //new Request();
-        $ret = $this->demoService->test();
+        //$ret = $this->demoService->test();
         //$this->test();
         //$this->testMysql();
+        $this->testPdo();
         if(is_a($this, 'lay\action\HTMLAction')) {
             $this->template->file('demo.php');
         }
@@ -58,6 +59,20 @@ class DemoAction extends TypicalAction {
         $offset = 3;
         $num = 5;
         $ret = $this->demoService->select(array('type' => array(0, '>')), array($offset, $num));
+        $total = $this->demoService->count(array('type' => array(0, '>')));
+        if(is_a($this, 'lay\action\HTMLAction')) {
+            //$list = Collector::lister($ret, $total, $offset, $num);
+            //$this->template->push($list->toArray());
+            $this->template->push('list', $ret);
+        } else {
+            $list = Collector::lister($ret, $total, $offset, $num);
+            $this->template->push($list->toArray());
+        }
+    }
+    public function testPdo() {
+        $offset = 3;
+        $num = 5;
+        $ret = $this->demoService->pdo(array('type' => array(0, '>')), array($offset, $num));
         $total = $this->demoService->count(array('type' => array(0, '>')));
         if(is_a($this, 'lay\action\HTMLAction')) {
             //$list = Collector::lister($ret, $total, $offset, $num);

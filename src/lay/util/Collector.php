@@ -26,11 +26,12 @@ class Collector {
      * @param int $num
      * @return lay\entity\Lister
      */
-    public static function lister($list, $total = false, $offset = -1, $num = -1) {
+    public static function lister($list, $total = false, $offset = -1, $num = -1, $since = '') {
         $lister = new Lister();
-        $lister->list = $list;
-        $lister->total = is_numeric($total) ? $total : count($lister->list);
-        $lister->hasNext = is_bool($offset) ? $offset : Util::hasNext($lister->total, $offset, $num);
+        $lister->setList($list);
+        $lister->setTotal(is_numeric($total) ? $total : count($lister->getList()));
+        $lister->setHasNext(is_bool($offset) ? $offset : Util::hasNext($lister->getTotal(), $offset, $num));
+        $lister->setSince($since);
         return $lister;
     }
     /**
@@ -43,11 +44,11 @@ class Collector {
      */
     public static function response($action, $content, $success = true, $code = 0) {
         $response = new Response();
-        $response->success = $success;
-        $response->action = $action;
-        $response->content = $content;
-        $response->code = $code;
-        $response->exp = Util::microtime() - App::$_StartTime;
+        $response->setSuccess($success);
+        $response->setAction($action);
+        $response->setContent($content);
+        $response->setCode($code);
+        $response->setExp(Util::microtime() - App::$_StartTime);
         return $response;
     }
     /**
