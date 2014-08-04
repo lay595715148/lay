@@ -22,9 +22,9 @@ if(!defined('INIT_LAY')) {
 interface Filter {
     /**
      * 初始化
-     * @param array $filterConfig 配置项
+     * @param array $config 配置项
      */
-    public function initilize($filterConfig);
+    public function initilize($config);
     /**
      * 执行过滤
      * @param Action $action 实现Action的对象
