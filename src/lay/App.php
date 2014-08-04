@@ -12,10 +12,9 @@ use lay\core\EventEmitter;
 use lay\core\Configuration;
 use lay\core\PluginManager;
 use lay\core\Action;
-use lay\config\C;
-use Exception;
 use lay\core\Store;
 use lay\core\FilterChain;
+use Exception;
 
 if(! defined('INIT_LAY')) {
     define('INIT_LAY', true); // 标记

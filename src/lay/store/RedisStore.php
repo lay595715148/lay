@@ -10,21 +10,6 @@ use lay\model\SecondaryExpirer;
 
 class RedisStore extends Store {
     /**
-     * 构造方法
-     * @param ModelExpire $model 模型对象
-     * @param string $name 名称
-     * @throws Exception
-     */
-    public function __construct($model = false, $name = 'redis') {
-        if(is_string($name)) {
-            $config = App::get('stores.'.$name);
-        } else if(is_array($name)) {
-            $config = $name;
-        }
-        parent::__construct($name, $model, $config);
-    }
-
-    /**
      * 数据库连接对象
      * @var Connection
      */
@@ -39,6 +24,20 @@ class RedisStore extends Store {
      * @var SecondaryExpirer
      */
     protected $model;
+    /**
+     * 构造方法
+     * @param ModelExpire $model 模型对象
+     * @param string $name 名称
+     * @throws Exception
+     */
+    public function __construct($model = false, $name = 'redis') {
+        if(is_string($name)) {
+            $config = App::get('stores.'.$name);
+        } else if(is_array($name)) {
+            $config = $name;
+        }
+        parent::__construct($name, $model, $config);
+    }
     /**
      * 连接Mongo数据库
      * @return boolean

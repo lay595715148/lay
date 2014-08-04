@@ -314,5 +314,13 @@ class Util {
         }
         return "<$key>$xml_str</$key>";
     }
+    /**
+     * 递归创建文件夹目录
+     * @param string $dir
+     * @return boolean
+     */
+    public static function createFolders($dir) {
+        return is_dir($dir) | (self::createFolders(dirname($dir)) & mkdir($dir, 0777));
+    }
 }
 ?>

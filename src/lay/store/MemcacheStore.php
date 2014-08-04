@@ -25,6 +25,22 @@ if(! defined('INIT_LAY')) {
  * @author Lay Li
  */
 class MemcacheStore extends Store {
+
+    /**
+     * 数据库连接对象
+     * @var Connection
+     */
+    protected $connection;
+    /**
+     * 数据访问对象
+     * @var Memcache
+     */
+    protected $link;
+    /**
+     * 模型对象
+     * @var SecondaryExpirer
+     */
+    protected $model;
     /**
      * 构造方法
      * @param ModelExpire $model 模型对象
@@ -44,22 +60,6 @@ class MemcacheStore extends Store {
             Logger::error('error Expireable instance!');
         } */
     }
-
-    /**
-     * 数据库连接对象
-     * @var Connection
-     */
-    protected $connection;
-    /**
-     * 数据访问对象
-     * @var Memcache
-     */
-    protected $link;
-    /**
-     * 模型对象
-     * @var SecondaryExpirer
-     */
-    protected $model;
     /**
      * 连接Mongo数据库
      * @return boolean
